@@ -1,6 +1,6 @@
 # Ledger Next 技术方案
 
-版本 0.2 · 2026-10-02 · 状态：待设计评审。本文中的组件、接口、指标均为待实现设计。
+版本 0.3 · 2026-10-02 · 状态：待设计评审（0.3 增加主题色与深浅模式）。本文中的组件、接口、指标均为待实现设计。
 
 ## 1. 产品范围与需求追踪
 
@@ -13,7 +13,7 @@ Wallos 提供订阅、分类、多币种、统计和多个通知通道，适合�
 | R1 多币种、实时汇率 | 原币、账户结算币、历史基准币；分钟汇率、快照与降级 | 本文 §4–5 | M2、M3 |
 | R2 直观可视化 | 收支趋势、分类排行、预算进度、周期扣款日历、可钻取明细 | UI_SPEC P01/P04/P05 | M4 |
 | R3 多通道提醒 | TG、飞书、企业微信、个人微信、站内、邮件和通用 Webhook | 本文 §6 | M5，个人微信独立验收 |
-| R4 现代 UI | 中性底色、青绿强调、克制卡片、深浅主题、完整状态反馈 | UI_SPEC §2 | M0-UI、M4 |
+| R4 现代 UI | 中性底色、可修改主题色（默认青绿）、浅色 / 深色完整适配且支持手动切换与跟随系统、克制卡片、完整状态反馈 | UI_SPEC §2、§2.2；本文 §7.4 | M0-UI、M4-THEME |
 | R5 Next.js / REST / SSR | App Router、RSC、Route Handlers、统一领域层、流式 SSR | 本文 §2–3/§7 | M1、M7-PERF |
 | R6 桌面 / 移动适配 | 360px–1920px；桌面侧栏、移动底栏与全屏表单 | UI_SPEC §3 | M4-UI、M7-E2E |
 | R7 MCP + Skill | 标准 MCP 适配 REST；四客户端配置与同一 Skill 内容 | API_AGENT_CONTRACT | M6 |
@@ -26,7 +26,7 @@ V1 必须覆盖：登录、账本 / 成员权限、账户、分类、收入 / �
 | 层 | 选择 | 用途与约束 |
 | --- | --- | --- |
 | Web / HTTP API | Next.js 16 稳定系列 + App Router + React + TypeScript strict | 初始化时锁定最新经验证安全补丁和匹配 React 版本，不使用 canary |
-| UI | Tailwind CSS、shadcn/ui / Radix、Lucide | 组件令牌统一；无必要不引入全局客户端状态 |
+| UI | Tailwind CSS、shadcn/ui / Radix、Lucide | 组件只引用 CSS 变量令牌（浅 / 深两套 + 主题色输入），不硬编码颜色；无必要不引入全局客户端状态 |
 | 可视化 | Apache ECharts 6，使用 echarts/core 按需注册；按页面懒加载 | 统一折线、柱形、环图；SSR 输出摘要和数据表，图表点数上限 366 |
 | 表单 / 契约 | React Hook Form + Zod；OpenAPI 3.1 | 服务端重新校验，生成 REST 客户端；UI 校验仅改善体验 |
 | 数据 | PostgreSQL + Drizzle ORM / SQL migrations | decimal 运算和数据库约束是事实来源 |
@@ -74,7 +74,7 @@ packages/
   db/                         schema、SQL、迁移、事务
   contracts/                  Zod、OpenAPI、公共错误模型
   api-client/                 从 OpenAPI 生成的 REST SDK
-  ui/                         设计令牌与复用组件
+  ui/                         设计令牌、主题色生成器与复用组件
   notifications/              各供应商适配器
   agent-skill/                正式服务 Skill 及最小业务参考
 tests/                        integration、contract、e2e、load
@@ -98,6 +98,7 @@ docs/                         本设计包、评审、决策、证据
 | 表 | 关键字段 / 约束 |
 | --- | --- |
 | users / sessions | 身份、登录会话；会话可撤销 |
+| user_preferences | user_id 唯一、theme_mode（system / light / dark）、accent_type（preset / custom）、accent_value、palette_version、version、updated_at；纯展示偏好，不含账务数据 |
 | ledgers / memberships | name、base_currency、timezone、user_id、role；唯一 ledger/user |
 | currencies | ISO code、minor_units、enabled；首发 CNY/USD/HKD/EUR/JPY，涵盖 0/2/3 位精度测试 |
 | accounts | ledger_id、type、currency、opening_balance、archived_at；一个账户一种结算币 |
@@ -268,6 +269,18 @@ ECharts 支持 setOption 数据过渡，参考[官方动画说明](https://echar
 | 汇率新鲜度 | 正常源更新时 source age p95 ≤120s；故障明确显示 |
 
 发布前无足够真实 RUM 流量时，Web Vitals 用至少 20 次受控浏览器测试报告分布，并注明是实验数据；上线后再以 7 天 RUM 验证。低于目标时先检查查询与串行 IO，再谈扩容。
+
+### 7.4 外观主题的渲染与缓存
+
+交互规则见 UI_SPEC §2.2。实现约束如下：
+
+- 令牌：packages/ui 定义浅 / 深两套中性令牌和固定语义色。主题色只有四个输入变量（--accent-l / --accent-d / --on-accent-l / --on-accent-d），soft、侧栏等派生值由 CSS color-mix 计算。Tailwind 主题引用 CSS 变量，组件中出现硬编码颜色视为缺陷。
+- 生成器：主题色生成器是纯函数（OKLCH 调整 + WCAG 对比度校验 + palette_version），服务端与客户端共用同一实现。客户端结果只用于即时预览；PATCH 时服务端重新生成并校验，不信任客户端提交的色值。单元测试覆盖全部预设、极端颜色、色域裁剪和版本升级重算。
+- SSR 首帧：根 layout 是服务端组件。已登录时，偏好随 session 一并读取 user_preferences，不额外发 HTTP 请求；未登录时读取 Cookie ln_appearance（只含模式和主题色，非敏感，SameSite=Lax、Secure、有效期 1 年）。手动模式输出 html data-theme，并以内联 style 输出四个主题色变量；跟随系统完全由 @media (prefers-color-scheme) 处理，因此首帧正确且无需阻塞脚本。Sec-CH-Prefers-Color-Scheme 浏览器支持不全，只可作为可选优化。
+- 客户端：外观设置是小型 Client Component。切换时立即更新 html 属性和变量（纯展示，不涉及资金，可乐观更新），并写 Cookie；500ms 防抖后 PATCH /api/v1/me/preferences，失败时提示“仅本设备生效”并允许重试。跟随系统时监听 matchMedia('(prefers-color-scheme: dark)') 的 change 事件，并通知图表更新。
+- 图表：ECharts 颜色从解析后的 CSS 令牌读取（color-mix 等表达式先解析为 sRGB 十六进制）。模式或主题色变化时对同一实例 setOption，禁止为换肤 dispose 重建；不使用 ECharts 内置 dark 主题，避免与产品令牌分叉。
+- 缓存：已登录 HTML 本就 private / no-store，外观差异不改变该策略。登录页等公开页面若启用共享缓存，必须 Vary: Cookie，或改为客户端注入外观变量，不能把某个用户的主题缓存给其他人。静态 CSS 不含用户值，可 immutable 缓存。
+- 性能：生成器单次计算 <1ms，不涉及 IO；内联变量 <300 字节，不影响 §7.3 的 JS 预算。
 
 ## 8. 权限、数据保护和运维
 

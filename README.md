@@ -1,6 +1,6 @@
 # Ledger Next · 记账项目设计包
 
-版本：0.2（设计评审稿）｜日期：2026-10-02｜时区：Asia/Hong_Kong
+版本：0.3（设计评审稿）｜日期：2026-10-02｜时区：Asia/Hong_Kong
 
 本次交付是开发前设计、交互原型和可维护的执行计划。尚未实现 Next.js 应用、REST API、通知服务或 MCP 服务，也没有部署或发送真实通知。
 
@@ -9,8 +9,8 @@
 | 文档 / 工具 | 用途 |
 | --- | --- |
 | [技术方案](docs/TECHNICAL_DESIGN.md) | 范围、Next.js 全栈架构、账务模型、多币种、汇率、提醒、SSR、部署与质量目标 |
-| [UI 设计规范](docs/UI_SPEC.md) | 信息架构、桌面 / 移动端页面、字段、组件、交互、异常状态、验收标准 |
-| [可点击 UI 原型](docs/ui/index.html) | 离线打开；ECharts 动画图表、数据钻取、页面、记账、币种与主题切换；所有数据均为演示数据 |
+| [UI 设计规范](docs/UI_SPEC.md) | 信息架构、桌面 / 移动端页面、字段、组件、交互、异常状态、主题色与深浅模式、验收标准 |
+| [可点击 UI 原型](docs/ui/index.html) | 离线打开；ECharts 动画图表、数据钻取、页面、记账、币种切换，以及外观设置：浅色 / 深色 / 跟随系统、7 个预设主题色和自定义色；所有数据均为演示数据 |
 | [操作逻辑图](docs/USER_FLOWS.md) | 记账、转账、订阅、汇率、提醒、Agent 写入的 Mermaid 流程与状态图 |
 | [REST / MCP / Skill 契约](docs/API_AGENT_CONTRACT.md) | API 规范、工具映射、Codex / Claude Code / dsh / Qoder 配置与联调矩阵 |
 | [里程碑与执行手册](docs/DELIVERY_PLAN.md) | 开发顺序、前置门禁、交付方式、排期假设、更新命令 |
