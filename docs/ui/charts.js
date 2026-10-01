@@ -7,11 +7,23 @@
   let currentModel;
   let currentActions;
 
+  // Theme tokens may be var() / color-mix() expressions; resolve them to #rrggbb because ECharts appends alpha to hex values.
+  function resolveColor(probe, key) {
+    probe.style.color = 'var(--' + key + ')';
+    const value = getComputedStyle(probe).color;
+    const rgb = value.match(/^rgba?\(([^)]+)\)/)?.[1].split(/[\s,/]+/).slice(0, 3).map(Number)
+      ?? value.match(/^color\(srgb\s+([^)]+)\)/)?.[1].trim().split(/\s+/).slice(0, 3).map(v => Number(v) * 255);
+    return rgb ? '#' + rgb.map(v => Math.round(Math.min(255, Math.max(0, v))).toString(16).padStart(2, '0')).join('') : value;
+  }
   function palette() {
-    const css = getComputedStyle(document.body);
-    const token = key => css.getPropertyValue('--' + key).trim();
+    const probe = document.createElement('span');
+    probe.hidden = true;
+    document.body.append(probe);
+    const token = key => resolveColor(probe, key);
     const categories=Object.fromEntries(Object.entries({居住:'home',购物:'shopping',订阅服务:'subscription',交通:'travel',餐饮:'food',工资:'food'}).map(([name,key])=>[name,token('cat-'+key)]));
-    return {ink:token('ink'),muted:token('muted'),line:token('line'),surface:token('panel'),accent:token('accent'),blue:token('blue'),soft:token('soft'),categories};
+    const colors={ink:token('ink'),muted:token('muted'),line:token('line'),surface:token('panel'),accent:token('accent'),positive:token('positive'),blue:token('blue'),soft:token('soft'),categories};
+    probe.remove();
+    return colors;
   }
   function money(value) {
     return new Intl.NumberFormat('zh-CN', {style:'currency',currency:currentModel.currency,currencyDisplay:'narrowSymbol',minimumFractionDigits:2}).format(value);
@@ -51,7 +63,7 @@
             itemStyle:{color:c.blue,borderRadius:[6,6,0,0]},lineStyle:{width:3,color:c.blue},
             areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:c.blue+'42'},{offset:1,color:c.blue+'02'}])},
             emphasis:{focus:'series',scale:true},animationDelay:i=>motion.matches?0:Math.min(i*45,180)},
-          {id:'income',name:'收入',type:'bar',data:compare?data('income'):[],barMaxWidth:23,itemStyle:{color:c.accent,borderRadius:[6,6,0,0]},emphasis:{focus:'series'},animationDelay:i=>motion.matches?0:Math.min(i*45+60,180)}
+          {id:'income',name:'收入',type:'bar',data:compare?data('income'):[],barMaxWidth:23,itemStyle:{color:c.positive,borderRadius:[6,6,0,0]},emphasis:{focus:'series'},animationDelay:i=>motion.matches?0:Math.min(i*45+60,180)}
         ]
       };
     }
@@ -62,13 +74,13 @@
         grid:{left:70,right:82,top:8,bottom:8},
         xAxis:{type:'value',show:false,max:v=>v.max>0?v.max*1.02:1},
         yAxis:{type:'category',inverse:true,data:data.map(d=>d[0]),axisLine:{show:false},axisTick:{show:false},axisLabel:{color:c.ink,fontSize:12}},
-        series:[{id:'categories',name:'分类',type:'bar',barWidth:10,showBackground:true,backgroundStyle:{color:c.soft,borderRadius:6},label:{show:true,position:'right',distance:10,color:c.ink,fontSize:12,formatter:p=>money(p.value)},itemStyle:{borderRadius:6},data:data.map(([name,value])=>({name,value:Number((value/factor).toFixed(2)),itemStyle:{color:c.categories[name]||c.accent}})),emphasis:{focus:'self'},animationDelay:i=>motion.matches?0:Math.min(i*50,180)}]
+        series:[{id:'categories',name:'分类',type:'bar',barWidth:10,showBackground:true,backgroundStyle:{color:c.soft,borderRadius:6},label:{show:true,position:'right',distance:10,color:c.ink,fontSize:12,formatter:p=>money(p.value)},itemStyle:{borderRadius:6},data:data.map(([name,value])=>({name,value:Number((value/factor).toFixed(2)),itemStyle:{color:c.categories[name]||c.muted}})),emphasis:{focus:'self'},animationDelay:i=>motion.matches?0:Math.min(i*50,180)}]
       };
     }
     return {...option,
       aria:{enabled:true,label:{description:'按历史入账口径的支出占比，各分类金额可从下方数据列表查看。'}},
       title:{text:money(model.categories.reduce((s,d)=>s+d[1],0)/factor),subtext:'九月总支出 · '+model.currency,left:'center',top:'40%',itemGap:8,textStyle:{color:c.ink,fontSize:dom.clientWidth<340?21:25,fontWeight:600},subtextStyle:{color:c.muted,fontSize:12}},
-      series:[{id:'composition',name:'支出构成',type:'pie',radius:['65%','84%'],center:['50%','49%'],startAngle:90,padAngle:3,minAngle:0,avoidLabelOverlap:true,label:{show:false},labelLine:{show:false},itemStyle:{borderRadius:7},animationType:'expansion',animationDuration:motion.matches?0:850,animationDurationUpdate:motion.matches?0:420,emphasis:{scale:true,scaleSize:5},data:model.categories.map(([name,value])=>({name,value:Number((value/factor).toFixed(2)),itemStyle:{color:c.categories[name]||c.accent}}))}]
+      series:[{id:'composition',name:'支出构成',type:'pie',radius:['65%','84%'],center:['50%','49%'],startAngle:90,padAngle:3,minAngle:0,avoidLabelOverlap:true,label:{show:false},labelLine:{show:false},itemStyle:{borderRadius:7},animationType:'expansion',animationDuration:motion.matches?0:850,animationDurationUpdate:motion.matches?0:420,emphasis:{scale:true,scaleSize:5},data:model.categories.map(([name,value])=>({name,value:Number((value/factor).toFixed(2)),itemStyle:{color:c.categories[name]||c.muted}}))}]
     };
   }
   function apply(record) {

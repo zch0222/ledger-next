@@ -29,6 +29,7 @@ OpenAPI 3.1 是实现阶段可执行契约，M1-API 需把下表全部转换为 
 | 方法 / 路径 | 作用 / 返回 | 最低权限 |
 | --- | --- | --- |
 | GET /api/v1/me | 身份、账本列表、默认账本、有效 scopes | 已认证 |
+| GET/PATCH /api/v1/me/preferences | 本人外观偏好：themeMode（system / light / dark）、accent（预设 ID 或 #RRGGBB）；响应附服务端生成的浅 / 深色板与 paletteVersion；PATCH 同时刷新 ln_appearance Cookie | 本人 Web Session；PAT / MCP 不开放 |
 | GET/POST /api/v1/ledgers | 账本列表 / 新建 | 已认证 |
 | GET/PATCH L | 账本详情 / 设置 | viewer / owner |
 | GET/POST L/memberships | 成员 / 邀请关系 | owner |
@@ -70,6 +71,35 @@ OpenAPI 3.1 是实现阶段可执行契约，M1-API 需把下表全部转换为 
 | GET L/audit-events | 审计分页，不包含密钥 | owner |
 | POST/GET L/approval-requests、GET/PATCH /{id} | 高影响操作审批；批准只能由 Web 用户 | owner |
 | GET L/operations/{id} | Agent 写入结果 / 异步操作状态 | 原 actor |
+
+外观偏好示例（色值由服务端生成器计算，客户端预览值仅供参考）：
+
+~~~http
+PATCH /api/v1/me/preferences
+If-Match: "pref-v3"
+Content-Type: application/json
+
+{"appearance": {"themeMode": "system", "accent": {"type": "custom", "value": "#6B4EFF"}}}
+~~~
+
+~~~json
+{
+  "data": {
+    "appearance": {
+      "themeMode": "system",
+      "accent": {"type": "custom", "value": "#6B4EFF"},
+      "palette": {
+        "version": 1,
+        "light": {"accent": "#684AFB", "onAccent": "#FFFFFF", "minContrast": "4.53", "adjusted": true},
+        "dark": {"accent": "#9896FF", "onAccent": "#0F1F22", "minContrast": "4.75", "adjusted": true}
+      }
+    }
+  },
+  "meta": {"requestId": "req-example"}
+}
+~~~
+
+非法颜色或未知预设返回 422，不写入。沿用 ETag / If-Match，412 时客户端重新读取，再按用户最后一次选择重试。偏好不属于账本资源，不进入账务审计；未保存过偏好时 GET 返回默认值 system + teal。
 
 通知 webhook 回调、OIDC 回调、MCP 传输不纳入 REST 业务资源命名约束，因为必须匹配对方协议。相关入口仍必须鉴权 / 验签、限流和验证 schema。
 

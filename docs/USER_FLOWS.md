@@ -214,3 +214,50 @@ Skill 不能授予令牌没有的权限。批量删除 / 大规模导入的审�
 ~~~
 
 脚本还支持 ready，用于显式标记依赖已满足的待执行任务。G0 需要有效评审记录和 reviewer；所有业务开发通过 M1-BASE 依赖 G0。状态并不自动证明产品质量，验收证据仍由评审者判断。
+
+## F10 外观：深浅模式与主题色
+
+~~~mermaid
+flowchart TD
+  A[顶栏外观 / 更多 → 外观 / P13] --> B{修改什么}
+  B -->|显示模式| C{跟随系统?}
+  C -->|是| D[移除 data-theme，由 prefers-color-scheme 决定]
+  C -->|否| E[data-theme = light 或 dark]
+  B -->|预设主题色| F[读取预设浅 / 深色值]
+  B -->|自定义颜色| G{#RRGGBB 有效?}
+  G -->|否| H[内联错误，保持当前主题]
+  G -->|是| I[OKLCH 调整明度，生成满足 AA 的浅 / 深色板]
+  I --> J{接近错误 / 警告色?}
+  J -->|是| K[非阻断提示，仍可使用]
+  J -->|否| L
+  K --> L
+  F --> L[更新 html 变量，临时禁用过渡]
+  D --> L
+  E --> L
+  L --> M[图表同实例 setOption 换色]
+  M --> N[写 Cookie，防抖 PATCH /me/preferences]
+  N --> O{保存成功?}
+  O -->|是| P[账号同步，其他设备下次加载生效]
+  O -->|否| Q[提示仅本设备生效，可重试]
+~~~
+
+~~~mermaid
+stateDiagram-v2
+  state "跟随系统（默认）" as system
+  state "浅色（手动）" as light
+  state "深色（手动）" as dark
+  [*] --> system
+  system --> light: 选择浅色
+  system --> dark: 选择深色
+  light --> dark: 选择深色
+  dark --> light: 选择浅色
+  light --> system: 选择跟随系统
+  dark --> system: 选择跟随系统
+  state system {
+    [*] --> sys_light
+    sys_light --> sys_dark: 系统切换为深色
+    sys_dark --> sys_light: 系统切换为浅色
+  }
+~~~
+
+解析顺序：手动选择 > 系统偏好 > 浅色。SSR 首帧按已保存偏好（未登录时读 Cookie）输出，跟随系统交由 CSS 媒体查询处理，因此不会先闪现另一种主题。外观不触发账务请求，收支、警告、错误和图表数据色不随主题色变化。
