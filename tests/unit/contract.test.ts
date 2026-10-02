@@ -44,8 +44,13 @@ describe('OpenAPI document', () => {
       expect(doc.components[group], ref).toHaveProperty([name]);
     }
   });
-  it('marks exactly the implemented M1 operations stable', () => {
-    expect(ops.filter(x => x.o['x-stability'] === 'stable').map(x => x.o.operationId).sort()).toEqual(['createLedger', 'createMembership', 'deleteMembership', 'getLedger', 'getMe', 'listAuditEvents', 'listLedgers', 'listMemberships', 'updateLedger', 'updateMembership']);
+  it('marks exactly the implemented operations stable (M1 + M2-LEDGER)', () => {
+    expect(ops.filter(x => x.o['x-stability'] === 'stable').map(x => x.o.operationId).sort()).toEqual([
+      'archiveAccount', 'archiveCategory', 'archiveTag', 'createAccount', 'createCategory', 'createLedger', 'createMembership', 'createRefund', 'createTag',
+      'createTransaction', 'createTransactionPreview', 'deleteMembership', 'getAccount', 'getLedger', 'getMe', 'getTransaction', 'listAccounts', 'listAuditEvents',
+      'listCategories', 'listLedgers', 'listMemberships', 'listTags', 'listTransactions', 'updateAccount', 'updateCategory', 'updateLedger', 'updateMembership',
+      'updateTag', 'updateTransaction', 'voidTransaction',
+    ]);
   });
 });
 

@@ -42,7 +42,7 @@ export const Transaction = resource('Transaction', z.object({
 }));
 export const TransactionQuery = z.object({
   dateFrom: LocalDate.optional().meta({ description: '含当日，按账本时区' }), dateTo: LocalDate.optional().meta({ description: '不含当日' }),
-  accountId: uuid.optional(), categoryId: uuid.optional(), kind: TransactionKind.optional(), status: z.enum(['posted', 'voided']).optional(),
+  accountId: uuid.optional(), categoryId: uuid.optional(), kind: TransactionKind.optional(), status: z.enum(['posted', 'voided', 'all']).default('posted').meta({ description: '默认只列有效交易；被更正或作废的旧版本用 voided / all 查看' }),
   q: z.string().max(100).optional(), sort: z.enum(['-localDate', 'localDate', '-amount', 'amount']).default('-localDate'), ...pageQuery,
 }).strict();
 

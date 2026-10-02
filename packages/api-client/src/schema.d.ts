@@ -127,16 +127,10 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * 账户列表
-         * @description 计划于 M2-LEDGER 实现；当前返回 501。
-         */
+        /** 账户列表 */
         get: operations["listAccounts"];
         put?: never;
-        /**
-         * 新建账户
-         * @description 计划于 M2-LEDGER 实现；当前返回 501。
-         */
+        /** 新建账户 */
         post: operations["createAccount"];
         delete?: never;
         options?: never;
@@ -151,24 +145,15 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * 账户详情与余额
-         * @description 计划于 M2-LEDGER 实现；当前返回 501。
-         */
+        /** 账户详情与余额 */
         get: operations["getAccount"];
         put?: never;
         post?: never;
-        /**
-         * 归档账户（保留历史）
-         * @description 计划于 M2-LEDGER 实现；当前返回 501。
-         */
+        /** 归档账户（保留历史） */
         delete: operations["archiveAccount"];
         options?: never;
         head?: never;
-        /**
-         * 修改账户名称 / 备注
-         * @description 计划于 M2-LEDGER 实现；当前返回 501。
-         */
+        /** 修改账户名称 / 备注 */
         patch: operations["updateAccount"];
         trace?: never;
     };
@@ -358,16 +343,10 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * 分类
-         * @description 计划于 M2-LEDGER 实现；当前返回 501。
-         */
+        /** 分类 */
         get: operations["listCategories"];
         put?: never;
-        /**
-         * 新建分类
-         * @description 计划于 M2-LEDGER 实现；当前返回 501。
-         */
+        /** 新建分类 */
         post: operations["createCategory"];
         delete?: never;
         options?: never;
@@ -385,17 +364,11 @@ export type paths = {
         get?: never;
         put?: never;
         post?: never;
-        /**
-         * 归档分类（已引用的只归档）
-         * @description 计划于 M2-LEDGER 实现；当前返回 501。
-         */
+        /** 归档分类（已引用的只归档） */
         delete: operations["archiveCategory"];
         options?: never;
         head?: never;
-        /**
-         * 修改分类
-         * @description 计划于 M2-LEDGER 实现；当前返回 501。
-         */
+        /** 修改分类 */
         patch: operations["updateCategory"];
         trace?: never;
     };
@@ -927,15 +900,12 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * 标签
-         * @description 计划于 M2-LEDGER 实现；当前返回 501。
-         */
+        /** 标签 */
         get: operations["listTags"];
         put?: never;
         /**
          * 新建标签
-         * @description 计划于 M2-LEDGER 实现；当前返回 501。
+         * @description 业务冲突码：TAG_EXISTS。
          */
         post: operations["createTag"];
         delete?: never;
@@ -954,16 +924,13 @@ export type paths = {
         get?: never;
         put?: never;
         post?: never;
-        /**
-         * 归档标签
-         * @description 计划于 M2-LEDGER 实现；当前返回 501。
-         */
+        /** 归档标签 */
         delete: operations["archiveTag"];
         options?: never;
         head?: never;
         /**
          * 修改标签
-         * @description 计划于 M2-LEDGER 实现；当前返回 501。
+         * @description 业务冲突码：TAG_EXISTS。
          */
         patch: operations["updateTag"];
         trace?: never;
@@ -979,7 +946,7 @@ export type paths = {
         put?: never;
         /**
          * 预览：规范化金额、余额影响、锁定汇率
-         * @description 计划于 M2-LEDGER 实现；当前返回 501。
+         * @description 业务冲突码：REFUND_EXCEEDS_PAID。
          */
         post: operations["createTransactionPreview"];
         delete?: never;
@@ -995,17 +962,12 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * 明细、筛选与分页
-         * @description 计划于 M2-LEDGER 实现；当前返回 501。
-         */
+        /** 明细、筛选与分页 */
         get: operations["listTransactions"];
         put?: never;
         /**
          * 提交预览，新建收支或转账
-         * @description 计划于 M2-LEDGER 实现；当前返回 501。
-         *
-         *     业务冲突码：PREVIEW_STALE。
+         * @description 业务冲突码：PREVIEW_CONSUMED / PREVIEW_STALE。
          */
         post: operations["createTransaction"];
         delete?: never;
@@ -1021,25 +983,20 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * 交易详情
-         * @description 计划于 M2-LEDGER 实现；当前返回 501。
-         */
+        /** 交易详情 */
         get: operations["getTransaction"];
         put?: never;
         post?: never;
         /**
          * 作废：创建反向 posting，重复作废无影响
-         * @description 计划于 M2-LEDGER 实现；当前返回 501。
+         * @description 业务冲突码：HAS_REFUNDS。
          */
         delete: operations["voidTransaction"];
         options?: never;
         head?: never;
         /**
          * 更正：同事务冲正并生成新版本
-         * @description 计划于 M2-LEDGER 实现；当前返回 501。
-         *
-         *     业务冲突码：PREVIEW_STALE。
+         * @description 业务冲突码：PREVIEW_CONSUMED / PREVIEW_STALE / HAS_REFUNDS / TRANSACTION_VOIDED。
          */
         patch: operations["updateTransaction"];
         trace?: never;
@@ -1055,9 +1012,7 @@ export type paths = {
         put?: never;
         /**
          * 关联退款，累计不超过原支付
-         * @description 计划于 M2-LEDGER 实现；当前返回 501。
-         *
-         *     业务冲突码：REFUND_EXCEEDS_PAID。
+         * @description 业务冲突码：REFUND_EXCEEDS_PAID / PREVIEW_CONSUMED / PREVIEW_STALE。
          */
         post: operations["createRefund"];
         delete?: never;
@@ -3127,7 +3082,6 @@ export interface operations {
             404: components["responses"]["NotFound"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -3171,7 +3125,6 @@ export interface operations {
             415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -3202,7 +3155,6 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -3238,7 +3190,6 @@ export interface operations {
             412: components["responses"]["PreconditionFailed"];
             428: components["responses"]["PreconditionRequired"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -3282,7 +3233,6 @@ export interface operations {
             422: components["responses"]["ValidationFailed"];
             428: components["responses"]["PreconditionRequired"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -3831,7 +3781,6 @@ export interface operations {
             404: components["responses"]["NotFound"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -3875,7 +3824,6 @@ export interface operations {
             415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -3911,7 +3859,6 @@ export interface operations {
             412: components["responses"]["PreconditionFailed"];
             428: components["responses"]["PreconditionRequired"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -3955,7 +3902,6 @@ export interface operations {
             422: components["responses"]["ValidationFailed"];
             428: components["responses"]["PreconditionRequired"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -5240,7 +5186,6 @@ export interface operations {
             404: components["responses"]["NotFound"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -5284,7 +5229,6 @@ export interface operations {
             415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -5320,7 +5264,6 @@ export interface operations {
             412: components["responses"]["PreconditionFailed"];
             428: components["responses"]["PreconditionRequired"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -5358,13 +5301,13 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
             412: components["responses"]["PreconditionFailed"];
             413: components["responses"]["PayloadTooLarge"];
             415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             428: components["responses"]["PreconditionRequired"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -5397,11 +5340,11 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
             413: components["responses"]["PayloadTooLarge"];
             415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -5421,7 +5364,8 @@ export interface operations {
                 limit?: number;
                 q?: string;
                 sort?: "-localDate" | "localDate" | "-amount" | "amount";
-                status?: "posted" | "voided";
+                /** @description 默认只列有效交易；被更正或作废的旧版本用 voided / all 查看 */
+                status?: "posted" | "voided" | "all";
             };
             header?: never;
             path: {
@@ -5447,7 +5391,6 @@ export interface operations {
             404: components["responses"]["NotFound"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -5491,7 +5434,6 @@ export interface operations {
             415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -5522,7 +5464,6 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -5555,10 +5496,10 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
             412: components["responses"]["PreconditionFailed"];
             428: components["responses"]["PreconditionRequired"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -5606,7 +5547,6 @@ export interface operations {
             422: components["responses"]["ValidationFailed"];
             428: components["responses"]["PreconditionRequired"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -5651,7 +5591,6 @@ export interface operations {
             415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };

@@ -1039,7 +1039,6 @@
           "Accounts"
         ],
         "summary": "账户列表",
-        "description": "计划于 M2-LEDGER 实现；当前返回 501。",
         "security": [
           {
             "session": []
@@ -1050,7 +1049,7 @@
             ]
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M2-LEDGER",
         "x-ledger-role": "viewer",
         "parameters": [
@@ -1133,9 +1132,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -1147,7 +1143,6 @@
           "Accounts"
         ],
         "summary": "新建账户",
-        "description": "计划于 M2-LEDGER 实现；当前返回 501。",
         "security": [
           {
             "session": []
@@ -1158,7 +1153,7 @@
             ]
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M2-LEDGER",
         "x-ledger-role": "editor",
         "x-idempotency": "optional",
@@ -1238,9 +1233,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -1254,7 +1246,6 @@
           "Accounts"
         ],
         "summary": "账户详情与余额",
-        "description": "计划于 M2-LEDGER 实现；当前返回 501。",
         "security": [
           {
             "session": []
@@ -1265,7 +1256,7 @@
             ]
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M2-LEDGER",
         "x-ledger-role": "viewer",
         "parameters": [
@@ -1319,9 +1310,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -1333,7 +1321,6 @@
           "Accounts"
         ],
         "summary": "修改账户名称 / 备注",
-        "description": "计划于 M2-LEDGER 实现；当前返回 501。",
         "security": [
           {
             "session": []
@@ -1344,7 +1331,7 @@
             ]
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M2-LEDGER",
         "x-ledger-role": "editor",
         "parameters": [
@@ -1429,9 +1416,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -1443,7 +1427,6 @@
           "Accounts"
         ],
         "summary": "归档账户（保留历史）",
-        "description": "计划于 M2-LEDGER 实现；当前返回 501。",
         "security": [
           {
             "session": []
@@ -1454,7 +1437,7 @@
             ]
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M2-LEDGER",
         "x-ledger-role": "editor",
         "parameters": [
@@ -1517,9 +1500,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -1533,7 +1513,6 @@
           "Catalog"
         ],
         "summary": "分类",
-        "description": "计划于 M2-LEDGER 实现；当前返回 501。",
         "security": [
           {
             "session": []
@@ -1544,7 +1523,7 @@
             ]
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M2-LEDGER",
         "x-ledger-role": "viewer",
         "parameters": [
@@ -1627,9 +1606,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -1641,7 +1617,6 @@
           "Catalog"
         ],
         "summary": "新建分类",
-        "description": "计划于 M2-LEDGER 实现；当前返回 501。",
         "security": [
           {
             "session": []
@@ -1652,7 +1627,7 @@
             ]
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M2-LEDGER",
         "x-ledger-role": "editor",
         "x-idempotency": "optional",
@@ -1732,9 +1707,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -1748,7 +1720,6 @@
           "Catalog"
         ],
         "summary": "修改分类",
-        "description": "计划于 M2-LEDGER 实现；当前返回 501。",
         "security": [
           {
             "session": []
@@ -1759,7 +1730,7 @@
             ]
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M2-LEDGER",
         "x-ledger-role": "editor",
         "parameters": [
@@ -1844,9 +1815,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -1858,7 +1826,6 @@
           "Catalog"
         ],
         "summary": "归档分类（已引用的只归档）",
-        "description": "计划于 M2-LEDGER 实现；当前返回 501。",
         "security": [
           {
             "session": []
@@ -1869,7 +1836,7 @@
             ]
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M2-LEDGER",
         "x-ledger-role": "editor",
         "parameters": [
@@ -1932,9 +1899,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -1948,7 +1912,6 @@
           "Catalog"
         ],
         "summary": "标签",
-        "description": "计划于 M2-LEDGER 实现；当前返回 501。",
         "security": [
           {
             "session": []
@@ -1959,7 +1922,7 @@
             ]
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M2-LEDGER",
         "x-ledger-role": "viewer",
         "parameters": [
@@ -2042,9 +2005,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -2056,7 +2016,7 @@
           "Catalog"
         ],
         "summary": "新建标签",
-        "description": "计划于 M2-LEDGER 实现；当前返回 501。",
+        "description": "业务冲突码：TAG_EXISTS。",
         "security": [
           {
             "session": []
@@ -2067,7 +2027,7 @@
             ]
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M2-LEDGER",
         "x-ledger-role": "editor",
         "x-idempotency": "optional",
@@ -2147,9 +2107,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -2163,7 +2120,7 @@
           "Catalog"
         ],
         "summary": "修改标签",
-        "description": "计划于 M2-LEDGER 实现；当前返回 501。",
+        "description": "业务冲突码：TAG_EXISTS。",
         "security": [
           {
             "session": []
@@ -2174,7 +2131,7 @@
             ]
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M2-LEDGER",
         "x-ledger-role": "editor",
         "parameters": [
@@ -2241,6 +2198,9 @@
           "404": {
             "$ref": "#/components/responses/NotFound"
           },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
           },
@@ -2259,9 +2219,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -2273,7 +2230,6 @@
           "Catalog"
         ],
         "summary": "归档标签",
-        "description": "计划于 M2-LEDGER 实现；当前返回 501。",
         "security": [
           {
             "session": []
@@ -2284,7 +2240,7 @@
             ]
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M2-LEDGER",
         "x-ledger-role": "editor",
         "parameters": [
@@ -2347,9 +2303,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -2363,7 +2316,6 @@
           "Transactions"
         ],
         "summary": "明细、筛选与分页",
-        "description": "计划于 M2-LEDGER 实现；当前返回 501。",
         "security": [
           {
             "session": []
@@ -2374,7 +2326,7 @@
             ]
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M2-LEDGER",
         "x-ledger-role": "viewer",
         "parameters": [
@@ -2443,11 +2395,14 @@
             "name": "status",
             "in": "query",
             "required": false,
+            "description": "默认只列有效交易；被更正或作废的旧版本用 voided / all 查看",
             "schema": {
+              "default": "posted",
               "type": "string",
               "enum": [
                 "posted",
-                "voided"
+                "voided",
+                "all"
               ]
             }
           },
@@ -2532,9 +2487,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -2546,7 +2498,7 @@
           "Transactions"
         ],
         "summary": "提交预览，新建收支或转账",
-        "description": "计划于 M2-LEDGER 实现；当前返回 501。\n\n业务冲突码：PREVIEW_STALE。",
+        "description": "业务冲突码：PREVIEW_CONSUMED / PREVIEW_STALE。",
         "security": [
           {
             "session": []
@@ -2557,7 +2509,7 @@
             ]
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M2-LEDGER",
         "x-ledger-role": "editor",
         "x-idempotency": "required",
@@ -2637,9 +2589,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -2653,7 +2602,7 @@
           "Transactions"
         ],
         "summary": "预览：规范化金额、余额影响、锁定汇率",
-        "description": "计划于 M2-LEDGER 实现；当前返回 501。",
+        "description": "业务冲突码：REFUND_EXCEEDS_PAID。",
         "security": [
           {
             "session": []
@@ -2664,7 +2613,7 @@
             ]
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M2-LEDGER",
         "x-ledger-role": "editor",
         "parameters": [
@@ -2716,6 +2665,9 @@
           "404": {
             "$ref": "#/components/responses/NotFound"
           },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
           "413": {
             "$ref": "#/components/responses/PayloadTooLarge"
           },
@@ -2727,9 +2679,6 @@
           },
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
-          },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
           },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
@@ -2744,7 +2693,6 @@
           "Transactions"
         ],
         "summary": "交易详情",
-        "description": "计划于 M2-LEDGER 实现；当前返回 501。",
         "security": [
           {
             "session": []
@@ -2755,7 +2703,7 @@
             ]
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M2-LEDGER",
         "x-ledger-role": "viewer",
         "parameters": [
@@ -2809,9 +2757,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -2823,7 +2768,7 @@
           "Transactions"
         ],
         "summary": "更正：同事务冲正并生成新版本",
-        "description": "计划于 M2-LEDGER 实现；当前返回 501。\n\n业务冲突码：PREVIEW_STALE。",
+        "description": "业务冲突码：PREVIEW_CONSUMED / PREVIEW_STALE / HAS_REFUNDS / TRANSACTION_VOIDED。",
         "security": [
           {
             "session": []
@@ -2834,7 +2779,7 @@
             ]
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M2-LEDGER",
         "x-ledger-role": "editor",
         "x-idempotency": "optional",
@@ -2929,9 +2874,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -2943,7 +2885,7 @@
           "Transactions"
         ],
         "summary": "作废：创建反向 posting，重复作废无影响",
-        "description": "计划于 M2-LEDGER 实现；当前返回 501。",
+        "description": "业务冲突码：HAS_REFUNDS。",
         "security": [
           {
             "session": []
@@ -2954,7 +2896,7 @@
             ]
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M2-LEDGER",
         "x-ledger-role": "editor",
         "parameters": [
@@ -3008,6 +2950,9 @@
           "404": {
             "$ref": "#/components/responses/NotFound"
           },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
           },
@@ -3016,9 +2961,6 @@
           },
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
-          },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
           },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
@@ -3033,7 +2975,7 @@
           "Transactions"
         ],
         "summary": "关联退款，累计不超过原支付",
-        "description": "计划于 M2-LEDGER 实现；当前返回 501。\n\n业务冲突码：REFUND_EXCEEDS_PAID。",
+        "description": "业务冲突码：REFUND_EXCEEDS_PAID / PREVIEW_CONSUMED / PREVIEW_STALE。",
         "security": [
           {
             "session": []
@@ -3044,7 +2986,7 @@
             ]
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M2-LEDGER",
         "x-ledger-role": "editor",
         "x-idempotency": "required",
@@ -3132,9 +3074,6 @@
           },
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
-          },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
           },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"

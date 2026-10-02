@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { and, asc, desc, eq, gt, lt, or } from 'drizzle-orm';
 import { database, type Executor } from '../../db/src/index';
 import { auditLogs, ledgers, memberships, user } from '../../db/src/schema';
+import { audit } from './audit';
 import { ledgerInput, ledgerPatch, memberInput, memberPatch } from '../../contracts/src/identity';
 import { DomainError, protectLastOwner, requireRole, requireVersion, type Role } from './policy';
 
@@ -50,9 +51,6 @@ async function withOwner<T>(ctx: AuthContext, ledgerId: string, action: (tx: Tx,
     requireRole(membership?.role, 'owner');
     return action(tx, ledger);
   });
-}
-function audit(tx: Tx, ctx: AuthContext, ledgerId: string, action: string, resourceId: string) {
-  return tx.insert(auditLogs).values({ id: randomUUID(), ledgerId, actorId: ctx.userId, action, resourceId, requestId: ctx.requestId, createdAt: new Date() });
 }
 export async function updateLedger(ctx: AuthContext, ledgerId: string, input: unknown, etag: string | null) {
   const data = ledgerPatch.parse(input);

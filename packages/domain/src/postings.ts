@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { and, eq, sql } from 'drizzle-orm';
+import { and, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { database, type Executor, type Tx } from '../../db/src/index';
 import { accountPostings, accounts } from '../../db/src/schema';
 import { formatAmount, parseAmount, sum, toColumn } from './money';
@@ -13,7 +13,7 @@ export type PostingLine = { accountId: string; amount: string; reversesId?: stri
  * Accounts are locked one at a time in id order, so concurrent transfers in opposite directions cannot deadlock,
  * and each balance is read under its lock, so concurrent writers never lose an update.
  */
-export async function appendPostings(tx: Tx, ledgerId: string, transactionId: string, lines: readonly PostingLine[]) {
+export async function appendPostings(tx: Tx, ledgerId: string, transactionId: string, lines: readonly PostingLine[], options: { allowArchived?: boolean } = {}) {
   if (!lines.length) throw new Error('Invariant: a transaction needs at least one posting');
   const ids = [...new Set(lines.map(line => line.accountId))].sort();
   const locked = new Map<string, { currency: string; balance: string }>();
@@ -21,7 +21,8 @@ export async function appendPostings(tx: Tx, ledgerId: string, transactionId: st
     const [account] = await tx.select({ currency: accounts.currency, balance: accounts.balance, archivedAt: accounts.archivedAt })
       .from(accounts).where(and(eq(accounts.ledgerId, ledgerId), eq(accounts.id, accountId))).for('update');
     if (!account) throw new DomainError(422, 'ACCOUNT_NOT_FOUND', '账户不存在或不属于该账本');
-    if (account.archivedAt) throw new DomainError(422, 'ACCOUNT_ARCHIVED', '账户已归档，不能记账');
+    // Reversals may touch archived accounts; new money may not.
+    if (account.archivedAt && !options.allowArchived) throw new DomainError(422, 'ACCOUNT_ARCHIVED', '账户已归档，不能记账');
     locked.set(accountId, account);
   }
   const createdAt = new Date();
@@ -36,6 +37,20 @@ export async function appendPostings(tx: Tx, ledgerId: string, transactionId: st
     await tx.update(accounts).set({ balance: toColumn(next) }).where(and(eq(accounts.ledgerId, ledgerId), eq(accounts.id, accountId)));
   }
   return rows;
+}
+
+/**
+ * Voids a transaction's effect by appending one reversing line for every original line not yet reversed.
+ * Running it twice adds nothing; the unique reverses_id key backs this up in the database.
+ */
+export async function reversePostings(tx: Tx, ledgerId: string, transactionId: string) {
+  const originals = await tx.select({ id: accountPostings.id, accountId: accountPostings.accountId, amount: accountPostings.signedAmount })
+    .from(accountPostings).where(and(eq(accountPostings.ledgerId, ledgerId), eq(accountPostings.transactionId, transactionId), isNull(accountPostings.reversesId))).for('update');
+  if (!originals.length) return [];
+  const reversed = new Set((await tx.select({ id: accountPostings.reversesId }).from(accountPostings)
+    .where(and(eq(accountPostings.ledgerId, ledgerId), inArray(accountPostings.reversesId, originals.map(o => o.id)))).for('update')).map(r => r.id));
+  const lines = originals.filter(o => !reversed.has(o.id)).map(o => ({ accountId: o.accountId, amount: sum(['0', o.amount]).negated().toFixed(), reversesId: o.id }));
+  return lines.length ? appendPostings(tx, ledgerId, transactionId, lines, { allowArchived: true }) : [];
 }
 
 /**

@@ -38,6 +38,13 @@ export function breakingChanges(base: Doc, head: Doc): string[] {
     const ub = (b.anyOf ?? b.oneOf) as unknown[] | undefined, uh = (h.anyOf ?? h.oneOf) as unknown[] | undefined;
     if (ub || uh) {
       const vb = ub ?? [b], vh = uh ?? [h];
+      // Same-shaped unions (typically T | null) compare branch by branch, so nested issues keep their detail.
+      const shape = (doc: Doc, variants: unknown[]) => variants.map(v => [...(types(resolve(doc, v)) ?? ['any'])].sort().join('|'));
+      const [sb, sh] = [shape(base, vb), shape(head, vh)];
+      if (sb.length === sh.length && new Set(sb).size === sb.length && sb.every((key, i) => key === sh[i])) {
+        vb.forEach((variant, i) => compare(variant, vh[i], dir, at, out, depth + 1));
+        return;
+      }
       const fits = (x: unknown, y: unknown) => { const probe: string[] = []; compare(x, y, dir, at, probe, depth + 1); return probe.length === 0; };
       if (dir === 'request') { if (!vb.every(x => vh.some(y => fits(x, y)))) out.push(`${at}: 不再接受原有的输入形式`); }
       else if (!vh.every(y => vb.some(x => fits(x, y)))) out.push(`${at}: 响应出现原契约没有的形式`);

@@ -39,9 +39,9 @@ test('error statuses are real, documented and problem+json', async () => {
   await expectContract(await u.client.patch(base, { data: { name: 'n' } }), 'updateLedger', 428);
   await expectContract(await u.client.patch(base, { data: { name: 'n' }, headers: { 'If-Match': '"v9"' } }), 'updateLedger', 412);
   await expectContract(await u.client.patch(base, { data: { name: 'n' }, headers: { 'If-Match': '"v1"', Origin: 'https://evil.example' } }), 'updateLedger', 403);
-  const planned = await expectContract(await u.client.get(`${base}/accounts`), 'listAccounts', 501);
+  const planned = await expectContract(await u.client.get(`${base}/subscriptions`), 'listSubscriptions', 501);
   expect(planned).toMatchObject({ code: 'NOT_IMPLEMENTED', status: 501 });
-  await expectContract(await u.client.post(`${base}/transactions`, { data: { previewId: randomUUID() }, headers: { 'Idempotency-Key': idempotencyKey() } }), 'createTransaction', 501);
+  await expectContract(await u.client.post(`${base}/subscriptions`, { data: { previewId: randomUUID() }, headers: { 'Idempotency-Key': idempotencyKey() } }), 'createSubscription', 501);
   const unsupported = await u.client.put('/api/v1/ledgers', { data: {} });
   expect(unsupported.status()).toBe(405);
   expect(unsupported.headers().allow).toBe('GET, POST');

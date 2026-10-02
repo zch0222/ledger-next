@@ -1,6 +1,6 @@
 # 实现状态与本地运行
 
-2026-10-02 · M1 工程、身份与 REST 契约；M2-MODEL 账务 schema 与金额运算。UI 基线为 `docs/ui/index.html` v0.3。
+2026-10-02 · M1 工程、身份与 REST 契约；M2-MODEL 账务 schema 与金额运算；M2-LEDGER 收支、转账、退款与更正 API。UI 基线为 `docs/ui/index.html` v0.3。
 
 ## 本批范围
 
@@ -13,7 +13,8 @@
 - REST 契约（M1-API）：`packages/contracts` 用 Zod 定义全部计划资源，生成 OpenAPI 3.1（`packages/contracts/openapi.json`，83 个操作）与类型化 SDK（`packages/api-client`，openapi-typescript + openapi-fetch）。`/api/v1` 路由由同一注册表驱动：未知路径 404、方法不符 405 + Allow、格式错误 ID 404、planned 操作 501。
 - 列表统一 `{data, page:{nextCursor, hasMore}, meta}`，keyset 分页游标经 HMAC 签名并绑定用户 / 操作 / 账本 / 筛选；新增 owner 可读的 `GET L/audit-events`。
 - Idempotency-Key：记录与业务写入同一事务（`idempotency_records`，迁移 0002），并发同 key 串行化后回放首个结果，不同请求体 409；worker 每小时清理过期记录。Web 新建账本 / 添加成员按“同一内容同一 key”发送。
-- 账务核心（M2-MODEL，迁移 0003）：currencies（含 0 / 2 / 3 位小数，KWD 仅用于精度测试未启用）、accounts、categories、tags、transactions、transaction_tags、transaction_amounts、account_postings、fx_snapshots、outbox_events。账本内引用全部为 `(ledger_id, id)` 复合外键；posting 以 `(ledger_id, account_id, currency)` 外键强制与账户币种一致；CHECK 约束覆盖正金额、非零 posting、转账无分类、退款必须关联原交易、外币基准金额必须有汇率快照等。金额运算集中在 `packages/domain/src/money.ts`（decimal.js，HALF_EVEN，按币种精度拒绝多余小数不截断）；`appendPostings` 按账户 ID 顺序逐个加锁并在同事务更新余额缓存，`verifyBalance` 用 MySQL DECIMAL 重算核对。收支 / 转账 / 退款 API 属于 M2-LEDGER，尚未开放。
+- 账务核心（M2-MODEL，迁移 0003）：currencies（含 0 / 2 / 3 位小数，KWD 仅用于精度测试未启用）、accounts、categories、tags、transactions、transaction_tags、transaction_amounts、account_postings、fx_snapshots、outbox_events。账本内引用全部为 `(ledger_id, id)` 复合外键；posting 以 `(ledger_id, account_id, currency)` 外键强制与账户币种一致；CHECK 约束覆盖正金额、非零 posting、转账无分类、退款必须关联原交易、外币基准金额必须有汇率快照等。金额运算集中在 `packages/domain/src/money.ts`（decimal.js，HALF_EVEN，按币种精度拒绝多余小数不截断）；`appendPostings` 按账户 ID 顺序逐个加锁并在同事务更新余额缓存，`verifyBalance` 用 MySQL DECIMAL 重算核对。
+- 记账 API（M2-LEDGER，迁移 0004）：账户 / 分类 / 标签 CRUD 与归档；交易“预览 → 带 Idempotency-Key 提交”，预览单次有效、提交时在账户锁内重算；支出 / 收入 / 转账（含关联手续费）/ 退款（累计上限）/ 更正（冲正 + 新版本）/ 作废（反向 posting）；审计与 outbox 同事务。外币结算暂需人工汇率（报价随 M3-FX）。Web 记账界面属于 M4-CORE，当前页面仍是无数据状态。
 - 认证限流沿用 Better Auth 默认（sign-in / sign-up 每客户端 10 秒 3 次），客户端地址取 `X-Forwarded-For`；生产反向代理须覆盖该头为真实客户端地址。
 
 ## 运行
@@ -65,4 +66,4 @@ Windows 不在 PATH 的 Docker 可以通过 `LEDGER_DOCKER` 指定可执行文�
 
 ## 尚未实现
 
-PAT / Bearer 认证与作用域执行（M6-SERVER，契约已定义）；M2 收支 / 转账 / 退款 / 更正 API、预览与导入导出；M3 FX 与真实统计；M4 业务页面与订阅；M5 真实提醒渠道；M6 MCP 与四客户端；M7 完整回归、备份恢复与生产发布。注册目前用于受控自托管环境；邮件验证、找回密码和 OIDC 尚未接入，UI 不显示不可用入口。添加成员仅支持已注册邮箱，没有发送邀请邮件。
+PAT / Bearer 认证与作用域执行（M6-SERVER，契约已定义）；M2 CSV 导入导出；M3 FX 与真实统计；M4 业务页面与订阅；M5 真实提醒渠道；M6 MCP 与四客户端；M7 完整回归、备份恢复与生产发布。注册目前用于受控自托管环境；邮件验证、找回密码和 OIDC 尚未接入，UI 不显示不可用入口。添加成员仅支持已注册邮箱，没有发送邀请邮件。

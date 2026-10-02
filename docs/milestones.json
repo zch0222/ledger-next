@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "project": "Ledger Next",
-  "updatedAt": "2026-10-02T07:35:57.611Z",
+  "updatedAt": "2026-10-02T07:58:36.219Z",
   "timezone": "Asia/Hong_Kong",
   "milestones": [
     {
@@ -305,7 +305,7 @@
         "M2-MODEL"
       ],
       "role": "全栈开发",
-      "owner": "未分配",
+      "owner": "Claude Code",
       "status": "todo",
       "requiresReview": true,
       "reviewer": "",
@@ -319,9 +319,12 @@
         "重复提交仅影响一次余额。",
         "转账本金不计收支，退款不记收入；并发与冲正测试通过。"
       ],
-      "nextAction": "打通一次完整资金写入事务和真实数据库测试。",
-      "evidence": [],
-      "updatedAt": "2026-10-02"
+      "nextAction": "实现与本机 Docker 验证已完成；前置 M2-MODEL 签署后转为待验收",
+      "evidence": [
+        "docs/evidence/M2-LEDGER/README.md",
+        "packages/db/migrations/0004_previews.sql"
+      ],
+      "updatedAt": "2026-10-02T07:58:36.219Z"
     },
     {
       "id": "M2-IMPORT",
@@ -1241,6 +1244,14 @@
       "to": "todo",
       "actor": "Claude Code",
       "note": "账务核心迁移 0003（复合外键 / CHECK / 回滚脚本）、decimal 金额模块、appendPostings 与余额核对；单元 124、MySQL 集成 13、Playwright 16 通过；按门禁规则前置未 done 前不改状态"
+    },
+    {
+      "at": "2026-10-02T07:58:36.219Z",
+      "id": "M2-LEDGER",
+      "from": "todo",
+      "to": "todo",
+      "actor": "Claude Code",
+      "note": "20 个记账操作转为 stable：预览单次提交、幂等重放、转账含手续费、退款上限、更正冲正、作废；单元 125、MySQL 集成 24、Playwright 19 通过；按门禁规则前置未 done 前不改状态"
     }
   ]
 }

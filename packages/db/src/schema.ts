@@ -118,3 +118,16 @@ export const outboxEvents = mysqlTable('outbox_events', {
   attempts: int('attempts').notNull().default(0), lastError: varchar('last_error', { length: 200 }),
   createdAt: createdAt(), dispatchedAt: datetime('dispatched_at', { mode: 'date', fsp: 3 }),
 }, t => [index('outbox_status_available_idx').on(t.dispatchStatus, t.availableAt)]);
+
+// M2-LEDGER (migration 0004).
+export const writePreviews = mysqlTable('write_previews', {
+  id: id(), ledgerId: ledgerId(), actorId: varchar('actor_id', { length: 36 }).notNull().references(() => user.id, { onDelete: 'cascade' }),
+  kind: mysqlEnum('kind', ['expense', 'income', 'transfer', 'refund']).notNull(), bodyHash: char('body_hash', { length: 64 }).notNull(),
+  normalizedInput: json('normalized_input').notNull(), computed: json('computed').notNull(), accountVersions: json('account_versions').notNull(),
+  expiresAt: datetime('expires_at', { mode: 'date', fsp: 3 }).notNull(), consumedAt: datetime('consumed_at', { mode: 'date', fsp: 3 }),
+  consumedBy: varchar('consumed_by', { length: 36 }), createdAt: createdAt(),
+}, t => [index('write_preview_owner_idx').on(t.ledgerId, t.actorId, t.expiresAt), index('write_preview_expiry_idx').on(t.expiresAt)]);
+export const transactionLinks = mysqlTable('transaction_links', {
+  ledgerId: varchar('ledger_id', { length: 36 }).notNull(), childId: varchar('child_id', { length: 36 }).primaryKey(),
+  parentId: varchar('parent_id', { length: 36 }).notNull(), kind: mysqlEnum('kind', ['fee']).notNull(),
+}, t => [index('transaction_link_parent_idx').on(t.ledgerId, t.parentId)]);

@@ -21,7 +21,7 @@ describe('compatible evolution', () => {
     }).filter(issue => !issue.includes('响应新增取值'))).toEqual([]);
   });
   it('ignores planned operations', () => {
-    expect(changes(doc => { delete doc.paths['/ledgers/{ledgerId}/accounts']; (doc.components.schemas.AccountCreate as { required: string[] }).required.push('note'); })).toEqual([]);
+    expect(changes(doc => { delete doc.paths['/ledgers/{ledgerId}/subscriptions']; (doc.components.schemas.SubscriptionPreviewCreate as { required: string[] }).required.push('note'); })).toEqual([]);
   });
 });
 

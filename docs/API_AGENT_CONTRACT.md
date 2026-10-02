@@ -1,6 +1,6 @@
 # REST API、MCP 与配套 Skill 契约
 
-版本 0.3 · 2026-10-02 · 可执行契约。下表全部资源已转换为 OpenAPI 3.1：[packages/contracts/openapi.json](../packages/contracts/openapi.json)（由 `packages/contracts/src` 的 Zod 定义生成，`pnpm contract:generate`），类型化 REST SDK 位于 `packages/api-client`。每个操作带 `x-stability`：`stable` 为已实现并受 CI 破坏性变更门禁保护（当前 10 个：`/me`、`/ledgers`、`L`、`L/memberships`、`L/memberships/{id}`、`L/audit-events`）；`planned` 为已发布、尚未实现的契约，返回 501 并标注 `x-milestone`，实现时可调整。认证库协议为 `/api/auth/*`。下列远程域名是示例，MCP 配置不表示现在可以连接。
+版本 0.3 · 2026-10-02 · 可执行契约。下表全部资源已转换为 OpenAPI 3.1：[packages/contracts/openapi.json](../packages/contracts/openapi.json)（由 `packages/contracts/src` 的 Zod 定义生成，`pnpm contract:generate`），类型化 REST SDK 位于 `packages/api-client`。每个操作带 `x-stability`：`stable` 为已实现并受 CI 破坏性变更门禁保护（当前 30 个：M1 的 `/me`、`/ledgers`、`L`、`L/memberships`、`L/audit-events`，以及 M2-LEDGER 的账户、分类、标签和交易预览 / 创建 / 查询 / 更正 / 作废 / 退款）；`planned` 为已发布、尚未实现的契约，返回 501 并标注 `x-milestone`，实现时可调整。认证库协议为 `/api/auth/*`。下列远程域名是示例，MCP 配置不表示现在可以连接。
 
 ## 1. 公共 REST 规则
 
@@ -156,6 +156,16 @@ Content-Type: application/json
 ~~~
 
 转账 preview 输入改为 kind=transfer、sourceAccountId、targetAccountId、sourceAmount、targetAmount、各自 currency 和 fee（可选）。退款 preview 增加 originalTransactionId，再向 refunds 资源提交。所有账户均需属于同一账本；多笔 / 批量 API 不能靠未受限 JSON 透传。
+
+M2-LEDGER 已实现的规则（以 OpenAPI 与 `tests/e2e/ledger.api.ts` 为准）：
+
+- 预览保存规范化输入、计算结果与所用账户版本，10 分钟有效、只能提交一次（重复提交 409 PREVIEW_CONSUMED，过期 422 PREVIEW_EXPIRED，他人预览 422 PREVIEW_NOT_FOUND）。提交时在账户锁内重新计算，账户被改名 / 归档或分类 / 标签失效则 409 PREVIEW_STALE；余额变化本身不使预览失效。同一 Idempotency-Key 的重试先回放原结果，不受预览已消费影响。
+- 结算币须与账户币种一致，金额按币种精度校验；结算币不是账本基准币时，需 `fxPolicy: "manual"` + `manualRate`（M3-FX 接入报价前没有自动汇率，返回 422 FX_RATE_MISSING）。转账若转入基准币账户，以双方金额推算汇率（source: transfer）。
+- 转账写转出 / 转入两条 posting，不带分类，不计收支；手续费是关联的独立支出（`transfer.feeTransactionId`），作废转账时一并作废。
+- 退款只针对有效支出，退回同币种账户，沿用原支出的分类与锁定汇率；累计超过原支付金额 409 REFUND_EXCEEDS_PAID（并发退款在原交易行锁内串行判断）。有有效退款的支出不能作废或更正（409 HAS_REFUNDS）。
+- 更正（PATCH + If-Match + 新预览）在同一事务内冲正旧版本 posting、把旧版本标为 voided，并写入 `replacesId` 指向旧版本的新交易；作废（DELETE + If-Match）追加反向 posting，重复作废不再变化。posting 只追加不改写。
+- 列表默认只返回有效交易（`status=posted`），可用 `voided` / `all` 查看历史版本；`accountId` 同时匹配转账两端；按业务日期或基准金额 keyset 分页。
+- 每次写入的审计记录与 outbox 事件与资金变化同一事务提交。
 
 ~~~json
 {
