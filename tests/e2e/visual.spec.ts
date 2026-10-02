@@ -181,8 +181,14 @@ test('appearance: six first-frame combinations, live system follow, failed sync 
 test('responsive and accessible: every page × widths × modes, touch targets, reduced motion', async ({ page, context }, info) => {
   test.setTimeout(240_000);
   const b = await richBook('resp-ui'); await signIn(context, b);
+  // Populated P07 / P08: a tested Telegram channel, an unverified e-mail channel, a rule and its deliveries.
+  const tg = (await (await b.client.post('/api/v1/notification-channels', { data: { name: '家庭群 Telegram', config: { type: 'telegram', botToken: `987654321:${'x'.repeat(30)}`, chatId: String(Date.now()) } } })).json()).data;
+  await b.client.post('/api/v1/notification-channels', { data: { name: '工作邮箱', config: { type: 'email', address: `resp-${Date.now()}@example.test` } } });
+  await b.client.post(`/api/v1/notification-channels/${tg.id}/test-deliveries`, { data: {}, headers: { 'Idempotency-Key': crypto.randomUUID() } });
+  const rp = (await (await b.client.post(`${b.base}/reminder-previews`, { data: { eventType: 'weekly_summary', localTime: '09:00', timezone: 'Asia/Hong_Kong', quietHours: { start: '22:00', end: '08:00' }, channelIds: [tg.id] } })).json()).data;
+  await b.client.post(`${b.base}/reminder-rules`, { data: { previewId: rp.previewId }, headers: { 'Idempotency-Key': crypto.randomUUID() } });
   const l = `/ledgers/${b.ledger.id}`;
-  const pages = ['/dashboard', '/transactions', `/transactions?tx=${b.dinner.id}`, '/subscriptions', '/subscriptions?view=list', '/subscriptions?view=calendar', '/analytics', '/accounts', '/reminders', '/agents',
+  const pages = ['/dashboard', '/transactions', `/transactions?tx=${b.dinner.id}`, '/subscriptions', '/subscriptions?view=list', '/subscriptions?view=calendar', '/analytics', '/accounts', '/reminders', '/reminders?tab=deliveries', '/reminders?tab=inbox', '/agents',
     '/settings', '/settings/currencies', '/settings/data', '/settings/channels', '/settings/appearance', '/more'].map(p => l + p).concat(['/onboarding']);
   const widths = mobile(info) ? [360, 390, 640] : [768, 1440, 1920]; // 640 = 1280px at 200% zoom
   const overflow: string[] = [], violations: string[] = [], small: string[] = [];

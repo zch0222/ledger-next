@@ -44,6 +44,14 @@ try {
   const refused = spawnSync(docker, [...args, ...rollback], { env, encoding: 'utf8' });
   if (refused.status === 0 || !/contains data/.test(refused.stderr)) throw new Error(`Rollback with data was not refused: ${refused.stderr.slice(-300)}`);
   console.log('Rollback with ledger data refused as expected');
+  // Reminder chaos drill (M5-CHAOS): SIGKILL the worker mid-request and restart Redis, keep it down while more
+  // deliveries fall due, then check nothing is lost, nothing is sent twice and nothing expired is sent late.
+  const chaos = ['run', '--rm', '--no-deps', 'tests', 'node', '--import', 'tsx', 'tests/chaos/notify-restart.ts'];
+  if (run([...args, ...chaos, 'prepare']) !== 0) throw new Error('Chaos drill setup failed');
+  if (run([...args, 'kill', '-s', 'SIGKILL', 'worker']) !== 0 || run([...args, 'restart', 'redis']) !== 0) throw new Error('Chaos drill could not stop the worker');
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 15_000); // outage
+  if (run([...args, 'up', '-d', '--wait', 'worker']) !== 0) throw new Error('Worker did not recover after the chaos drill');
+  if (run([...args, ...chaos, 'verify']) !== 0) throw new Error('Chaos drill verification failed');
   status = run([...args, 'run', '--rm', '--no-deps', 'tests']);
   if (status !== 0) run([...args, 'logs', '--no-color', '--tail', '100', 'web', 'worker', 'migrate']);
   // Graceful shutdown on SIGTERM. Next drains connections, then exits 143 by design; the worker exits 0.

@@ -16,12 +16,17 @@ import { reportSummary } from './reports';
 // Delivery engine (TECHNICAL_DESIGN §6.3). States: queued → sending → accepted / delivered | queued (retry) |
 // failed (+ dead letter) | delivery_unknown | expired | cancelled. Delivery is at-least-once with explicit
 // "unknown" when the outcome cannot be known; nothing is resent automatically after a possibly accepted request.
-const STUCK_MS = 2 * 60 * 1000, CHANNEL_DEGRADE_AFTER = 3;
+const CHANNEL_DEGRADE_AFTER = 3;
+// A claim older than this without a finished attempt is recovered by sweepStuck (NOTIFY_STUCK_SECONDS, default 120).
+const stuckMs = () => Number(process.env.NOTIFY_STUCK_SECONDS || 120) * 1000;
 
-/** Exponential backoff with jitter (attempt 1 → ~30 s … attempt 4 → ~4 min, capped at 15 min); Retry-After wins. */
+/**
+ * Exponential backoff with jitter (attempt 1 → ~30 s … attempt 4 → ~4 min, capped at 15 min); Retry-After wins.
+ * NOTIFY_BACKOFF_BASE_MS shortens the base for the chaos test stack only.
+ */
 export function backoffMs(attempt: number, retryAfterMs?: number, random = Math.random) {
   if (retryAfterMs) return retryAfterMs;
-  const base = Math.min(15 * 60_000, 30_000 * 2 ** (attempt - 1));
+  const base = Math.min(15 * 60_000, Number(process.env.NOTIFY_BACKOFF_BASE_MS || 30_000) * 2 ** (attempt - 1));
   return Math.round(base * (0.5 + random()));
 }
 
@@ -175,7 +180,7 @@ async function degrade(channel: typeof notificationChannels.$inferSelect, result
  * the queue (nothing was sent); one whose attempt started but never finished becomes delivery_unknown.
  */
 export async function sweepStuck(now = new Date()) {
-  const db = database(), cutoff = new Date(now.getTime() - STUCK_MS);
+  const db = database(), cutoff = new Date(now.getTime() - stuckMs());
   const rows = await db.select().from(notificationDeliveries).where(and(eq(notificationDeliveries.status, 'sending'), or(isNull(notificationDeliveries.claimedAt), lt(notificationDeliveries.claimedAt, cutoff)))).limit(200);
   let requeued = 0, unknown = 0;
   for (const row of rows) {
@@ -244,7 +249,9 @@ export async function deliveryStats(ctx: AuthContext, ledgerId: string, now = ne
 type NotificationRow = typeof notifications.$inferSelect;
 export const presentNotification = (row: NotificationRow) => ({ id: row.id, eventType: row.eventType as never, title: row.title, body: row.body, link: row.link, readAt: row.readAt?.toISOString() ?? null, createdAt: row.createdAt.toISOString(), version: row.version });
 export async function listNotifications(ctx: AuthContext, ledgerId: string, query: unknown, page: Keyset) {
-  const q = NotificationQuery.partial().parse(query);
+  // The router has already parsed the query (unreadOnly is a boolean then); direct callers may pass the raw string.
+  const raw = (query ?? {}) as { unreadOnly?: unknown };
+  const q = { unreadOnly: typeof raw.unreadOnly === 'boolean' ? raw.unreadOnly : NotificationQuery.partial().parse({ unreadOnly: raw.unreadOnly }).unreadOnly };
   await ledgerAccess(database(), ctx, ledgerId, 'viewer');
   const after = page.after && or(lt(notifications.createdAt, new Date(page.after[0])), and(eq(notifications.createdAt, new Date(page.after[0])), lt(notifications.id, page.after[1])));
   return database().select().from(notifications).where(and(eq(notifications.ledgerId, ledgerId), eq(notifications.userId, ctx.userId), q.unreadOnly ? isNull(notifications.readAt) : undefined, after))

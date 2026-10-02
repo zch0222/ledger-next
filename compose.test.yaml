@@ -17,7 +17,10 @@ services:
       FX_TIMEOUT_MS: "1500"
       # Reminders: a short tick and provider timeout so retries, timeouts and recovery are observable quickly.
       NOTIFY_TICK_SECONDS: "1"
-      CHANNEL_TIMEOUT_MS: "1500"
+      # Long enough that the chaos drill can kill the worker while a request is still waiting for the provider.
+      CHANNEL_TIMEOUT_MS: "10000"
+      NOTIFY_BACKOFF_BASE_MS: "1000"
+      NOTIFY_STUCK_SECONDS: "10"
   mock-services:
     restart: "no"
   tests:
