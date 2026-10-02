@@ -1,0 +1,30 @@
+name: Quality and Docker E2E
+on: [push, pull_request]
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # contract:check compares with the base commit
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --global pnpm@11.19.0
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test:unit
+      # Generated OpenAPI / SDK must be current; stable operations must not break against the base commit.
+      - run: pnpm contract:check --base-ref ${{ github.event.pull_request.base.sha || github.event.before }}
+      - run: node scripts/progress.mjs validate
+      - run: pnpm test:e2e
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-evidence
+          path: |
+            coverage/
+            test-results/
+            playwright-report/

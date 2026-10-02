@@ -1,6 +1,6 @@
 # 里程碑与可执行交付计划
 
-版本 0.1 · 2026-10-02。当前阶段是开发前设计评审，业务开发尚未开始。
+版本 0.2 · 2026-10-02。用户已明确授权按现有方案与 UI 原型开始实现；新增 MySQL、Docker 部署、本机 Docker 端到端验证要求。首批范围与证据见 IMPLEMENTATION.md。
 
 ## 1. 数据与职责
 
@@ -102,7 +102,7 @@ node scripts/progress.mjs update M3-FX --status blocked --owner "张三" --reaso
 
 ## 6. 实施阶段验证命令约定
 
-下列为 M1 要建立的命令契约；当前仓库只有文档工具，尚不能执行这些产品命令：
+下列为分阶段建立的命令契约；lint、typecheck、unit、integration、contract、e2e、build 已建立。perf 随 M7 实现，不能把尚未建立的命令报告为通过。`test:contract`（= `contract:check`）检查生成的 OpenAPI / SDK 与破坏性变更；针对真实服务的 REST / SDK 契约用例在 `tests/e2e/contract.api.ts`，随 `test:e2e` 在 Docker 中执行：
 
 ~~~text
 pnpm lint
@@ -115,8 +115,8 @@ pnpm test:perf
 pnpm build
 ~~~
 
-金额 / 日历纯逻辑用 unit；资金事务 / 授权 / outbox 用真实 Postgres/Redis integration；REST/SDK/MCP 用 contract；用户主要流程和移动端用 e2e；性能按照技术方案固定环境执行。普通视觉修改不机械增添单元测试，以截图和行为验证为主。
+金额 / 日历纯逻辑用 unit；资金事务 / 授权 / outbox 用真实 MySQL/Redis integration；REST/SDK/MCP 用 contract；用户主要流程和移动端用 e2e。用户要求端到端验证基于本机 Docker，因此 `pnpm test:e2e` 负责生产镜像构建、独立 MySQL 测试卷、迁移、健康检查及 Playwright 容器。单元覆盖率须注明文件范围，不能用纯函数覆盖率宣称全仓覆盖。性能按照技术方案固定环境执行。
 
 ## 7. 当前下一步
 
-先评审 UI、操作流程和架构契约，记录于 DESIGN_REVIEW。当前没有把 G0 标为通过，也没有创建 Next.js 业务代码。确认后按 M1-BASE 开始工程，任务数据与文档可持续沿用。
+G0 的实施授权来自用户 2026-10-02 当前会话，原文存于 DESIGN_REVIEW。按 M1-BASE → M1-AUTH → M1-API 顺序提交验证证据（见 docs/evidence/）。M1 三项的实现与本机验证已完成，状态以 milestones.json 为准：依赖任务未经评审签署前，后续任务不能进入 in_review。资金域从 M2-MODEL 开始。技术验证可由 Codex 记录自检结论，但不冒充独立人工签署或远程 CI 结果。

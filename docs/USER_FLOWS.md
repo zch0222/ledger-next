@@ -1,6 +1,6 @@
 # 操作逻辑图与状态契约
 
-日期：2026-10-02。图中 API 是计划契约，尚未实现。对应 [UI 规范](UI_SPEC.md)、[接口契约](API_AGENT_CONTRACT.md)。
+日期：2026-10-02。图中为完整目标流程；首批已实现登录、创建 / 切换账本与成员管理，资金 / 通知 / Agent 流程尚未实现。数据库按用户要求改为 MySQL。对应 [UI 规范](UI_SPEC.md)、[接口契约](API_AGENT_CONTRACT.md)。
 
 ## F01 首次使用
 
@@ -53,7 +53,7 @@ flowchart TD
   actor U as 用户
   participant W as Web
   participant A as REST / Domain
-  participant D as PostgreSQL
+  participant D as MySQL 8.4 LTS
   U->>W: 选 HKD 转出 / USD 转入、双金额、手续费
   W->>A: POST /transaction-previews
   A-->>W: 双账户变化 + 费用支出 + 基准折算

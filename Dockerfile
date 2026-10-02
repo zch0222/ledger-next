@@ -1,0 +1,43 @@
+# Verified multi-platform manifest digests; update with dependency / container checks.
+FROM node:24-bookworm-slim@sha256:0e0ff40c39bc087845bfb27465a0df4ea419520094bc35842ff83dd8cbe6f9b6 AS base
+ENV PNPM_HOME=/pnpm
+ENV PATH=$PNPM_HOME:$PATH
+RUN npm install --global pnpm@11.19.0
+WORKDIR /app
+
+FROM base AS dependencies
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/web/package.json ./apps/web/package.json
+RUN --mount=type=cache,id=ledger-pnpm,target=/pnpm/store pnpm install --frozen-lockfile --store-dir /pnpm/store
+
+FROM dependencies AS source
+COPY . .
+ENV NEXT_TELEMETRY_DISABLED=1
+
+FROM source AS builder
+RUN pnpm build
+
+FROM node:24-bookworm-slim@sha256:0e0ff40c39bc087845bfb27465a0df4ea419520094bc35842ff83dd8cbe6f9b6 AS web
+WORKDIR /app
+ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 HOSTNAME=0.0.0.0 PORT=3000
+COPY --from=builder --chown=node:node /app/apps/web/.next/standalone ./
+COPY --from=builder --chown=node:node /app/apps/web/.next/static ./apps/web/.next/static
+USER node
+EXPOSE 3000
+CMD ["node", "apps/web/server.js"]
+
+FROM source AS worker
+USER node
+# Run node directly so SIGTERM reaches the worker and a graceful stop exits 0.
+CMD ["node", "--import", "tsx", "apps/worker/src/index.ts"]
+
+FROM source AS migrate
+USER node
+CMD ["node", "--import", "tsx", "packages/db/src/migrate.ts"]
+
+FROM mcr.microsoft.com/playwright:v1.63.0-noble@sha256:eff16c30e6f3f4af0a03fa4b706120d5e9b0891c344a27d64559aff5900a4a27 AS tests
+WORKDIR /app
+COPY --from=source /app /app
+ENV CI=1
+# Run Playwright directly: `pnpm run` would re-verify node_modules against the build-time store and reinstall from the registry.
+CMD ["node_modules/.bin/playwright", "test"]

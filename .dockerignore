@@ -1,0 +1,12 @@
+.git
+.idea
+node_modules
+**/node_modules
+**/.next
+.pnpm-store
+coverage
+test-results
+playwright-report
+.env*
+docs/evidence/runtime
+*.tsbuildinfo

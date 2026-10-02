@@ -1,6 +1,6 @@
 # REST API、MCP 与配套 Skill 契约
 
-版本 0.1 · 2026-10-02 · 设计草案。下列接口、包和域名示例尚未部署；配置样例用于 M6 联调，不表示现在可以连接。
+版本 0.3 · 2026-10-02 · 可执行契约。下表全部资源已转换为 OpenAPI 3.1：[packages/contracts/openapi.json](../packages/contracts/openapi.json)（由 `packages/contracts/src` 的 Zod 定义生成，`pnpm contract:generate`），类型化 REST SDK 位于 `packages/api-client`。每个操作带 `x-stability`：`stable` 为已实现并受 CI 破坏性变更门禁保护（当前 10 个：`/me`、`/ledgers`、`L`、`L/memberships`、`L/memberships/{id}`、`L/audit-events`）；`planned` 为已发布、尚未实现的契约，返回 501 并标注 `x-milestone`，实现时可调整。认证库协议为 `/api/auth/*`。下列远程域名是示例，MCP 配置不表示现在可以连接。
 
 ## 1. 公共 REST 规则
 
@@ -13,16 +13,16 @@
 | 项目 | 约定 |
 | --- | --- |
 | 成功包体 | 单条 {data, meta:{requestId}}；列表 {data:[], page:{nextCursor,hasMore}, meta} |
-| 分页 | cursor opaque，limit 默认 50、上限 100；稳定排序 local_date DESC、id DESC |
+| 分页 | cursor opaque（HMAC 签名，绑定用户、操作、账本与筛选条件；篡改或换筛选返回 400 INVALID_CURSOR），limit 默认 50、上限 100；keyset 稳定排序，交易按 local_date DESC、id DESC |
 | 筛选 | dateFrom/dateTo、accountId、categoryId、kind、q；sort 白名单；cursor 与筛选摘要绑定 |
-| 幂等 | 创建交易、退款、订阅、测试投递、导入等必须 Idempotency-Key；相同请求返回原结果 |
+| 幂等 | 创建交易、退款、订阅、账单支付、测试投递、导入等必须 Idempotency-Key（缺失 400）；其余创建可选。作用域 actor + method + 路径；同 key 同请求体返回原状态码与正文并带 `Idempotent-Replayed: true`，不同请求体 409 IDEMPOTENCY_KEY_REUSED；记录与业务写入同事务，失败请求不留记录，保留 7 天 |
 | 并发 | 可修改资源返回 ETag；PATCH / DELETE 必须 If-Match；缺少返回 428，冲突返回 412 |
-| 响应码 | 200/201/202/204；400 格式、401 未认证、403 作用域、404 不存在/不可见、409 业务冲突、412 版本、422 字段、429 限流、503 暂不可用 |
+| 响应码 | 200/201/202/204；400 格式、401 未认证、403 作用域 / Origin、404 不存在/不可见（含格式错误的 ID）、405 方法不支持（带 Allow）、409 业务冲突、412 版本、413 过大、415 类型、422 字段（含查询参数）、428 缺 If-Match、429 限流、501 契约已发布未实现、503 暂不可用；每个操作在 OpenAPI 中列出其可能的错误码 |
 | 追踪 | 每次响应 X-Request-Id；错误可显示 requestId；日志不含令牌与完整备注 |
 | 速率 | 通过配置确定；响应带 Retry-After；MCP 遵循相同额度，不能绕过 |
 | 版本 | v1 内仅兼容添加；破坏变更开 v2，OpenAPI diff 作为 CI 门禁 |
 
-OpenAPI 3.1 是实现阶段可执行契约，M1-API 需把下表全部转换为 paths、schemas、security、状态码及示例并生成 SDK。本轮为详细设计，未把不完整 schema 标成可运行 API。
+OpenAPI 3.1 是可执行契约：下表每一行都已转换为 paths、schemas、security（Session / PAT 作用域）、`x-ledger-role` 与错误响应，并生成 SDK。CI 执行 `pnpm contract:check --base-ref <基线>`：生成文件必须最新，stable 操作不得出现删除操作 / 参数、新增必填字段、收紧输入、删除或放宽响应字段、提高角色或作用域等破坏性变更。端到端测试用 ajv 按该文件校验真实响应。
 
 ## 2. 资源清单
 
@@ -138,7 +138,7 @@ Content-Type: application/json
       "freshness": "fresh",
       "source": "demo-only"
     },
-    "accountDelta": "-12.00",
+    "accountDeltas": [{"accountId": "account-usd", "delta": "-12.00", "currency": "USD"}],
     "warnings": []
   },
   "meta": {"requestId": "request-example"}

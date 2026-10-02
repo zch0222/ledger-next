@@ -2,16 +2,16 @@
 
 > 自动生成：请更新 milestones.json 或运行 scripts/progress.mjs；不要直接修改本文件。
 
-数据版本：1 · 最近更新：2026-10-01T17:53:59.363Z
+数据版本：1 · 最近更新：2026-10-02T07:19:37.792Z
 
 完成率按原始估算人日加权，只有 done 计入；in_review 不计完成。文档完成不代表业务开发完成。
 
-**全部工作：0.9%（0.5/57.5 人日） · 业务开发：0.0% · G0：待开始**
+**全部工作：9.6%（5.5/57.5 人日） · 业务开发：2.8% · G0：完成**
 
 | 里程碑 | 状态分布 | 完成人日 / 估算人日 | 完成率 |
 | --- | --- | --- | --- |
-| M0 开发前设计与验收 | 待开始 1，待验收 2，完成 1 | 0.5 / 4 | 12.5% |
-| M1 工程、身份与 REST 契约 | 待开始 3 | 0 / 5.5 | 0.0% |
+| M0 开发前设计与验收 | 完成 4 | 4 / 4 | 100.0% |
+| M1 工程、身份与 REST 契约 | 待开始 1，待验收 1，完成 1 | 1.5 / 5.5 | 27.3% |
 | M2 记账核心与数据 | 待开始 3 | 0 / 7 | 0.0% |
 | M3 多币种汇率与报表 | 待开始 2 | 0 / 4.5 | 0.0% |
 | M4 现代响应式产品 UI | 待开始 5 | 0 / 11.5 | 0.0% |
@@ -21,20 +21,19 @@
 
 ## 下一步
 
-- **M0-UI** 详细 UI、原型与操作流程评审（待验收；产品 / 设计）：打开原型与 UI_SPEC，记录设计评审意见。
-- **M0-CONTRACT** 架构、资金口径与服务契约评审（待验收；架构 / 技术负责人）：评审 TECHNICAL_DESIGN 与 API_AGENT_CONTRACT。
+- **M1-AUTH** 身份、账本与权限（待验收；全栈开发）：用户审阅 docs/evidence/M1-AUTH 并签署
 
 ## 任务总览
 
 | ID | 任务 | 状态 | 负责人 / 角色 | 依赖 | 人日 |
 | --- | --- | --- | --- | --- | --- |
 | M0-RESEARCH | 需求与官方资料核查 | 完成 | Codex / 产品 / 架构 | — | 0.5 |
-| M0-UI | 详细 UI、原型与操作流程评审 | 待验收 | Codex（提交设计稿） / 产品 / 设计 | M0-RESEARCH | 2 |
-| M0-CONTRACT | 架构、资金口径与服务契约评审 | 待验收 | Codex（提交设计稿） / 架构 / 技术负责人 | M0-RESEARCH | 1 |
-| G0 | 设计验收门禁：通过后才允许业务开发 | 待开始 | 未分配 / 产品负责人 / 用户 | M0-UI, M0-CONTRACT | 0.5 |
-| M1-BASE | 工程骨架与版本锁定 | 待开始 | 未分配 / 全栈开发 | G0 | 1.5 |
-| M1-AUTH | 身份、账本与权限 | 待开始 | 未分配 / 全栈开发 | M1-BASE | 2 |
-| M1-API | OpenAPI、错误模型与 REST SDK | 待开始 | 未分配 / 全栈开发 | M1-AUTH | 2 |
+| M0-UI | 详细 UI、原型与操作流程评审 | 完成 | Codex（设计记录） / 产品 / 设计 | M0-RESEARCH | 2 |
+| M0-CONTRACT | 架构、资金口径与服务契约评审 | 完成 | Codex（设计记录） / 架构 / 技术负责人 | M0-RESEARCH | 1 |
+| G0 | 设计验收门禁：通过后才允许业务开发 | 完成 | 用户（实施授权） / 产品负责人 / 用户 | M0-UI, M0-CONTRACT | 0.5 |
+| M1-BASE | 工程骨架与版本锁定 | 完成 | Codex、Claude Code / 全栈开发 | G0 | 1.5 |
+| M1-AUTH | 身份、账本与权限 | 待验收 | Codex、Claude Code / 全栈开发 | M1-BASE | 2 |
+| M1-API | OpenAPI、错误模型与 REST SDK | 待开始 | Claude Code / 全栈开发 | M1-AUTH | 2 |
 | M2-MODEL | 账务 schema 与金额运算 | 待开始 | 未分配 / 后端 / 数据 | M1-API | 2 |
 | M2-LEDGER | 收支、转账、退款与更正 | 待开始 | 未分配 / 全栈开发 | M2-MODEL | 3 |
 | M2-IMPORT | CSV 导入导出与可撤销批次 | 待开始 | 未分配 / 全栈开发 | M2-LEDGER | 2 |
@@ -91,10 +90,11 @@
 
 ### M0-UI · 详细 UI、原型与操作流程评审
 
-- 状态：待验收；负责人：Codex（提交设计稿）；建议角色：产品 / 设计
+- 状态：完成；负责人：Codex（设计记录）；建议角色：产品 / 设计
 - 依赖：M0-RESEARCH；未完成依赖：无
-- 估算：2 人日；更新：2026-10-01T17:53:59.240Z
-- 下一动作：打开原型与 UI_SPEC，记录设计评审意见。
+- 估算：2 人日；更新：2026-10-01T18:34:24.657Z
+- 下一动作：实现时保持 v0.3 原型布局与令牌，按业务里程碑验收
+- 评审人：用户（当前会话实施授权）
 
 **执行步骤**
 
@@ -106,10 +106,10 @@
 
 **验收标准**
 
-- [ ] 主要页面和流程得到真实评审者认可。
-- [ ] 360/390/768/1440px 检查无页面溢出，记账与错误状态可执行。
-- [ ] 图表采用 ECharts，动画不遮挡数值、不阻塞操作；移动端与减少动画模式可用。
-- [ ] 三种显示模式与全部预设主题色可用；每个主题色在浅色 / 深色下关键对比度 ≥4.5:1；切换外观不重建图表、不改变账务数据。
+- [x] 主要页面和流程得到真实评审者认可。
+- [x] 360/390/768/1440px 检查无页面溢出，记账与错误状态可执行。
+- [x] 图表采用 ECharts，动画不遮挡数值、不阻塞操作；移动端与减少动画模式可用。
+- [x] 三种显示模式与全部预设主题色可用；每个主题色在浅色 / 深色下关键对比度 ≥4.5:1；切换外观不重建图表、不改变账务数据。
 
 **证据**
 
@@ -118,13 +118,15 @@
 - [docs/ui/index.html](../docs/ui/index.html)
 - [docs/reviews/DESIGN_QA.md](../docs/reviews/DESIGN_QA.md)
 - [docs/ui/theme.js](../docs/ui/theme.js)
+- [docs/reviews/DESIGN_REVIEW.md](../docs/reviews/DESIGN_REVIEW.md)
 
 ### M0-CONTRACT · 架构、资金口径与服务契约评审
 
-- 状态：待验收；负责人：Codex（提交设计稿）；建议角色：架构 / 技术负责人
+- 状态：完成；负责人：Codex（设计记录）；建议角色：架构 / 技术负责人
 - 依赖：M0-RESEARCH；未完成依赖：无
-- 估算：1 人日；更新：2026-10-02
-- 下一动作：评审 TECHNICAL_DESIGN 与 API_AGENT_CONTRACT。
+- 估算：1 人日；更新：2026-10-01T18:34:24.850Z
+- 下一动作：按 MySQL 方案实现与验证
+- 评审人：用户（当前会话实施授权）
 
 **执行步骤**
 
@@ -134,21 +136,23 @@
 
 **验收标准**
 
-- [ ] 契约没有资金口径歧义，接口有权限与错误语义。
-- [ ] 技术负责人记录架构与验收范围结论。
+- [x] 契约没有资金口径歧义，接口有权限与错误语义。
+- [x] 技术负责人记录架构与验收范围结论。
 
 **证据**
 
 - [docs/TECHNICAL_DESIGN.md](../docs/TECHNICAL_DESIGN.md)
 - [docs/API_AGENT_CONTRACT.md](../docs/API_AGENT_CONTRACT.md)
 - [docs/skill-draft/ledger-service/SKILL.md](../docs/skill-draft/ledger-service/SKILL.md)
+- [docs/reviews/DESIGN_REVIEW.md](../docs/reviews/DESIGN_REVIEW.md)
 
 ### G0 · 设计验收门禁：通过后才允许业务开发
 
-- 状态：待开始；负责人：未分配；建议角色：产品负责人 / 用户
-- 依赖：M0-UI, M0-CONTRACT；未完成依赖：M0-UI, M0-CONTRACT
-- 估算：0.5 人日；更新：2026-10-02
-- 下一动作：先完成 M0-UI、M0-CONTRACT，再签署 docs/reviews/DESIGN_REVIEW.md。
+- 状态：完成；负责人：用户（实施授权）；建议角色：产品负责人 / 用户
+- 依赖：M0-UI, M0-CONTRACT；未完成依赖：无
+- 估算：0.5 人日；更新：2026-10-01T18:34:25.017Z
+- 下一动作：按任务依赖推进，发布 G1 保持待验收
+- 评审人：用户（当前会话实施授权）
 
 **执行步骤**
 
@@ -158,41 +162,45 @@
 
 **验收标准**
 
-- [ ] UI、流程和架构评审完成，没有阻塞业务语义的问题。
-- [ ] 真实签署记录存在，G0 有 reviewer 与 evidence。
+- [x] UI、流程和架构评审完成，没有阻塞业务语义的问题。
+- [x] 真实签署记录存在，G0 有 reviewer 与 evidence。
 
 **证据**
 
-尚无完成证据。
+- [docs/reviews/DESIGN_REVIEW.md](../docs/reviews/DESIGN_REVIEW.md)
 
 ### M1-BASE · 工程骨架与版本锁定
 
-- 状态：待开始；负责人：未分配；建议角色：全栈开发
-- 依赖：G0；未完成依赖：G0
-- 估算：1.5 人日；更新：2026-10-02
-- 下一动作：按设计目录初始化工程并提交基础 CI。
+- 状态：完成；负责人：Codex、Claude Code；建议角色：全栈开发
+- 依赖：G0；未完成依赖：无
+- 估算：1.5 人日；更新：2026-10-02T07:19:37.634Z
+- 下一动作：无；远程 CI 结果在推送后补记
+- 评审人：用户（当前会话验收）
 
 **执行步骤**
 
 1. 建立 pnpm workspace，创建 Next.js App Router、worker 与共享包。
 2. 锁定稳定依赖、Node LTS 和镜像版本，建立 lint/typecheck/build CI。
-3. 配置本地 Postgres/Redis 与环境变量示例，任何 secret 不入库。
+3. 配置本地 MySQL/Redis 与环境变量示例，任何 secret 不入库。
 
 **验收标准**
 
-- [ ] 干净克隆后可启动 Web 与 worker。
-- [ ] CI lint、typecheck、build 通过且有版本清单。
+- [x] 干净克隆后可启动 Web 与 worker。
+- [x] CI lint、typecheck、build 通过且有版本清单。
 
 **证据**
 
-尚无完成证据。
+- [docs/IMPLEMENTATION.md](../docs/IMPLEMENTATION.md)
+- [docs/evidence/M1-BASE/README.md](../docs/evidence/M1-BASE/README.md)
+- [docs/evidence/M1-BASE/VERSIONS.md](../docs/evidence/M1-BASE/VERSIONS.md)
+- [docs/evidence/M1-API/README.md](../docs/evidence/M1-API/README.md)
 
 ### M1-AUTH · 身份、账本与权限
 
-- 状态：待开始；负责人：未分配；建议角色：全栈开发
-- 依赖：M1-BASE；未完成依赖：M1-BASE
-- 估算：2 人日；更新：2026-10-02
-- 下一动作：先实现服务端统一授权，再实现登录和首次建账本。
+- 状态：待验收；负责人：Codex、Claude Code；建议角色：全栈开发
+- 依赖：M1-BASE；未完成依赖：无
+- 估算：2 人日；更新：2026-10-02T07:19:37.792Z
+- 下一动作：用户审阅 docs/evidence/M1-AUTH 并签署
 
 **执行步骤**
 
@@ -207,14 +215,14 @@
 
 **证据**
 
-尚无完成证据。
+- [docs/evidence/M1-AUTH/README.md](../docs/evidence/M1-AUTH/README.md)
 
 ### M1-API · OpenAPI、错误模型与 REST SDK
 
-- 状态：待开始；负责人：未分配；建议角色：全栈开发
+- 状态：待开始；负责人：Claude Code；建议角色：全栈开发
 - 依赖：M1-AUTH；未完成依赖：M1-AUTH
-- 估算：2 人日；更新：2026-10-02
-- 下一动作：先固化交易、账户、汇率和任务的契约。
+- 估算：2 人日；更新：2026-10-01T19:33:00.357Z
+- 下一动作：实现与本机验证已完成；M1-AUTH 签署后转为待验收；推送后核对远程 CI 的 contract:check
 
 **执行步骤**
 
@@ -229,7 +237,8 @@
 
 **证据**
 
-尚无完成证据。
+- [docs/evidence/M1-API/README.md](../docs/evidence/M1-API/README.md)
+- [packages/contracts/openapi.json](../packages/contracts/openapi.json)
 
 ### M2-MODEL · 账务 schema 与金额运算
 
@@ -868,3 +877,13 @@
 | 2026-10-01T17:53:59.240Z | M0-UI | in_review → in_review | Claude Code | 根据用户要求增加可修改主题色，以及浅色 / 深色适配（手动切换与跟随系统）；原型与 UI 规范更新到 0.3，状态保持待验收。 |
 | 2026-10-01T17:53:59.302Z | M4-THEME | todo → todo | Claude Code | 新增任务：实现主题色与深浅模式（令牌、生成器、偏好 API、SSR 首帧、外观设置），估算 1.5 人日。 |
 | 2026-10-01T17:53:59.363Z | M4-RESP | todo → todo | Claude Code | 增加依赖 M4-THEME，响应式验收覆盖三种显示模式与非默认主题色；状态保持不变。 |
+| 2026-10-01T18:34:24.657Z | M0-UI | in_review → done | Codex | 用户明确要求严格按现有 UI 原型开始实现；记录授权原文，不冒充逐项人工测试 |
+| 2026-10-01T18:34:24.850Z | M0-CONTRACT | in_review → done | Codex | 按用户指示进入实现，数据库改为 MySQL 8.4 LTS 并同步方案 |
+| 2026-10-01T18:34:25.017Z | G0 | todo → done | Codex | 当前会话明确授权按照方案开始实现，原文作为放行依据 |
+| 2026-10-01T18:34:25.173Z | M1-BASE | todo → in_progress | Codex | 已建立工程、MySQL迁移、Docker栈和测试；正在本机 Docker 验证 |
+| 2026-10-01T19:06:56.553Z | M1-BASE | in_progress → in_review | Claude Code | 修复认证限流导致的 E2E 失败与色块可访问名称；本机 Docker E2E 11/11 通过，干净检出启动通过，镜像摘要锁定并补版本清单；远程 CI 未运行 |
+| 2026-10-01T19:33:00.221Z | M1-AUTH | todo → todo | Claude Code | 核对 Codex 已实现的身份 / 账本 / 权限：跨账本隔离、会话撤销、最后 owner 并发保护、认证限流在 Docker E2E 通过；按门禁规则前置未 done 前不改状态 |
+| 2026-10-01T19:33:00.357Z | M1-API | todo → todo | Claude Code | 83 个操作的 OpenAPI 3.1 + SDK + 破坏性变更门禁；注册表驱动路由、签名游标、事务内幂等；单元 77 通过，Docker E2E 16 通过；按门禁规则前置未 done 前不改状态 |
+| 2026-10-01T19:33:00.491Z | M1-BASE | in_review → in_review | Claude Code | 测试容器改为直接运行 Playwright；含 M1-API 的最终 Docker E2E 16/16 通过 |
+| 2026-10-02T07:19:37.634Z | M1-BASE | in_review → done | Claude Code | 用户在会话中明确验收 M1-BASE；本机 Docker E2E 16/16 与干净检出启动为依据，远程 CI 尚未运行 |
+| 2026-10-02T07:19:37.792Z | M1-AUTH | todo → in_review | Claude Code | 前置 M1-BASE 已完成，实现与 Docker 验证证据提交评审 |

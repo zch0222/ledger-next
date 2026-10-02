@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "project": "Ledger Next",
-  "updatedAt": "2026-10-01T17:53:59.363Z",
+  "updatedAt": "2026-10-02T07:19:37.792Z",
   "timezone": "Asia/Hong_Kong",
   "milestones": [
     {
@@ -77,10 +77,10 @@
         "M0-RESEARCH"
       ],
       "role": "产品 / 设计",
-      "owner": "Codex（提交设计稿）",
-      "status": "in_review",
+      "owner": "Codex（设计记录）",
+      "status": "done",
       "requiresReview": true,
-      "reviewer": "",
+      "reviewer": "用户（当前会话实施授权）",
       "blockedReason": "",
       "steps": [
         "审阅 P00–P13 页面、桌面和移动断点、所有字段与异常状态。",
@@ -95,15 +95,16 @@
         "图表采用 ECharts，动画不遮挡数值、不阻塞操作；移动端与减少动画模式可用。",
         "三种显示模式与全部预设主题色可用；每个主题色在浅色 / 深色下关键对比度 ≥4.5:1；切换外观不重建图表、不改变账务数据。"
       ],
-      "nextAction": "打开原型与 UI_SPEC，记录设计评审意见。",
+      "nextAction": "实现时保持 v0.3 原型布局与令牌，按业务里程碑验收",
       "evidence": [
         "docs/UI_SPEC.md",
         "docs/USER_FLOWS.md",
         "docs/ui/index.html",
         "docs/reviews/DESIGN_QA.md",
-        "docs/ui/theme.js"
+        "docs/ui/theme.js",
+        "docs/reviews/DESIGN_REVIEW.md"
       ],
-      "updatedAt": "2026-10-01T17:53:59.240Z"
+      "updatedAt": "2026-10-01T18:34:24.657Z"
     },
     {
       "id": "M0-CONTRACT",
@@ -115,10 +116,10 @@
         "M0-RESEARCH"
       ],
       "role": "架构 / 技术负责人",
-      "owner": "Codex（提交设计稿）",
-      "status": "in_review",
+      "owner": "Codex（设计记录）",
+      "status": "done",
       "requiresReview": true,
-      "reviewer": "",
+      "reviewer": "用户（当前会话实施授权）",
       "blockedReason": "",
       "steps": [
         "审阅基准币与汇率快照、posting、更正与退款模型。",
@@ -129,13 +130,14 @@
         "契约没有资金口径歧义，接口有权限与错误语义。",
         "技术负责人记录架构与验收范围结论。"
       ],
-      "nextAction": "评审 TECHNICAL_DESIGN 与 API_AGENT_CONTRACT。",
+      "nextAction": "按 MySQL 方案实现与验证",
       "evidence": [
         "docs/TECHNICAL_DESIGN.md",
         "docs/API_AGENT_CONTRACT.md",
-        "docs/skill-draft/ledger-service/SKILL.md"
+        "docs/skill-draft/ledger-service/SKILL.md",
+        "docs/reviews/DESIGN_REVIEW.md"
       ],
-      "updatedAt": "2026-10-02"
+      "updatedAt": "2026-10-01T18:34:24.850Z"
     },
     {
       "id": "G0",
@@ -148,10 +150,10 @@
         "M0-CONTRACT"
       ],
       "role": "产品负责人 / 用户",
-      "owner": "未分配",
-      "status": "todo",
+      "owner": "用户（实施授权）",
+      "status": "done",
       "requiresReview": true,
-      "reviewer": "",
+      "reviewer": "用户（当前会话实施授权）",
       "blockedReason": "",
       "steps": [
         "逐项检查 DESIGN_REVIEW 清单。",
@@ -162,9 +164,11 @@
         "UI、流程和架构评审完成，没有阻塞业务语义的问题。",
         "真实签署记录存在，G0 有 reviewer 与 evidence。"
       ],
-      "nextAction": "先完成 M0-UI、M0-CONTRACT，再签署 docs/reviews/DESIGN_REVIEW.md。",
-      "evidence": [],
-      "updatedAt": "2026-10-02"
+      "nextAction": "按任务依赖推进，发布 G1 保持待验收",
+      "evidence": [
+        "docs/reviews/DESIGN_REVIEW.md"
+      ],
+      "updatedAt": "2026-10-01T18:34:25.017Z"
     },
     {
       "id": "M1-BASE",
@@ -176,23 +180,28 @@
         "G0"
       ],
       "role": "全栈开发",
-      "owner": "未分配",
-      "status": "todo",
+      "owner": "Codex、Claude Code",
+      "status": "done",
       "requiresReview": true,
-      "reviewer": "",
+      "reviewer": "用户（当前会话验收）",
       "blockedReason": "",
       "steps": [
         "建立 pnpm workspace，创建 Next.js App Router、worker 与共享包。",
         "锁定稳定依赖、Node LTS 和镜像版本，建立 lint/typecheck/build CI。",
-        "配置本地 Postgres/Redis 与环境变量示例，任何 secret 不入库。"
+        "配置本地 MySQL/Redis 与环境变量示例，任何 secret 不入库。"
       ],
       "acceptance": [
         "干净克隆后可启动 Web 与 worker。",
         "CI lint、typecheck、build 通过且有版本清单。"
       ],
-      "nextAction": "按设计目录初始化工程并提交基础 CI。",
-      "evidence": [],
-      "updatedAt": "2026-10-02"
+      "nextAction": "无；远程 CI 结果在推送后补记",
+      "evidence": [
+        "docs/IMPLEMENTATION.md",
+        "docs/evidence/M1-BASE/README.md",
+        "docs/evidence/M1-BASE/VERSIONS.md",
+        "docs/evidence/M1-API/README.md"
+      ],
+      "updatedAt": "2026-10-02T07:19:37.634Z"
     },
     {
       "id": "M1-AUTH",
@@ -204,8 +213,8 @@
         "M1-BASE"
       ],
       "role": "全栈开发",
-      "owner": "未分配",
-      "status": "todo",
+      "owner": "Codex、Claude Code",
+      "status": "in_review",
       "requiresReview": true,
       "reviewer": "",
       "blockedReason": "",
@@ -218,9 +227,11 @@
         "未经授权无法读取或修改另一账本任何资源。",
         "登录/退出/会话撤销、最后 owner 保护通过。"
       ],
-      "nextAction": "先实现服务端统一授权，再实现登录和首次建账本。",
-      "evidence": [],
-      "updatedAt": "2026-10-02"
+      "nextAction": "用户审阅 docs/evidence/M1-AUTH 并签署",
+      "evidence": [
+        "docs/evidence/M1-AUTH/README.md"
+      ],
+      "updatedAt": "2026-10-02T07:19:37.792Z"
     },
     {
       "id": "M1-API",
@@ -232,7 +243,7 @@
         "M1-AUTH"
       ],
       "role": "全栈开发",
-      "owner": "未分配",
+      "owner": "Claude Code",
       "status": "todo",
       "requiresReview": true,
       "reviewer": "",
@@ -246,9 +257,12 @@
         "全部计划资源含 schema、scope 和错误响应。",
         "状态码、cursor 篡改、412、重复提交契约测试通过。"
       ],
-      "nextAction": "先固化交易、账户、汇率和任务的契约。",
-      "evidence": [],
-      "updatedAt": "2026-10-02"
+      "nextAction": "实现与本机验证已完成；M1-AUTH 签署后转为待验收；推送后核对远程 CI 的 contract:check",
+      "evidence": [
+        "docs/evidence/M1-API/README.md",
+        "packages/contracts/openapi.json"
+      ],
+      "updatedAt": "2026-10-01T19:33:00.357Z"
     },
     {
       "id": "M2-MODEL",
@@ -1136,6 +1150,86 @@
       "to": "todo",
       "actor": "Claude Code",
       "note": "增加依赖 M4-THEME，响应式验收覆盖三种显示模式与非默认主题色；状态保持不变。"
+    },
+    {
+      "at": "2026-10-01T18:34:24.657Z",
+      "id": "M0-UI",
+      "from": "in_review",
+      "to": "done",
+      "actor": "Codex",
+      "note": "用户明确要求严格按现有 UI 原型开始实现；记录授权原文，不冒充逐项人工测试"
+    },
+    {
+      "at": "2026-10-01T18:34:24.850Z",
+      "id": "M0-CONTRACT",
+      "from": "in_review",
+      "to": "done",
+      "actor": "Codex",
+      "note": "按用户指示进入实现，数据库改为 MySQL 8.4 LTS 并同步方案"
+    },
+    {
+      "at": "2026-10-01T18:34:25.017Z",
+      "id": "G0",
+      "from": "todo",
+      "to": "done",
+      "actor": "Codex",
+      "note": "当前会话明确授权按照方案开始实现，原文作为放行依据"
+    },
+    {
+      "at": "2026-10-01T18:34:25.173Z",
+      "id": "M1-BASE",
+      "from": "todo",
+      "to": "in_progress",
+      "actor": "Codex",
+      "note": "已建立工程、MySQL迁移、Docker栈和测试；正在本机 Docker 验证"
+    },
+    {
+      "at": "2026-10-01T19:06:56.553Z",
+      "id": "M1-BASE",
+      "from": "in_progress",
+      "to": "in_review",
+      "actor": "Claude Code",
+      "note": "修复认证限流导致的 E2E 失败与色块可访问名称；本机 Docker E2E 11/11 通过，干净检出启动通过，镜像摘要锁定并补版本清单；远程 CI 未运行"
+    },
+    {
+      "at": "2026-10-01T19:33:00.221Z",
+      "id": "M1-AUTH",
+      "from": "todo",
+      "to": "todo",
+      "actor": "Claude Code",
+      "note": "核对 Codex 已实现的身份 / 账本 / 权限：跨账本隔离、会话撤销、最后 owner 并发保护、认证限流在 Docker E2E 通过；按门禁规则前置未 done 前不改状态"
+    },
+    {
+      "at": "2026-10-01T19:33:00.357Z",
+      "id": "M1-API",
+      "from": "todo",
+      "to": "todo",
+      "actor": "Claude Code",
+      "note": "83 个操作的 OpenAPI 3.1 + SDK + 破坏性变更门禁；注册表驱动路由、签名游标、事务内幂等；单元 77 通过，Docker E2E 16 通过；按门禁规则前置未 done 前不改状态"
+    },
+    {
+      "at": "2026-10-01T19:33:00.491Z",
+      "id": "M1-BASE",
+      "from": "in_review",
+      "to": "in_review",
+      "actor": "Claude Code",
+      "note": "测试容器改为直接运行 Playwright；含 M1-API 的最终 Docker E2E 16/16 通过"
+    },
+    {
+      "at": "2026-10-02T07:19:37.634Z",
+      "id": "M1-BASE",
+      "from": "in_review",
+      "to": "done",
+      "actor": "Claude Code",
+      "note": "用户在会话中明确验收 M1-BASE；本机 Docker E2E 16/16 与干净检出启动为依据，远程 CI 尚未运行"
+    },
+    {
+      "at": "2026-10-02T07:19:37.792Z",
+      "id": "M1-AUTH",
+      "from": "todo",
+      "to": "in_review",
+      "actor": "Claude Code",
+      "note": "前置 M1-BASE 已完成，实现与 Docker 验证证据提交评审"
     }
   ]
 }

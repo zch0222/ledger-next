@@ -1,0 +1,26 @@
+services:
+  web:
+    ports: !override []
+    restart: "no"
+  mysql:
+    restart: "no"
+  redis:
+    restart: "no"
+  worker:
+    restart: "no"
+  tests:
+    build: { context: ., target: tests }
+    environment:
+      BASE_URL: http://web:3000
+      APP_ORIGIN: http://web:3000
+      CI: "1"
+      PERSISTENCE_EMAIL: ${PERSISTENCE_EMAIL:-}
+      PERSISTENCE_PASSWORD: ${PERSISTENCE_PASSWORD:-}
+    depends_on:
+      web: { condition: service_healthy }
+      worker: { condition: service_healthy }
+    volumes:
+      - ./test-results:/app/test-results
+      - ./playwright-report:/app/playwright-report
+    init: true
+    shm_size: 1gb

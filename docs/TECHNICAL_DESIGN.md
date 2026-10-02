@@ -1,6 +1,6 @@
 # Ledger Next 技术方案
 
-版本 0.3 · 2026-10-02 · 状态：待设计评审（0.3 增加主题色与深浅模式）。本文中的组件、接口、指标均为待实现设计。
+版本 0.4 · 2026-10-02 · 状态：按用户指示进入实现。0.4 将数据库改为 MySQL 8.4 LTS，要求本机 Docker 端到端验证。本文同时保留完整目标架构；已实现范围以 [IMPLEMENTATION.md](IMPLEMENTATION.md) 与里程碑证据为准。
 
 ## 1. 产品范围与需求追踪
 
@@ -29,13 +29,13 @@ V1 必须覆盖：登录、账本 / 成员权限、账户、分类、收入 / �
 | UI | Tailwind CSS、shadcn/ui / Radix、Lucide | 组件只引用 CSS 变量令牌（浅 / 深两套 + 主题色输入），不硬编码颜色；无必要不引入全局客户端状态 |
 | 可视化 | Apache ECharts 6，使用 echarts/core 按需注册；按页面懒加载 | 统一折线、柱形、环图；SSR 输出摘要和数据表，图表点数上限 366 |
 | 表单 / 契约 | React Hook Form + Zod；OpenAPI 3.1 | 服务端重新校验，生成 REST 客户端；UI 校验仅改善体验 |
-| 数据 | PostgreSQL + Drizzle ORM / SQL migrations | decimal 运算和数据库约束是事实来源 |
+| 数据 | MySQL 8.4 LTS（InnoDB）+ mysql2 + Drizzle ORM / SQL migrations | DECIMAL 字符串运算；外键、唯一约束、CHECK 与事务为一致性基础 |
 | 金额计算 | decimal.js + ISO 币种精度表 | 禁止用 JS number 累加资金；JSON 金额传十进制字符串 |
-| 异步任务 | Redis + BullMQ + Node.js TypeScript Worker | PostgreSQL outbox 持久化任务意图；Redis 不是账务存储 |
-| 登录 | 成熟认证库的数据库 Session + 可选 OIDC | M1 锁定库版本、验证 Route Handler 集成；不自行实现密码学 |
+| 异步任务 | Redis + BullMQ + Node.js TypeScript Worker | MySQL 8.4 LTS outbox 持久化任务意图；Redis 不是账务存储 |
+| 登录 | Better Auth 1.7.7 + 数据库 Session；OIDC 为后续可选接入 | 密码学交给认证库，Session Cookie 缓存关闭保证撤销；M1 建立登录 / 退出 / 隔离实测 |
 | 服务集成 | MCP 官方 TypeScript SDK + OpenAPI 生成的 REST SDK | 只做工具映射；不在 MCP 中重新计算账务 |
 | 测试 / 运维 | Vitest、Playwright、API 契约测试、k6、OpenTelemetry | 覆盖金额边界、多租户、消息故障和 SSR 性能 |
-| 部署 | Docker Compose，Next standalone、worker、Postgres、Redis、反向代理 | Linux 自托管首发；Web 与 DB 同区，Web 水平扩展 |
+| 部署 | Docker Compose，Next standalone、worker、MySQL、Redis、反向代理 | Linux 自托管首发；Web 与 DB 同区，Web 水平扩展 |
 
 版本策略：本文件不是锁文件。M1 生成版本清单、lockfile、镜像摘要和 Node LTS 兼容性记录；升级使用依赖 PR 并重跑相关契约测试。Next.js 的 Server / Client Component 和 Route Handler 语义参考[官方组件文档](https://nextjs.org/docs/app/getting-started/server-and-client-components)、[Route Handlers](https://nextjs.org/docs/app/getting-started/route-handlers)。
 
@@ -49,7 +49,7 @@ flowchart LR
   M -->|生成的 REST SDK| R
   W -->|同进程函数调用 + AuthContext| C[领域服务 / 权限 / 校验]
   R --> C
-  C --> D[(PostgreSQL)]
+  C --> D[(MySQL 8.4 LTS)]
   C --> K[(Redis 聚合缓存)]
   D -->|事务 outbox| O[Outbox Dispatcher]
   O --> Q[BullMQ]
@@ -62,7 +62,7 @@ flowchart LR
 
 “Next.js 全栈”指全部 Web 和业务 HTTP API 由 Next.js 承载。Worker 是同一工程的后台任务进程，MCP 是协议入口；它们不是另建一套业务后端。业务规则在共享领域层中，禁止跨入口复制。
 
-### 2.2 建议目录（尚未创建应用代码）
+### 2.2 目标目录（已建立 web、worker、domain、db、contracts、ui；其余按里程碑创建）
 
 ~~~text
 apps/
@@ -93,7 +93,11 @@ docs/                         本设计包、评审、决策、证据
 
 ### 4.1 核心表
 
-所有业务表的主键用 UUID；账本内实体带 ledger_id。引用采用 (ledger_id, id) 复合约束，防止同一用户不同账本之间误关联。存储时间用 timestamptz，业务日期用 date，时区单独保留 IANA 名称。
+所有业务表的主键用 UUID（VARCHAR(36)，统一二进制排序规则）；账本内实体带 ledger_id。后续账户、交易等引用采用 (ledger_id, id) 复合唯一键 / 外键，防止同一用户不同账本之间误关联。存储时间用 DATETIME(3)（UTC，mysql2 连接 timezone=Z），业务日期用 DATE，时区单独保留 IANA 名称。默认 utf8mb4 / utf8mb4_0900_bin，邮箱在认证 / 邀请边界统一小写。
+
+MySQL 没有本方案可依赖的 RLS，所有领域入口必须检查 membership 并显式带 ledger_id，数据库复合外键再防跨账本关联。驱动禁止 decimalNumbers，金额 / 汇率读写字符串；不能将 DECIMAL 转 JS number 后累计。MySQL 不支持 PostgreSQL 风格的部分索引，状态过滤使用下文包含 status 的复合索引。
+
+迁移不采用 PostgreSQL 的事务 DDL 假设：MySQL DDL 隐式提交。迁移任务持有 GET_LOCK 串行执行、按文件 SHA-256 记录版本，初始 CREATE TABLE IF NOT EXISTS 可重入；后续 ALTER 需附恢复步骤。事务默认 REPEATABLE READ，权限变更和资金写入使用显式锁定读取；资金账户按 ID 排序加锁。SKIP LOCKED 仅用于 outbox / 队列领取，不能用于账务余额与权限完整性校验。参考 [MySQL CHECK](https://dev.mysql.com/doc/refman/8.4/en/create-table-check-constraints.html)、[锁定读取](https://dev.mysql.com/doc/refman/8.4/en/select.html)。
 
 | 表 | 关键字段 / 约束 |
 | --- | --- |
@@ -106,7 +110,7 @@ docs/                         本设计包、评审、决策、证据
 | transactions | kind、occurred_at、local_date、timezone、category_id、status、version、source、note、replaces_id |
 | transaction_amounts | transaction_id、original_amount/currency、settlement_amount/currency、base_amount/currency、fx_snapshot_id；费用可关联子交易 |
 | account_postings | transaction_id、account_id、signed_amount、currency；已入账行不可原地改写 |
-| fx_batches / fx_rates | provider、base、quote、rate numeric(38,18)、source_at、fetched_at、effective_date、quality |
+| fx_batches / fx_rates | provider、base、quote、rate DECIMAL(38,18)、source_at、fetched_at、effective_date、quality |
 | fx_snapshots | 使用的来源批次 / 原始币对、合成率、时点、舍入结果、manual_reason；不可变 |
 | subscriptions | amount/currency、account_id、cycle_unit/count、anchor_day、timezone、status、version |
 | bill_occurrences | subscription_id、scheduled_local_date、schedule_version、status、transaction_id；唯一周期 occurrence |
@@ -121,7 +125,7 @@ docs/                         本设计包、评审、决策、证据
 
 ### 4.2 金额语义
 
-- 输入、输出使用如 "128.50" 的字符串。货币金额建议 numeric(24,6)，汇率 numeric(38,18)，服务端按币种 minor_units 拒绝多余精度；不悄悄截断。
+- 输入、输出使用如 "128.50" 的字符串。货币金额建议 DECIMAL(24,6)，汇率 DECIMAL(38,18)，服务端按币种 minor_units 拒绝多余精度；不悄悄截断。
 - 原币是商家标价；结算币是账户实际扣款币；基准币是报表口径。默认记账时原币 = 账户币；外币消费要明确结算金额，用户可选择汇率估算并标识 estimated，到账后允许更正。
 - 原币、结算币、基准币、使用汇率与来源全部落库。账本基准币在首笔已入账后固定；设置里的展示币切换只改变估值展示。
 - 收入、支出、退款存正金额，由 kind 决定 posting 符号。收入 +，支出 −，退款 +；退款关联原交易且不记为收入。退款累计不得超过原已付金额，差额收益需单独收入。
@@ -140,7 +144,7 @@ docs/                         本设计包、评审、决策、证据
 建议索引：
 
 ~~~text
-transactions(ledger_id, local_date DESC, id DESC) WHERE status='posted'
+transactions(ledger_id, status, local_date DESC, id DESC)
 transactions(ledger_id, category_id, local_date DESC)
 account_postings(ledger_id, account_id, transaction_id)
 bill_occurrences(subscription_id, schedule_version, scheduled_local_date) UNIQUE
@@ -256,7 +260,7 @@ ECharts 支持 setOption 数据过渡，参考[官方动画说明](https://echar
 
 ### 7.3 验收环境与目标
 
-以下是首发性能预算，M7 必须提交实测。基准：Linux 4 vCPU / 8GB，同区域 Postgres / Redis；1,000 个模拟用户、每个账本最多 100k 笔测试交易；100 并发、80% 读 / 20% 写、运行 10 分钟。报告需记录数据库大小、网络延迟和冷 / 热缓存。
+以下是首发性能预算，M7 必须提交实测。基准：Linux 4 vCPU / 8GB，同区域 MySQL / Redis；1,000 个模拟用户、每个账本最多 100k 笔测试交易；100 并发、80% 读 / 20% 写、运行 10 分钟。报告需记录数据库大小、网络延迟和冷 / 热缓存。
 
 | 指标 | 目标 |
 | --- | --- |

@@ -1,8 +1,28 @@
-# Ledger Next · 记账项目设计包
+# Ledger Next · 个人与家庭账本
 
-版本：0.3（设计评审稿）｜日期：2026-10-02｜时区：Asia/Hong_Kong
+版本：0.4（首批实现）｜日期：2026-10-02｜时区：Asia/Hong_Kong
 
-本次交付是开发前设计、交互原型和可维护的执行计划。尚未实现 Next.js 应用、REST API、通知服务或 MCP 服务，也没有部署或发送真实通知。
+已开始按 v0.3 UI 原型实现：Next.js 应用、MySQL 数据库、Session 登录、创建 / 切换账本及成员权限。Docker Compose 提供 Web、迁移、MySQL、Redis 和 worker 基础进程；Playwright 在本机 Docker 中验证真实 API 和浏览器流程。资金记账、订阅、汇率、通知和 MCP 仍按后续里程碑推进，当前不是完整首发版本。
+
+## 本机 Docker 启动
+
+```powershell
+pnpm install --frozen-lockfile
+node scripts/setup-env.mjs
+docker compose up -d --build --wait
+```
+
+访问 http://localhost:3000 创建账号和账本。需要 Node 24、pnpm 11.19.0 和 Docker Compose ≥2.24.4。详见[实现状态与运行说明](docs/IMPLEMENTATION.md)。
+
+```powershell
+pnpm lint
+pnpm typecheck
+pnpm test:unit
+pnpm contract:check
+pnpm test:e2e
+```
+
+端到端测试自动创建独立 Docker 项目 / MySQL 测试卷，生成报告后清理测试栈；不会覆盖开发数据。
 
 ## 从这里开始
 
@@ -13,10 +33,11 @@
 | [可点击 UI 原型](docs/ui/index.html) | 离线打开；ECharts 动画图表、数据钻取、页面、记账、币种切换，以及外观设置：浅色 / 深色 / 跟随系统、7 个预设主题色和自定义色；所有数据均为演示数据 |
 | [操作逻辑图](docs/USER_FLOWS.md) | 记账、转账、订阅、汇率、提醒、Agent 写入的 Mermaid 流程与状态图 |
 | [REST / MCP / Skill 契约](docs/API_AGENT_CONTRACT.md) | API 规范、工具映射、Codex / Claude Code / dsh / Qoder 配置与联调矩阵 |
+| [OpenAPI 3.1](packages/contracts/openapi.json) | 由 Zod 契约生成的全部 REST 资源（stable 已实现 / planned 计划中），类型化 SDK 在 `packages/api-client` |
 | [里程碑与执行手册](docs/DELIVERY_PLAN.md) | 开发顺序、前置门禁、交付方式、排期假设、更新命令 |
 | [实时进度文档](docs/MILESTONES.md) | 根据任务数据生成的完成率、依赖、阻塞、任务步骤与验收清单 |
 | [进度唯一数据源](docs/milestones.json) | 可更新任务状态、负责人、证据、估算和变更历史 |
-| [设计评审记录](docs/reviews/DESIGN_REVIEW.md) | UI 与流程在开发前的验收签署；目前待评审 |
+| [设计评审记录](docs/reviews/DESIGN_REVIEW.md) | UI 基线与本轮用户实施授权记录 |
 | [设计包自检](docs/reviews/DESIGN_QA.md) | 原型交互、响应式、进度门禁测试与截图；不替代用户验收 |
 | [决策记录](docs/DECISIONS.md) | 设计默认值、已确认范围、尚待上线前落实的供应商 / 部署决策 |
 | [参考来源](docs/REFERENCES.md) | Wallos、框架、MCP、四种 Agent 和通知供应商的官方资料 |
@@ -35,6 +56,6 @@ node scripts/progress.mjs validate
 
 后续修改状态时使用 update 子命令，完整示例见[执行手册](docs/DELIVERY_PLAN.md)。脚本检查任务依赖、完成证据和评审门禁，并重新生成进度文档；不会自动开发、部署或发送消息。
 
-**开发顺序：先完成 UI 与操作逻辑评审 G0，再开始 M1 及后续业务开发。** 当前原型和文档可供评审，评审通过不由文档作者代签。
+**开发基线：v0.3 原型 + 本轮明确要求的 MySQL / Docker / 测试变更。** 用户于 2026-10-02 指示按方案开始实现；授权原文记录在 G0 文档，不代签额外的人工验收。技术完成和待用户验收事项分别保留证据。
 
 需求补充已纳入：微信包括企业微信和个人微信；dsh 指 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)。
