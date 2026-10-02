@@ -6,7 +6,7 @@ export type TransactionView = {
   accountId: string | null; categoryId: string | null; tagIds: string[]; merchant: string | null; note: string | null;
   original: Money; settlement: Money; base: Money & { estimated: boolean }; exchangeRate: AppliedRate | null;
   transfer: { sourceAccountId: string; targetAccountId: string; sourceAmount: Money; targetAmount: Money; feeTransactionId: string | null } | null;
-  refundOf: string | null; replacesId: string | null; source: string; version: number; createdAt: string; updatedAt: string;
+  refundOf: string | null; replacesId: string | null; replacedById: string | null; source: string; version: number; createdAt: string; updatedAt: string;
 };
 export type PreviewView = {
   previewId: string; expiresAt: string; kind: string; settlement: Money; base: Money; exchangeRate: AppliedRate | null;

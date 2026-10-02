@@ -2508,6 +2508,8 @@ export type components = {
             occurredAt: string;
             original: components["schemas"]["Money"];
             refundOf: string | null;
+            /** @description 被更正后的新版本 id（仅已作废的旧版本有值） */
+            replacedById: string | null;
             replacesId: string | null;
             settlement: components["schemas"]["Money"];
             /** @enum {string} */

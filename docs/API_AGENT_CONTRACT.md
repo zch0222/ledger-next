@@ -163,7 +163,7 @@ M2-LEDGER 已实现的规则（以 OpenAPI 与 `tests/e2e/ledger.api.ts` 为准�
 - 结算币须与账户币种一致，金额按币种精度校验；结算币不是账本基准币时，需 `fxPolicy: "manual"` + `manualRate`（M3-FX 接入报价前没有自动汇率，返回 422 FX_RATE_MISSING）。转账若转入基准币账户，以双方金额推算汇率（source: transfer）。
 - 转账写转出 / 转入两条 posting，不带分类，不计收支；手续费是关联的独立支出（`transfer.feeTransactionId`），作废转账时一并作废。
 - 退款只针对有效支出，退回同币种账户，沿用原支出的分类与锁定汇率；累计超过原支付金额 409 REFUND_EXCEEDS_PAID（并发退款在原交易行锁内串行判断）。有有效退款的支出不能作废或更正（409 HAS_REFUNDS）。
-- 更正（PATCH + If-Match + 新预览）在同一事务内冲正旧版本 posting、把旧版本标为 voided，并写入 `replacesId` 指向旧版本的新交易；作废（DELETE + If-Match）追加反向 posting，重复作废不再变化。posting 只追加不改写。
+- 更正（PATCH + If-Match + 新预览）在同一事务内冲正旧版本 posting、把旧版本标为 voided，并写入 `replacesId` 指向旧版本的新交易（旧版本的只读字段 `replacedById` 反向指向新版本，便于客户端在 412 后找到当前版本）；作废（DELETE + If-Match）追加反向 posting，重复作废不再变化。posting 只追加不改写。
 - 列表默认只返回有效交易（`status=posted`），可用 `voided` / `all` 查看历史版本；`accountId` 同时匹配转账两端；按业务日期或基准金额 keyset 分页。
 - 每次写入的审计记录与 outbox 事件与资金变化同一事务提交。
 

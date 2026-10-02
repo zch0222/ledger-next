@@ -1,14 +1,17 @@
 # 实现状态与本地运行
 
-2026-10-02 · M1 工程、身份与 REST 契约；M2 账务模型、记账 API、CSV 导入导出；M3 分钟汇率（本地 mock 供应商）与报表 / 预算。UI 基线为 `docs/ui/index.html` v0.3。进度以 [MILESTONES.md](MILESTONES.md) 为准；按用户授权，门禁改为实现者自评估 + Docker E2E，汇总在其“最终人工审查清单”。
+2026-10-02 · M1 工程、身份与 REST 契约；M2 账务模型、记账 API、CSV 导入导出；M3 分钟汇率（本地 mock 供应商）与报表 / 预算；M4 全部业务页面、订阅、外观同步与响应式 / 无障碍验收。UI 基线为 `docs/ui/index.html` v0.3。进度以 [MILESTONES.md](MILESTONES.md) 为准；按用户授权，门禁改为实现者自评估 + Docker E2E，汇总在其“最终人工审查清单”。
 
 ## 本批范围
 
 - pnpm workspace、Next.js 16 App Router、React、TypeScript strict、MySQL 8.4 LTS / Drizzle。
 - Better Auth 数据库 Session：邮箱密码注册、登录、退出和会话撤销。密码至少 12 位；没有默认管理员、演示密码或自动植入的账目。
 - 新建 / 切换账本、SSR 读取、owner/editor/viewer 权限、添加已注册成员、修改角色、移除成员、最后 owner 保护、审计。
-- 原型 CSS 令牌、224px 侧栏、82px 顶栏、KPI / 两列内容、移动底栏。总览使用无数据状态，业务写入尚未开放；不能把页面骨架视作 M4 完成。
-- 本设备外观 Cookie：浅色 / 深色 / 跟随系统、7 个预设和自定义颜色；复用原型 OKLCH / AA 算法，SSR 首帧读取 Cookie。完整账号偏好同步和图表验收仍属于 M4-THEME。
+- 原型 CSS 令牌、224px 侧栏、82px 顶栏、KPI / 两列内容、移动底栏（总览、账目、记一笔、订阅、更多）。
+- 页面（M4-CORE / M4-DASH，路由 `/ledgers/{id}/…`）：P01 总览（KPI 服务端渲染、周趋势、分类排行、最近账目、30 天账单）、P02 账目（URL 筛选与 chips、签名游标分页、日期分组、详情抽屉 `?tx=`）、P03 记一笔 / 更正 / 退款 / 作废（服务端预览后提交同一 previewId，412 时并排展示服务器当前版本与本地输入，不自动覆盖；有有效退款的支出锁定更正 / 作废）、P04 订阅（卡片 / 账单列表 / 日历、新增 / 编辑 / 暂停 / 取消、确认已付 / 跳过）、P05 预算与分析（预算进度、支出构成、6 个月趋势、历史 / 当前估值口径）、P06 账户（原币余额、估值、转账、改名、归档提示余额）、P09 币种与汇率、P11 导入向导 / 导出、P12 账本与成员 / 分类标签、P13 外观、P00 登录 / 引导（建账本 → 首个账户，可跳过）。旧链接 `/?ledger=&view=` 307 到新路由。
+- 图表（M4-DASH）：`echarts/core` 按需注册 SVG 渲染，动态 import 独立 chunk（首屏不加载）；每个容器一个实例，数据 / 主题 / 减少动画变化都在同一实例 `setOption`，ResizeObserver 跟随容器，卸载时 dispose。每个图表下有数据表 / 列表替代，键盘与触摸都可钻取；分类钻取到同期间、同展示币的账目，明细合计等于分类净额（含退款）。
+- 外观（M4-THEME，迁移 0008）：`user_preferences` + `GET/PATCH /api/v1/me/preferences`（If-Match）；登录后 SSR 首帧读取账号偏好；即时应用并写 `ln_appearance` Cookie，500 ms 防抖同步账号，关闭面板立即同步；未同步（保存失败或刷新早于同步）时 Cookie 带当前用户 id 的 pending 标记，本设备继续显示该选择并在下次页面加载后补同步，别的用户登录同一设备不受影响。
+- 订阅（M4-SUBS，迁移 0009）：日 / 周 / 月 / 年 × 整数间隔，月末取当月最后一天且锚点保留，2/29 年费平年取 2/28；`bill_occurrences` 以（订阅、计划版本、日期）唯一，物化今天起 90 天（至少 3 期）；到期 / 逾期由日期派生，绝不自动记为已支付；确认支付 = 预览 + 提交（source=subscription）或关联已有支出，每期至多一笔；修改金额 / 周期 / 锚点生成新计划版本并取消未付旧期，已付保留；暂停可设恢复日，取消可立即或本周期末。新建订阅不回补锚点之前的历史账单。
 - Docker 多阶段构建、自动迁移、MySQL / Redis 持久卷（镜像按摘要锁定）、web / worker 健康检查与优雅停机、独立 Docker Playwright 测试环境。
 - REST 契约（M1-API）：`packages/contracts` 用 Zod 定义全部计划资源，生成 OpenAPI 3.1（`packages/contracts/openapi.json`，83 个操作）与类型化 SDK（`packages/api-client`，openapi-typescript + openapi-fetch）。`/api/v1` 路由由同一注册表驱动：未知路径 404、方法不符 405 + Allow、格式错误 ID 404、planned 操作 501。
 - 列表统一 `{data, page:{nextCursor, hasMore}, meta}`，keyset 分页游标经 HMAC 签名并绑定用户 / 操作 / 账本 / 筛选；新增 owner 可读的 `GET L/audit-events`。
@@ -74,4 +77,4 @@ Windows 不在 PATH 的 Docker 可以通过 `LEDGER_DOCKER` 指定可执行文�
 
 ## 尚未实现
 
-PAT / Bearer 认证与作用域执行（M6-SERVER，契约已定义）；M4 业务页面与订阅；M5 真实提醒渠道；M6 MCP 与四客户端；M7 完整回归、备份恢复与生产发布。注册目前用于受控自托管环境；邮件验证、找回密码和 OIDC 尚未接入，UI 不显示不可用入口。添加成员仅支持已注册邮箱，没有发送邀请邮件。
+PAT / Bearer 认证与作用域执行（M6-SERVER，契约已定义）；M5 提醒与渠道（P07 / P08 页面目前为说明页）；M6 MCP 与四客户端；M7 完整回归、备份恢复与生产发布。注册目前用于受控自托管环境；邮件验证、找回密码和 OIDC 尚未接入，UI 不显示不可用入口。添加成员仅支持已注册邮箱，没有发送邀请邮件。

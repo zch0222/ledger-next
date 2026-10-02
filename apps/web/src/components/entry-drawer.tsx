@@ -44,7 +44,7 @@ export function EntryDrawer({ init, onClose }: { init: EntryInit; onClose: () =>
   const [form, setForm] = useState<Form>(() => initialForm(init, accounts, ledger.timezone));
   const [preview, setPreview] = useState<PreviewView | null>(null), [previewing, setPreviewing] = useState(false);
   const [error, setError] = useState<ApiError | null>(null), [busy, setBusy] = useState(false), [dirty, setDirty] = useState(false), [confirmClose, setConfirmClose] = useState(false);
-  const [submission] = useState(intent);
+  const [submission] = useState(intent), [conflict, setConflict] = useState<TransactionView | null>(null);
   const original = init.mode === 'correct' || init.mode === 'refund' ? init.transaction : null;
   const account = accounts.find(a => a.id === form.accountId), target = accounts.find(a => a.id === form.targetAccountId);
   const isRefund = init.mode === 'refund', isTransfer = form.kind === 'transfer' && !isRefund;
@@ -110,6 +110,15 @@ export function EntryDrawer({ init, onClose }: { init: EntryInit; onClose: () =>
       const failure = e instanceof ApiError ? e : new ApiError('保存失败，请重试', 0, undefined);
       // A consumed / expired / stale preview needs a fresh one; the same intent then gets a new key.
       if (['PREVIEW_STALE', 'PREVIEW_EXPIRED', 'PREVIEW_CONSUMED'].includes(failure.code ?? '')) { submission.done(); setPreview(null); setForm(f => ({ ...f })); }
+      // 412: someone changed this entry meanwhile — show the server's current value next to the input; never overwrite.
+      if (failure.status === 412 && original) {
+        submission.done();
+        const read = (id: string) => api<TransactionView>(`/api/v1/ledgers/${ledger.id}/transactions/${id}`);
+        let latest = await read(original.id).catch(() => null);
+        // Follow the correction chain to the version that is current now.
+        for (let hops = 0; latest?.replacedById && hops < 20; hops++) latest = await read(latest.replacedById).catch(() => latest);
+        setConflict(latest);
+      }
       setError(failure);
     } finally { setBusy(false); }
   }
@@ -154,10 +163,14 @@ export function EntryDrawer({ init, onClose }: { init: EntryInit; onClose: () =>
           {form.fxPolicy === 'manual' && <div className="formgrid"><div className="field"><label htmlFor="entry-rate">1 {account?.currency} = ? {ledger.baseCurrency}</label><input id="entry-rate" className="num" inputMode="decimal" value={form.rate} onChange={e => set({ rate: e.target.value.trim() })} /></div><div className="field"><label htmlFor="entry-rate-reason">理由</label><input id="entry-rate-reason" maxLength={200} value={form.rateReason} onChange={e => set({ rateReason: e.target.value })} placeholder="例如：银行账单" /></div></div>}
         </fieldset>}
         <div className="note entry-preview" aria-live="polite"><span className="dot" /><div>{previewing ? '正在计算入账结果…' : preview ? <PreviewSummary preview={preview} original={init.mode === 'correct' ? original : null} /> : body ? '正在准备预览…' : '填写金额与账户后显示入账预览：结算金额、折合基准币、汇率来源与余额影响。'}</div></div>
-        {error && <div className="error" role="alert">{error.message}{error.requestId ? <span className="small muted"> · 请求 {error.requestId.slice(0, 8)}</span> : null}</div>}
+        {conflict && <div className="note conflict-box" role="alert" aria-labelledby="conflict-title"><strong id="conflict-title">这笔账目已被其他人修改，你的更正未保存</strong>
+          <div className="conflict-grid"><div><h3>服务器当前（v{conflict.version}）</h3><p className="num">{formatMoney(conflict.settlement.amount, conflict.settlement.currency, { style: 'code' })} · {conflict.merchant ?? KIND_LABELS[conflict.kind]}</p><p className="small muted">{conflict.status === 'voided' ? '已作废' : '当前有效版本'}</p></div>
+            <div><h3>你的输入</h3><p className="num">{preview ? formatMoney(preview.settlement.amount, preview.settlement.currency, { style: 'code' }) : account ? formatMoney(form.amount || '0', account.currency, { style: 'code' }) : '—'} · {form.merchant || KIND_LABELS[form.kind]}</p><p className="small muted">尚未保存</p></div></div>
+          <button type="button" onClick={() => { dialog.current?.close(); onClose(); router.push(`/ledgers/${ledger.id}/transactions?tx=${conflict.id}`); router.refresh(); }}>重新载入最新版本</button></div>}
+        {error && !conflict && <div className="error" role="alert">{error.message}{error.requestId ? <span className="small muted"> · 请求 {error.requestId.slice(0, 8)}</span> : null}</div>}
         {confirmClose && <div className="note confirm-box" role="alertdialog" aria-label="放弃未保存的内容"><span>有未保存的内容。</span><button type="button" onClick={() => setConfirmClose(false)}>继续编辑</button><button type="button" onClick={() => close(true)}>放弃</button></div>}
       </div>
-      <div className="dialogfoot"><button type="button" onClick={() => close()}>取消</button><button className="primary" type="submit" disabled={!preview || busy}>{busy ? '正在保存…' : init.mode === 'correct' ? '确认更正' : init.mode === 'refund' ? '确认退款' : init.mode === 'bill' ? '确认已支付' : '保存'}</button></div>
+      <div className="dialogfoot"><button type="button" onClick={() => close()}>取消</button><button className="primary" type="submit" disabled={!preview || busy || Boolean(conflict)}>{busy ? '正在保存…' : init.mode === 'correct' ? '确认更正' : init.mode === 'refund' ? '确认退款' : init.mode === 'bill' ? '确认已支付' : '保存'}</button></div>
     </form>
   </dialog>;
 }

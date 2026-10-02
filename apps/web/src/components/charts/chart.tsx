@@ -65,6 +65,13 @@ function option(model: ChartModel, width: number, reduced: boolean, lib: typeof 
     series: [{ id: 'composition', name: '支出构成', type: 'pie', radius: ['65%', '84%'], center: ['50%', '49%'], startAngle: 90, padAngle: 3, label: { show: false }, labelLine: { show: false }, itemStyle: { borderRadius: 7 }, animationType: 'expansion', animationDuration: reduced ? 0 : 850, animationDurationUpdate: reduced ? 0 : 420, emphasis: { scale: true, scaleSize: 5 }, data: items.filter(i => i.value > 0) }] };
 }
 
+/** setOption on the existing instance; data-chart-* attributes let the end-to-end suite observe updates. */
+function draw(chart: EChartsType, dom: HTMLDivElement, model: ChartModel, reduced: boolean, lib: typeof import('./echarts').default) {
+  chart.setOption(option(model, dom.clientWidth, reduced, lib) as never, { notMerge: false });
+  dom.dataset.chartRenders = String(Number(dom.dataset.chartRenders ?? 0) + 1);
+  dom.dataset.chartAnimation = String(!reduced);
+}
+
 /**
  * One ECharts instance per container for its whole life: data, display currency and theme changes call setOption on
  * the same instance (no dispose / re-create), resize follows the container, and everything is released on unmount.
@@ -76,11 +83,12 @@ export function Chart({ model, onSelect, className = 'echart' }: { model: ChartM
   useEffect(() => {
     let disposed = false, observer: ResizeObserver | null = null;
     const motion = matchMedia('(prefers-reduced-motion: reduce)');
-    const render = () => { if (chart.current && dom.current && lib.current) chart.current.setOption(option(latest.current.model, dom.current.clientWidth, motion.matches, lib.current) as never, { notMerge: false }); };
+    const render = () => { if (chart.current && dom.current && lib.current) draw(chart.current, dom.current, latest.current.model, motion.matches, lib.current); };
     import('./echarts').then(({ default: echarts }) => {
       if (disposed || !dom.current) return;
       lib.current = echarts;
       chart.current = echarts.init(dom.current, null, { renderer: 'svg' });
+      dom.current.dataset.chartInstance = chart.current.id;
       chart.current.on('click', (p: { dataIndex?: number; name?: string }) => latest.current.onSelect?.({ index: p.dataIndex ?? -1, name: p.name ?? '' }));
       observer = new ResizeObserver(() => chart.current?.resize({ animation: { duration: 0 } }));
       observer.observe(dom.current);
@@ -98,6 +106,6 @@ export function Chart({ model, onSelect, className = 'echart' }: { model: ChartM
     };
   }, []);
   // Same instance, new data: an update transition rather than a rebuild.
-  useEffect(() => { if (chart.current && dom.current && lib.current) chart.current.setOption(option(model, dom.current.clientWidth, matchMedia('(prefers-reduced-motion: reduce)').matches, lib.current) as never, { notMerge: false }); }, [model]);
+  useEffect(() => { if (chart.current && dom.current && lib.current) draw(chart.current, dom.current, model, matchMedia('(prefers-reduced-motion: reduce)').matches, lib.current); }, [model]);
   return failed ? <div className={className} role="note">图表资源不可用，请查看下方数据。</div> : <div ref={dom} className={className} data-chart={model.type} />;
 }

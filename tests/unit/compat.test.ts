@@ -21,7 +21,18 @@ describe('compatible evolution', () => {
     }).filter(issue => !issue.includes('响应新增取值'))).toEqual([]);
   });
   it('ignores planned operations', () => {
-    expect(changes(doc => { delete doc.paths['/ledgers/{ledgerId}/subscriptions']; (doc.components.schemas.SubscriptionPreviewCreate as { required: string[] }).required.push('note'); })).toEqual([]);
+    // Synthetic, so the test does not depend on which features are still planned.
+    const planned = (doc: ReturnType<typeof base>) => {
+      doc.paths['/ledgers/{ledgerId}/widgets'] = { post: { 'x-stability': 'planned', requestBody: { content: { 'application/json': { schema: { $ref: '#/components/schemas/WidgetCreate' } } } }, responses: { 201: { description: 'ok' } } } };
+      doc.components.schemas.WidgetCreate = { type: 'object', properties: { name: { type: 'string' } }, required: [] };
+      return doc;
+    };
+    const head = planned(base());
+    (head.components.schemas.WidgetCreate as { required: string[] }).required.push('name');
+    expect(breakingChanges(planned(base()), head)).toEqual([]);
+    const removed = planned(base());
+    delete removed.paths['/ledgers/{ledgerId}/widgets'];
+    expect(breakingChanges(planned(base()), removed)).toEqual([]);
   });
 });
 

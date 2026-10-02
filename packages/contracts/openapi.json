@@ -13996,6 +13996,18 @@
               }
             ]
           },
+          "replacedById": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "被更正后的新版本 id（仅已作废的旧版本有值）"
+          },
           "source": {
             "type": "string",
             "enum": [
@@ -14041,6 +14053,7 @@
           "transfer",
           "refundOf",
           "replacesId",
+          "replacedById",
           "source",
           "version",
           "createdAt",

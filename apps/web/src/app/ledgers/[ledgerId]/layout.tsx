@@ -32,7 +32,7 @@ export default async function LedgerLayout({ children, params }: { children: Rea
         <div className="sidefoot"><strong>每一笔，都有去处。</strong>个人与家庭账本<br />让生活的收支清楚一点。</div></aside>
       <div className="main">
         <header className="topbar"><div className="book"><LedgerSelect ledgers={books} current={ledger.id} /><small>{({ owner: '所有者', editor: '可编辑', viewer: '仅查看' })[ledger.role]} · {ledger.timezone}</small></div>
-          <div className="topactions"><Suspense><CurrencySelect base={ledger.baseCurrency} currencies={ENABLED_CURRENCIES} /></Suspense><Appearance initial={appearance.value} version={appearance.version} signedIn /><AddButton /><AccountMenu name={user.name} /></div></header>
+          <div className="topactions"><Suspense><CurrencySelect base={ledger.baseCurrency} currencies={ENABLED_CURRENCIES} /></Suspense><Appearance initial={appearance.value} version={appearance.version} pending={appearance.pending} userId={user.id} /><AddButton /><AccountMenu name={user.name} /></div></header>
         <main id="content">{children}</main>
       </div>
     </div>

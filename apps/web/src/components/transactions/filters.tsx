@@ -10,7 +10,10 @@ const STATUSES: Record<string, string> = { posted: '有效', voided: '已作废 
 /** P02 filters live in the URL: reload, back and shared links keep them (UI_SPEC §1). */
 export function TransactionFilters({ categories, accounts }: { categories: Option[]; accounts: Option[] }) {
   const router = useRouter(), pathname = usePathname(), search = useSearchParams();
-  const [q, setQ] = useState(search.get('q') ?? '');
+  const urlQ = search.get('q') ?? '';
+  const [q, setQ] = useState(urlQ), [seenQ, setSeenQ] = useState(urlQ);
+  // Back / forward change the URL under us: the box follows it instead of pushing the old text again.
+  if (urlQ !== seenQ) { setSeenQ(urlQ); setQ(urlQ); }
   const update = (patch: Record<string, string | null>) => {
     const next = new URLSearchParams(search);
     for (const [k, v] of Object.entries(patch)) { if (v) next.set(k, v); else next.delete(k); }
@@ -18,7 +21,7 @@ export function TransactionFilters({ categories, accounts }: { categories: Optio
     router.push(`${pathname}${next.size ? `?${next}` : ''}`);
   };
   useEffect(() => {
-    if ((search.get('q') ?? '') === q) return;
+    if (urlQ === q.trim()) return;
     const timer = setTimeout(() => update({ q: q.trim() || null }), 400);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -2,13 +2,13 @@
 
 > 自动生成：请更新 milestones.json 或运行 scripts/progress.mjs；不要直接修改本文件。
 
-数据版本：1 · 最近更新：2026-10-02T08:59:41.878Z
+数据版本：1 · 最近更新：2026-10-02T10:24:31.234Z
 
 完成率按原始估算人日加权，只有 done 计入；in_review 不计完成。文档完成不代表业务开发完成。
 
-**全部工作：36.5%（21/57.5 人日） · 业务开发：31.8% · G0：完成**
+**全部工作：56.5%（32.5/57.5 人日） · 业务开发：53.3% · G0：完成**
 
-其中 7 项为实现者自评估完成（用户授权跳过逐项人工审查），统一列入文末“最终人工审查清单”；G1 发布签署仍需真实评审人。
+其中 12 项为实现者自评估完成（用户授权跳过逐项人工审查），统一列入文末“最终人工审查清单”；G1 发布签署仍需真实评审人。
 
 | 里程碑 | 状态分布 | 完成人日 / 估算人日 | 完成率 |
 | --- | --- | --- | --- |
@@ -16,16 +16,14 @@
 | M1 工程、身份与 REST 契约 | 完成 3 | 5.5 / 5.5 | 100.0% |
 | M2 记账核心与数据 | 完成 3 | 7 / 7 | 100.0% |
 | M3 多币种汇率与报表 | 完成 2 | 4.5 / 4.5 | 100.0% |
-| M4 现代响应式产品 UI | 待开始 2，进行中 3 | 0 / 11.5 | 0.0% |
+| M4 现代响应式产品 UI | 完成 5 | 11.5 / 11.5 | 100.0% |
 | M5 提醒与全部通道 | 待开始 7 | 0 / 11 | 0.0% |
 | M6 MCP、Skill 与四 Agent | 待开始 6 | 0 / 6.5 | 0.0% |
 | M7 质量、运维与发布 | 待开始 5 | 0 / 7.5 | 0.0% |
 
 ## 下一步
 
-- **M4-CORE** 认证、账目、账户与设置 UI（进行中；前端 / 全栈）：实现中
-- **M4-SUBS** 周期订阅与支付确认（进行中；全栈开发）：实现中
-- **M4-THEME** 外观：主题色与深浅模式（进行中；前端 / 全栈）：实现中
+- **M5-ENGINE** 提醒调度、Outbox 与可靠投递（待开始；后端）：先用假供应商验证队列与任务状态机。
 
 ## 任务总览
 
@@ -43,11 +41,11 @@
 | M2-IMPORT | CSV 导入导出与可撤销批次 | 完成 | Claude Code / 全栈开发 | M2-LEDGER | 2 |
 | M3-FX | 分钟汇率、历史补录和降级 | 完成 | Claude Code / 后端 / 集成 | M2-MODEL | 2.5 |
 | M3-REPORTS | 报表口径、聚合与缓存 | 完成 | Claude Code / 后端 / 数据 | M2-LEDGER, M3-FX | 2 |
-| M4-CORE | 认证、账目、账户与设置 UI | 进行中 | Claude Code / 前端 / 全栈 | M2-LEDGER | 3 |
-| M4-SUBS | 周期订阅与支付确认 | 进行中 | Claude Code / 全栈开发 | M2-LEDGER, M3-FX | 3 |
-| M4-DASH | 总览、分析与预算可视化 | 待开始 | 未分配 / 前端 | M3-REPORTS, M4-SUBS | 2 |
-| M4-THEME | 外观：主题色与深浅模式 | 进行中 | Claude Code / 前端 / 全栈 | M1-API | 1.5 |
-| M4-RESP | 全页面移动端与无障碍验收 | 待开始 | 未分配 / 前端 / QA | M4-CORE, M4-DASH, M4-THEME | 2 |
+| M4-CORE | 认证、账目、账户与设置 UI | 完成 | Claude Code / 前端 / 全栈 | M2-LEDGER | 3 |
+| M4-SUBS | 周期订阅与支付确认 | 完成 | Claude Code / 全栈开发 | M2-LEDGER, M3-FX | 3 |
+| M4-DASH | 总览、分析与预算可视化 | 完成 | Claude Code / 前端 | M3-REPORTS, M4-SUBS | 2 |
+| M4-THEME | 外观：主题色与深浅模式 | 完成 | Claude Code / 前端 / 全栈 | M1-API | 1.5 |
+| M4-RESP | 全页面移动端与无障碍验收 | 完成 | Claude Code / 前端 / QA | M4-CORE, M4-DASH, M4-THEME | 2 |
 | M5-ENGINE | 提醒调度、Outbox 与可靠投递 | 待开始 | 未分配 / 后端 | M4-SUBS | 2.5 |
 | M5-TG | Telegram 通道 | 待开始 | 未分配 / 集成开发 | M5-ENGINE | 1 |
 | M5-FEISHU | 飞书通道 | 待开始 | 未分配 / 集成开发 | M5-ENGINE | 1 |
@@ -393,10 +391,11 @@
 
 ### M4-CORE · 认证、账目、账户与设置 UI
 
-- 状态：进行中；负责人：Claude Code；建议角色：前端 / 全栈
+- 状态：完成；负责人：Claude Code；建议角色：前端 / 全栈
 - 依赖：M2-LEDGER；未完成依赖：无
-- 估算：3 人日；更新：2026-10-02T08:59:41.805Z
-- 下一动作：实现中
+- 估算：3 人日；更新：2026-10-02T10:24:25.750Z
+- 下一动作：人工走查文案与屏幕阅读器
+- 评审人：Claude Code 自评估（用户授权，见 docs/reviews/AUTONOMOUS_DELIVERY.md）（自评估，待最终人工审查）
 
 **执行步骤**
 
@@ -406,19 +405,25 @@
 
 **验收标准**
 
-- [ ] 无需等待图表 JS 可读首屏信息。
-- [ ] 记账、更正、退款、账户归档端到端通过。
+- [x] 无需等待图表 JS 可读首屏信息。
+- [x] 记账、更正、退款、账户归档端到端通过。
 
 **证据**
 
-尚无完成证据。
+- [docs/evidence/M4-CORE/README.md](../docs/evidence/M4-CORE/README.md)
+
+**待最终人工审查**
+
+- [ ] 真实用户走查文案与信息密度
+- [ ] NVDA / VoiceOver 实际朗读
 
 ### M4-SUBS · 周期订阅与支付确认
 
-- 状态：进行中；负责人：Claude Code；建议角色：全栈开发
+- 状态：完成；负责人：Claude Code；建议角色：全栈开发
 - 依赖：M2-LEDGER, M3-FX；未完成依赖：无
-- 估算：3 人日；更新：2026-10-02T08:59:41.878Z
-- 下一动作：实现中
+- 估算：3 人日；更新：2026-10-02T10:24:25.693Z
+- 下一动作：提醒随 M5-ENGINE 接入
+- 评审人：Claude Code 自评估（用户授权，见 docs/reviews/AUTONOMOUS_DELIVERY.md）（自评估，待最终人工审查）
 
 **执行步骤**
 
@@ -428,19 +433,26 @@
 
 **验收标准**
 
-- [ ] 到期不自动成为已支付，已付记录唯一。
-- [ ] 周期编辑取消未来旧版本任务且保留历史。
+- [x] 到期不自动成为已支付，已付记录唯一。
+- [x] 周期编辑取消未来旧版本任务且保留历史。
 
 **证据**
 
-尚无完成证据。
+- [docs/evidence/M4-SUBS/README.md](../docs/evidence/M4-SUBS/README.md)
+- [packages/db/migrations/0009_subscriptions.sql](../packages/db/migrations/0009_subscriptions.sql)
+
+**待最终人工审查**
+
+- [ ] D22 不回补历史账单的产品取舍
+- [ ] 提醒接入后完整走查 提醒 → 确认已付
 
 ### M4-DASH · 总览、分析与预算可视化
 
-- 状态：待开始；负责人：未分配；建议角色：前端
-- 依赖：M3-REPORTS, M4-SUBS；未完成依赖：M4-SUBS
-- 估算：2 人日；更新：2026-10-01T17:27:06.037Z
-- 下一动作：按统一报表响应实现图表与钻取。
+- 状态：完成；负责人：Claude Code；建议角色：前端
+- 依赖：M3-REPORTS, M4-SUBS；未完成依赖：无
+- 估算：2 人日；更新：2026-10-02T10:24:31.174Z
+- 下一动作：M7-PERF 按目标数据量复测
+- 评审人：Claude Code 自评估（用户授权，见 docs/reviews/AUTONOMOUS_DELIVERY.md）（自评估，待最终人工审查）
 
 **执行步骤**
 
@@ -451,20 +463,25 @@
 
 **验收标准**
 
-- [ ] 图表合计与明细一致，缺率和预测清楚标注。
-- [ ] 键盘/触摸均可钻取，JS 预算符合目标。
-- [ ] ECharts 动画、同实例更新、深浅模式与主题色切换（同实例 setOption，数据语义色不变）、数据表替代、离屏/卸载资源清理通过；不计入首屏同步包。
+- [x] 图表合计与明细一致，缺率和预测清楚标注。
+- [x] 键盘/触摸均可钻取，JS 预算符合目标。
+- [x] ECharts 动画、同实例更新、深浅模式与主题色切换（同实例 setOption，数据语义色不变）、数据表替代、离屏/卸载资源清理通过；不计入首屏同步包。
 
 **证据**
 
-尚无完成证据。
+- [docs/evidence/M4-DASH/README.md](../docs/evidence/M4-DASH/README.md)
+
+**待最终人工审查**
+
+- [ ] 图表动效观感与低端手机流畅度
 
 ### M4-THEME · 外观：主题色与深浅模式
 
-- 状态：进行中；负责人：Claude Code；建议角色：前端 / 全栈
+- 状态：完成；负责人：Claude Code；建议角色：前端 / 全栈
 - 依赖：M1-API；未完成依赖：无
-- 估算：1.5 人日；更新：2026-10-02T08:59:41.750Z
-- 下一动作：实现中
+- 估算：1.5 人日；更新：2026-10-02T10:24:25.633Z
+- 下一动作：人工审查：真机地址栏 theme-color 与主题色观感
+- 评审人：Claude Code 自评估（用户授权，见 docs/reviews/AUTONOMOUS_DELIVERY.md）（自评估，待最终人工审查）
 
 **执行步骤**
 
@@ -475,20 +492,27 @@
 
 **验收标准**
 
-- [ ] 浅色 / 深色 / 跟随系统 × 系统浅深共 6 种组合首帧即正确、无主题闪烁；跟随系统时切换系统外观，页面与图表即时更新。
-- [ ] 全部预设与极端自定义色在两种模式下关键对比度 ≥4.5:1；非法颜色或未知预设返回 422 且不落库。
-- [ ] 偏好跨设备同步、刷新保持；保存失败时仅本设备生效并提示；收支 / 警告 / 错误与图表数据色不随主题色变化。
+- [x] 浅色 / 深色 / 跟随系统 × 系统浅深共 6 种组合首帧即正确、无主题闪烁；跟随系统时切换系统外观，页面与图表即时更新。
+- [x] 全部预设与极端自定义色在两种模式下关键对比度 ≥4.5:1；非法颜色或未知预设返回 422 且不落库。
+- [x] 偏好跨设备同步、刷新保持；保存失败时仅本设备生效并提示；收支 / 警告 / 错误与图表数据色不随主题色变化。
 
 **证据**
 
-尚无完成证据。
+- [docs/evidence/M4-THEME/README.md](../docs/evidence/M4-THEME/README.md)
+- [packages/db/migrations/0008_preferences.sql](../packages/db/migrations/0008_preferences.sql)
+
+**待最终人工审查**
+
+- [ ] 真机（iOS / Android）深浅切换与 theme-color 观感
+- [ ] 主题色预设 / 自定义色视觉品味
 
 ### M4-RESP · 全页面移动端与无障碍验收
 
-- 状态：待开始；负责人：未分配；建议角色：前端 / QA
-- 依赖：M4-CORE, M4-DASH, M4-THEME；未完成依赖：M4-CORE, M4-DASH, M4-THEME
-- 估算：2 人日；更新：2026-10-01T17:53:59.363Z
-- 下一动作：按 P00–P13 覆盖矩阵逐页验收。
+- 状态：完成；负责人：Claude Code；建议角色：前端 / QA
+- 依赖：M4-CORE, M4-DASH, M4-THEME；未完成依赖：无
+- 估算：2 人日；更新：2026-10-02T10:24:31.234Z
+- 下一动作：真机复核
+- 评审人：Claude Code 自评估（用户授权，见 docs/reviews/AUTONOMOUS_DELIVERY.md）（自评估，待最终人工审查）
 
 **执行步骤**
 
@@ -499,18 +523,23 @@
 
 **验收标准**
 
-- [ ] 页面无水平溢出，触摸目标/对比度通过。
-- [ ] 手机可以独立完成记账、查询、订阅管理。
-- [ ] 图表容器缩放不重播页面入场、不裁剪金额；减少动画时操作等价。
+- [x] 页面无水平溢出，触摸目标/对比度通过。
+- [x] 手机可以独立完成记账、查询、订阅管理。
+- [x] 图表容器缩放不重播页面入场、不裁剪金额；减少动画时操作等价。
 
 **证据**
 
-尚无完成证据。
+- [docs/evidence/M4-RESP/README.md](../docs/evidence/M4-RESP/README.md)
+
+**待最终人工审查**
+
+- [ ] iOS Safari / Android Chrome 软键盘与 safe-area
+- [ ] 浏览器真实 200% 缩放观感
 
 ### M5-ENGINE · 提醒调度、Outbox 与可靠投递
 
 - 状态：待开始；负责人：未分配；建议角色：后端
-- 依赖：M4-SUBS；未完成依赖：M4-SUBS
+- 依赖：M4-SUBS；未完成依赖：无
 - 估算：2.5 人日；更新：2026-10-02
 - 下一动作：先用假供应商验证队列与任务状态机。
 
@@ -664,7 +693,7 @@
 ### M6-SERVER · MCP HTTP / stdio 服务与令牌
 
 - 状态：待开始；负责人：未分配；建议角色：全栈 / Agent 集成
-- 依赖：M1-API, M3-REPORTS, M4-SUBS, M5-ENGINE；未完成依赖：M4-SUBS, M5-ENGINE
+- 依赖：M1-API, M3-REPORTS, M4-SUBS, M5-ENGINE；未完成依赖：M5-ENGINE
 - 估算：2.5 人日；更新：2026-10-02
 - 下一动作：先实现只读 context/summary，再加入 preview/create。
 
@@ -796,7 +825,7 @@
 ### M7-SEC · 权限、密钥与数据安全验收
 
 - 状态：待开始；负责人：未分配；建议角色：QA / 技术负责人
-- 依赖：M4-RESP, M5-CHAOS, M6-CODEX, M6-CLAUDE, M6-DSH, M6-QODER；未完成依赖：M4-RESP, M5-CHAOS, M6-CODEX, M6-CLAUDE, M6-DSH, M6-QODER
+- 依赖：M4-RESP, M5-CHAOS, M6-CODEX, M6-CLAUDE, M6-DSH, M6-QODER；未完成依赖：M5-CHAOS, M6-CODEX, M6-CLAUDE, M6-DSH, M6-QODER
 - 估算：1.5 人日；更新：2026-10-02
 - 下一动作：按安全验收矩阵执行并附报告。
 
@@ -818,7 +847,7 @@
 ### M7-PERF · SSR、REST 与队列性能验收
 
 - 状态：待开始；负责人：未分配；建议角色：性能 / 全栈
-- 依赖：M4-RESP, M5-CHAOS；未完成依赖：M4-RESP, M5-CHAOS
+- 依赖：M4-RESP, M5-CHAOS；未完成依赖：M5-CHAOS
 - 估算：2 人日；更新：2026-10-01T17:27:06.037Z
 - 下一动作：先建立可复现脚本再测量，不能用单次本地秒开替代。
 
@@ -918,6 +947,11 @@
 | M2-IMPORT | CSV 导入导出与可撤销批次 | docs/evidence/M2-IMPORT/README.md；packages/db/migrations/0006_imports.sql | 人工用真实银行导出 CSV 走一遍映射、校验、提交与撤销 |
 | M3-FX | 分钟汇率、历史补录和降级 | docs/evidence/M3-FX/README.md；packages/db/migrations/0005_fx.sql | 用真实 FX 供应商凭据核实 60 秒更新、配额、历史覆盖与展示许可，并测量 source age；核对 P09 汇率页的 stale / suspect 提示文案 |
 | M3-REPORTS | 报表口径、聚合与缓存 | docs/evidence/M3-REPORTS/README.md；packages/db/migrations/0007_reports.sql | 抽查 12 个月真实数据的报表与明细对账 |
+| M4-CORE | 认证、账目、账户与设置 UI | docs/evidence/M4-CORE/README.md | 真实用户走查文案与信息密度；NVDA / VoiceOver 实际朗读 |
+| M4-SUBS | 周期订阅与支付确认 | docs/evidence/M4-SUBS/README.md；packages/db/migrations/0009_subscriptions.sql | D22 不回补历史账单的产品取舍；提醒接入后完整走查 提醒 → 确认已付 |
+| M4-DASH | 总览、分析与预算可视化 | docs/evidence/M4-DASH/README.md | 图表动效观感与低端手机流畅度 |
+| M4-THEME | 外观：主题色与深浅模式 | docs/evidence/M4-THEME/README.md；packages/db/migrations/0008_preferences.sql | 真机（iOS / Android）深浅切换与 theme-color 观感；主题色预设 / 自定义色视觉品味 |
+| M4-RESP | 全页面移动端与无障碍验收 | docs/evidence/M4-RESP/README.md | iOS Safari / Android Chrome 软键盘与 safe-area；浏览器真实 200% 缩放观感 |
 
 ## 变更历史
 
@@ -957,3 +991,8 @@
 | 2026-10-02T08:59:41.750Z | M4-THEME | todo → in_progress | Claude Code | 开始实施（按 v0.3 原型） |
 | 2026-10-02T08:59:41.805Z | M4-CORE | todo → in_progress | Claude Code | 开始实施（按 v0.3 原型） |
 | 2026-10-02T08:59:41.878Z | M4-SUBS | todo → in_progress | Claude Code | 开始实施（按 v0.3 原型） |
+| 2026-10-02T10:24:25.633Z | M4-THEME | in_progress → done | Claude Code | 6 组合首帧、跟随系统、失败仅本设备、跨设备同步与 422 由 visual.spec.ts / ui.spec.ts 在 Docker E2E 验证 |
+| 2026-10-02T10:24:25.693Z | M4-SUBS | in_progress → done | Claude Code | 到期不自动支付、每期一笔支付、改期取消旧计划保留已付，由 flows.spec.ts 与 subscriptions 集成测试验证 |
+| 2026-10-02T10:24:25.750Z | M4-CORE | in_progress → done | Claude Code | 记账 / 更正 / 退款 / 作废 / 归档 / 导入导出 / 只读角色与无 JS 首屏由 flows / settings / visual 规格在 Docker 桌面与移动项目验证 |
+| 2026-10-02T10:24:31.174Z | M4-DASH | todo → done | Claude Code | 合计与钻取一致、同实例更新、卸载清理、首屏 JS 152.4 KiB gzip（含框架）、ECharts 独立延迟 chunk |
+| 2026-10-02T10:24:31.234Z | M4-RESP | todo → done | Claude Code | 17 页 × 6 宽度 × 4 组外观无溢出、axe 0 违规、移动触摸目标 ≥44px、减少动画动态生效 |

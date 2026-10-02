@@ -51,6 +51,8 @@ test('prototype shell, theme persistence, responsive widths and SSR privacy', as
   await page.getByRole('button', { name: '完成', exact: true }).click();
   await page.reload();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  // The device copy shows first; the account copy catches up (other devices read it on their next page load).
+  await expect.poll(async () => (await (await page.request.get('/api/v1/me/preferences')).json()).data.appearance.themeMode).toBe('dark');
   await page.screenshot({ path: `test-results/${testInfo.project.name}-dark.png`, fullPage: true });
   await page.getByRole('button', { name: '外观：显示模式与主题色' }).click();
   await page.getByRole('button', { name: '恢复默认' }).click();
@@ -70,7 +72,9 @@ test('prototype shell, theme persistence, responsive widths and SSR privacy', as
     }
     await page.screenshot({ path: `test-results/${testInfo.project.name}-${width}.png`, fullPage: true });
   }
-  const html = await u.client.get(`/?ledger=${book.id}`);
+  const legacy = await u.client.get(`/?ledger=${book.id}&view=analytics`, { maxRedirects: 0 });
+  expect(legacy.headers().location).toContain(`/ledgers/${book.id}/analytics`);
+  const html = await u.client.get(`/ledgers/${book.id}/dashboard`);
   expect(await html.text()).toContain('本月，收支一目了然');
   expect(html.headers()['cache-control']).toContain('private');
   expect(errors).toEqual([]);

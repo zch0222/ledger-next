@@ -371,6 +371,9 @@ async function present(db: Executor | Tx, ledgerId: string, ids: string[]) {
   const tagRows = await db.select().from(transactionTags).where(and(eq(transactionTags.ledgerId, ledgerId), inArray(transactionTags.transactionId, ids)));
   const transferIds = rows.filter(r => r.kind === 'transfer').map(r => r.id);
   const lines = transferIds.length ? await db.select().from(accountPostings).where(and(eq(accountPostings.ledgerId, ledgerId), inArray(accountPostings.transactionId, transferIds), isNull(accountPostings.reversesId))) : [];
+  // Only voided rows can have been replaced; the (ledger_id, replaces_id) foreign-key index serves this lookup.
+  const voidedIds = rows.filter(r => r.status === 'voided').map(r => r.id);
+  const replacedBy = new Map(voidedIds.length ? (await db.select({ id: transactions.id, replacesId: transactions.replacesId }).from(transactions).where(and(eq(transactions.ledgerId, ledgerId), inArray(transactions.replacesId, voidedIds)))).map(r => [r.replacesId!, r.id]) : []);
   const fees = new Map(transferIds.length ? (await db.select().from(transactionLinks).where(and(eq(transactionLinks.ledgerId, ledgerId), inArray(transactionLinks.parentId, transferIds)))).map(l => [l.parentId, l.childId]) : []);
   const byId = new Map(rows.map(row => {
     const a = amounts.get(row.id)!, s = a.fxSnapshotId ? snapshots.get(a.fxSnapshotId)! : null;
@@ -388,7 +391,7 @@ async function present(db: Executor | Tx, ledgerId: string, ids: string[]) {
         sourceAmount: { amount: formatAmount(sum([out.signedAmount]).negated(), out.currency), currency: out.currency },
         targetAmount: { amount: formatAmount(into.signedAmount, into.currency), currency: into.currency }, feeTransactionId: fees.get(row.id) ?? null,
       } : null,
-      refundOf: row.refundOf, replacesId: row.replacesId, source: row.source, version: row.version,
+      refundOf: row.refundOf, replacesId: row.replacesId, replacedById: replacedBy.get(row.id) ?? null, source: row.source, version: row.version,
       createdAt: row.createdAt.toISOString(), updatedAt: row.updatedAt.toISOString(),
     }];
   }));

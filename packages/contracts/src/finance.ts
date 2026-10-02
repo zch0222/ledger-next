@@ -37,6 +37,7 @@ export const Transaction = resource('Transaction', z.object({
   exchangeRate: AppliedRate.nullable(),
   transfer: z.object({ sourceAccountId: uuid, targetAccountId: uuid, sourceAmount: Money, targetAmount: Money, feeTransactionId: uuid.nullable() }).nullable(),
   refundOf: uuid.nullable(), replacesId: uuid.nullable(),
+  replacedById: uuid.nullable().meta({ description: '被更正后的新版本 id（仅已作废的旧版本有值）' }),
   source: z.enum(['web', 'api', 'agent', 'import', 'subscription']),
   version, createdAt: Timestamp, updatedAt: Timestamp,
 }));

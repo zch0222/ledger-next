@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { formatMoney } from '../../../../../packages/ui/src/format';
 import { Chart } from '../charts/chart';
+import { useLedgerUI } from '../ledger-ui';
 
 export type CategoryRow = { categoryId: string | null; name: string; amount: string; share: string; count: number };
 /** Top six categories, the rest merged into 其他 (UI_SPEC §2); colours stay fixed per position, never per theme. */
@@ -14,8 +15,10 @@ export function topCategories(items: CategoryRow[]) {
   return [...positive.slice(0, 5).map((i, n) => ({ ...i, colorIndex: n, key: i.categoryId ?? 'none' })), { categoryId: null, name: '其他', amount: other.toFixed(2), share: '', count: rest.reduce((n, i) => n + i.count, 0), colorIndex: 5, key: 'other' }];
 }
 export function CategoryPanel({ items, currency, ledgerId, range, variant = 'categories', total, caption }: { items: CategoryRow[]; currency: string; ledgerId: string; range: { dateFrom: string; dateTo: string }; variant?: 'categories' | 'composition'; total?: string; caption?: string }) {
-  const router = useRouter(), top = useMemo(() => topCategories(items), [items]);
-  const href = (categoryId: string | null) => `/ledgers/${ledgerId}/transactions?dateFrom=${range.dateFrom}&dateTo=${range.dateTo}&kind=expense${categoryId ? `&categoryId=${categoryId}` : ''}`;
+  const router = useRouter(), top = useMemo(() => topCategories(items), [items]), base = useLedgerUI().ledger.baseCurrency;
+  // A category drills into its expenses and their refunds (refunds keep the category), so the list adds up to the
+  // net amount shown here; uncategorized falls back to all expenses of the period.
+  const href = (categoryId: string | null) => `/ledgers/${ledgerId}/transactions?dateFrom=${range.dateFrom}&dateTo=${range.dateTo}${categoryId ? `&categoryId=${categoryId}` : '&kind=expense'}${currency !== base ? `&currency=${currency}` : ''}`;
   const model = useMemo(() => variant === 'composition'
     ? { type: 'composition' as const, items: top.map(t => ({ name: t.name, amount: t.amount, colorIndex: t.colorIndex })), currency, total: total ?? '0', caption: caption ?? '', description: `按历史入账口径的支出占比，单位 ${currency}；各分类金额见下方列表。` }
     : { type: 'categories' as const, items: top.map(t => ({ name: t.name, amount: t.amount, colorIndex: t.colorIndex })), currency, description: `支出分类排行，单位 ${currency}。点击分类查看明细，下方有键盘可访问的列表。` }, [top, currency, variant, total, caption]);

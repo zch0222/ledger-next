@@ -7,13 +7,16 @@ export type AppearanceValue = { mode: string; accent: string; custom: string | n
 const MODES = [['light', '浅色', 'M12 2.5v2M12 19.5v2M4.6 4.6 6 6M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4'], ['dark', '深色', 'M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z'], ['system', '跟随系统', 'M3 4h18v12H3zM8 20h8M12 16v4']] as const;
 const MODE_NAMES: Record<string, string> = { light: '浅色', dark: '深色', system: '跟随系统' };
 
+const remember = (safe: AppearanceValue, pending: string | null) => {
+  document.cookie = `ln_appearance=${encodeURIComponent(JSON.stringify(pending ? { ...safe, pending } : safe))}; Path=/; Max-Age=31536000; SameSite=Lax${location.protocol === 'https:' ? '; Secure' : ''}`;
+};
 /** Applies the appearance to <html> without a page reload; charts listen for "ledger:appearance". */
-function apply(pref: AppearanceValue) {
+function apply(pref: AppearanceValue, pending: string | null) {
   const safe = sanitize(pref), p = palette(safe), root = document.documentElement;
   root.classList.add('theme-switching');
   if (safe.mode === 'system') root.removeAttribute('data-theme'); else root.setAttribute('data-theme', safe.mode);
   for (const [name, value] of Object.entries({ '--accent-l': p.light, '--accent-d': p.dark, '--on-accent-l': p.report.light.onAccent, '--on-accent-d': p.report.dark.onAccent })) root.style.setProperty(name, value ?? '');
-  document.cookie = `ln_appearance=${encodeURIComponent(JSON.stringify(safe))}; Path=/; Max-Age=31536000; SameSite=Lax${location.protocol === 'https:' ? '; Secure' : ''}`;
+  remember(safe, pending);
   document.dispatchEvent(new CustomEvent('ledger:appearance'));
   requestAnimationFrame(() => requestAnimationFrame(() => root.classList.remove('theme-switching')));
 }
@@ -22,7 +25,8 @@ function apply(pref: AppearanceValue) {
  * Appearance (UI_SPEC §2.2): instant, device-local first (cookie), then synced to the account with a 500 ms
  * debounce. A failed save keeps the device setting and says so. Used as the top-bar popover / mobile sheet and inline on P13.
  */
-export function Appearance({ initial, version: initialVersion = null, signedIn = false, inline = false }: { initial: AppearanceValue; version?: number | null; signedIn?: boolean; inline?: boolean }) {
+export function Appearance({ initial, version: initialVersion = null, userId = null, pending = false, inline = false }: { initial: AppearanceValue; version?: number | null; userId?: string | null; pending?: boolean; inline?: boolean }) {
+  const signedIn = userId !== null;
   const ref = useRef<HTMLDialogElement>(null), opener = useRef<HTMLButtonElement>(null);
   const [pref, setPref] = useState(initial), [hex, setHex] = useState(initial.custom ?? ''), [error, setError] = useState('');
   const [sync, setSync] = useState<'idle' | 'saving' | 'saved' | 'failed'>('idle'), [systemDark, setSystemDark] = useState(false);
@@ -49,18 +53,22 @@ export function Appearance({ initial, version: initialVersion = null, signedIn =
         saved = await send();
       }
       version.current = saved.version;
+      remember(sanitize(next) as AppearanceValue, null);
       setSync('saved');
     } catch { setSync('failed'); }
   }
   useEffect(() => {
-    if (first.current) { first.current = false; return; }
-    apply(pref);
+    // First render: the server already applied this value; only finish a sync the last page left pending.
+    if (first.current) { first.current = false; if (pending) timer.current = setTimeout(() => { timer.current = undefined; void save(pref); }, 0); return; }
+    apply(pref, userId);
     clearTimeout(timer.current);
-    timer.current = setTimeout(() => void save(pref), 500);
+    timer.current = setTimeout(() => { timer.current = undefined; void save(pref); }, 500);
     return () => clearTimeout(timer.current);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pref]);
 
+  // Closing the panel saves at once instead of waiting for the debounce.
+  const flush = () => { if (timer.current === undefined) return; clearTimeout(timer.current); timer.current = undefined; void save(pref); };
   const change = (next: AppearanceValue) => { setPref(sanitize(next) as AppearanceValue); setError(''); };
   const safe = sanitize(pref), p = palette(safe), custom = safe.custom ? derive(safe.custom) : null;
   const note = safe.accent === 'custom' && custom ? [custom.lightAdjusted && '浅色模式已自动加深', custom.darkAdjusted && '深色模式已自动提亮'].filter(Boolean).join('，') + (custom.lightAdjusted || custom.darkAdjusted ? '，满足 WCAG AA。' : '') + (custom.near ? ` 接近${custom.near}，建议换一个。` : '') : '';
@@ -85,7 +93,7 @@ export function Appearance({ initial, version: initialVersion = null, signedIn =
   </>;
   if (inline) return <section className="panel appearance-panel">{body}<div className="row"><span /><button onClick={() => { setHex(''); change({ mode: 'system', accent: 'teal', custom: null }); }}>恢复默认</button></div></section>;
   return <><button ref={opener} className="appearance-open" aria-haspopup="dialog" aria-label="外观：显示模式与主题色" title="外观" onClick={() => ref.current?.showModal()}><svg className="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" strokeWidth="2" /><path d="M12 3.5a8.5 8.5 0 0 1 0 17z" fill="currentColor" /></svg><span className="label">外观</span></button>
-    <dialog ref={ref} className="appearance-dialog" aria-labelledby="appearance-title" aria-describedby="appearance-desc" onClose={() => opener.current?.focus()}>
+    <dialog ref={ref} className="appearance-dialog" aria-labelledby="appearance-title" aria-describedby="appearance-desc" onClose={() => { flush(); opener.current?.focus(); }}>
       <div className="dialoghead"><div><h2 id="appearance-title">外观</h2><p className="small muted" id="appearance-desc" style={{ margin: '2px 0 0' }}>即时生效，只改变显示方式，不影响账目数据。</p></div><button type="button" aria-label="关闭外观设置" onClick={() => ref.current?.close()}>✕</button></div>
       <div className="dialogbody">{body}</div>
       <div className="dialogfoot"><button type="button" onClick={() => { setHex(''); change({ mode: 'system', accent: 'teal', custom: null }); }}>恢复默认</button><button type="button" className="primary" onClick={() => ref.current?.close()}>完成</button></div>

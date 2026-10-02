@@ -28,3 +28,31 @@
 | M2-LEDGER | 转账本金不计收支，退款不记收入；并发与冲正测试通过 | 通过 | `ledger.api.ts`「transfers, refunds, corrections and voids…」；`transactions.test.ts` 转账手续费、并发退款上限、更正、作废、12 并发提交 |
 
 留给人工审查：远程 GitHub Actions 结果（本轮只在本机 Docker 执行）；按 M1-AUTH 证据文档人工抽查登录、成员 UI。
+
+## 2026-10-02 · M4-THEME、M4-CORE、M4-SUBS、M4-DASH、M4-RESP
+
+命令与结果（同一工作树）：
+
+- `pnpm lint`、`pnpm typecheck`、`pnpm contract:check`：通过（交易资源新增只读字段 `replacedById`，增量变更）。
+- `pnpm test:unit`：15 文件 154 测试通过；覆盖范围新增 schedule.ts、format.ts、period.ts、time.ts，语句 / 行 100%、分支 97.82%。
+- `LEDGER_BUILD_CA=/root/.ccr/ca-bundle.crt pnpm test:e2e`：迁移 0001–0009 → 回滚 0009（空表）→ 重放 → 重启持久化 PASS → MySQL 集成 60 passed → 有数据回滚被拒绝 → Playwright 49 passed、1 skipped（JS 预算只在桌面测一次）→ web 143 / worker 0 优雅停机。首屏脚本 gzip 152.4 KiB（10 个脚本，含 React / Next 运行时），ECharts chunk 194.7 KiB 延迟加载。
+
+本轮 E2E 发现并修复：根 `loading.tsx` 让 `/` 的旧链接跳转变成流式软跳转（移入账本外壳）；外观保存防抖期间刷新会丢失选择（pending Cookie）；浏览器后退后搜索框把旧文本重新推入 URL；有退款的支出仍显示“更正 / 作废”（服务端 409）；分类钻取只列支出导致明细合计 ≠ 分类净额；订阅日历 ARIA 结构错误；移动端触摸目标小于 44px；Docker 无环境变量构建时根布局先读会话（改为先读 Cookie）。
+
+| 任务 | 验收标准 | 结论 | 证据 |
+| --- | --- | --- | --- |
+| M4-THEME | 6 组合首帧、跟随系统即时更新 | 通过 | `visual.spec.ts` appearance |
+| M4-THEME | 对比度 ≥4.5:1、非法颜色 422 不落库 | 通过 | `theme.test.ts`、`visual.spec.ts`、axe |
+| M4-THEME | 跨设备同步、失败仅本设备、语义色不变 | 通过 | `ui.spec.ts`、`visual.spec.ts` |
+| M4-CORE | 无需图表 JS 可读首屏 | 通过 | `visual.spec.ts` 无 JS 上下文 |
+| M4-CORE | 记账、更正、退款、账户归档 E2E | 通过 | `flows.spec.ts`、`settings.spec.ts`（桌面 + 移动） |
+| M4-SUBS | 到期不自动支付、已付唯一 | 通过 | `flows.spec.ts` subscriptions、`subscriptions.test.ts` |
+| M4-SUBS | 改期取消旧计划、保留历史 | 通过 | 同上 |
+| M4-DASH | 合计与明细一致、缺率 / 预测标注 | 通过 | `visual.spec.ts` dashboard / analytics |
+| M4-DASH | 键盘 / 触摸钻取、JS 预算 | 通过 | 同上 + first-screen JS 用例 |
+| M4-DASH | 同实例更新、换色、清理 | 通过 | `data-chart-instance / -renders` 断言 |
+| M4-RESP | 无溢出、触摸目标、对比度 | 通过 | responsive 矩阵（axe-core 4.13.0） |
+| M4-RESP | 手机独立完成记账 / 查询 / 订阅 | 通过 | 移动项目全部用例 |
+| M4-RESP | 缩放不重播入场、不裁剪金额、减少动画等价 | 通过 | responsive 用例末段 |
+
+留给人工审查：见各任务 finalChecks（真机、屏幕阅读器、视觉品味、D22 取舍）。

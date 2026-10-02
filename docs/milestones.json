@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "project": "Ledger Next",
-  "updatedAt": "2026-10-02T08:59:41.878Z",
+  "updatedAt": "2026-10-02T10:24:31.234Z",
   "timezone": "Asia/Hong_Kong",
   "milestones": [
     {
@@ -458,9 +458,9 @@
       ],
       "role": "前端 / 全栈",
       "owner": "Claude Code",
-      "status": "in_progress",
+      "status": "done",
       "requiresReview": true,
-      "reviewer": "",
+      "reviewer": "Claude Code 自评估（用户授权，见 docs/reviews/AUTONOMOUS_DELIVERY.md）",
       "blockedReason": "",
       "steps": [
         "按批准 UI 实现 P00/P02/P03/P06/P09/P11/P12。",
@@ -471,9 +471,16 @@
         "无需等待图表 JS 可读首屏信息。",
         "记账、更正、退款、账户归档端到端通过。"
       ],
-      "nextAction": "实现中",
-      "evidence": [],
-      "updatedAt": "2026-10-02T08:59:41.805Z"
+      "nextAction": "人工走查文案与屏幕阅读器",
+      "evidence": [
+        "docs/evidence/M4-CORE/README.md"
+      ],
+      "updatedAt": "2026-10-02T10:24:25.750Z",
+      "reviewMode": "self",
+      "finalChecks": [
+        "真实用户走查文案与信息密度",
+        "NVDA / VoiceOver 实际朗读"
+      ]
     },
     {
       "id": "M4-SUBS",
@@ -487,9 +494,9 @@
       ],
       "role": "全栈开发",
       "owner": "Claude Code",
-      "status": "in_progress",
+      "status": "done",
       "requiresReview": true,
-      "reviewer": "",
+      "reviewer": "Claude Code 自评估（用户授权，见 docs/reviews/AUTONOMOUS_DELIVERY.md）",
       "blockedReason": "",
       "steps": [
         "实现周期规则、锚点、唯一 occurrence 和状态机。",
@@ -500,9 +507,17 @@
         "到期不自动成为已支付，已付记录唯一。",
         "周期编辑取消未来旧版本任务且保留历史。"
       ],
-      "nextAction": "实现中",
-      "evidence": [],
-      "updatedAt": "2026-10-02T08:59:41.878Z"
+      "nextAction": "提醒随 M5-ENGINE 接入",
+      "evidence": [
+        "docs/evidence/M4-SUBS/README.md",
+        "packages/db/migrations/0009_subscriptions.sql"
+      ],
+      "updatedAt": "2026-10-02T10:24:25.693Z",
+      "reviewMode": "self",
+      "finalChecks": [
+        "D22 不回补历史账单的产品取舍",
+        "提醒接入后完整走查 提醒 → 确认已付"
+      ]
     },
     {
       "id": "M4-DASH",
@@ -515,10 +530,10 @@
         "M4-SUBS"
       ],
       "role": "前端",
-      "owner": "未分配",
-      "status": "todo",
+      "owner": "Claude Code",
+      "status": "done",
       "requiresReview": true,
-      "reviewer": "",
+      "reviewer": "Claude Code 自评估（用户授权，见 docs/reviews/AUTONOMOUS_DELIVERY.md）",
       "blockedReason": "",
       "steps": [
         "实现 P01/P05 的 KPI、趋势、分类、预算和近期账单。",
@@ -531,9 +546,15 @@
         "键盘/触摸均可钻取，JS 预算符合目标。",
         "ECharts 动画、同实例更新、深浅模式与主题色切换（同实例 setOption，数据语义色不变）、数据表替代、离屏/卸载资源清理通过；不计入首屏同步包。"
       ],
-      "nextAction": "按统一报表响应实现图表与钻取。",
-      "evidence": [],
-      "updatedAt": "2026-10-01T17:27:06.037Z"
+      "nextAction": "M7-PERF 按目标数据量复测",
+      "evidence": [
+        "docs/evidence/M4-DASH/README.md"
+      ],
+      "updatedAt": "2026-10-02T10:24:31.174Z",
+      "reviewMode": "self",
+      "finalChecks": [
+        "图表动效观感与低端手机流畅度"
+      ]
     },
     {
       "id": "M4-THEME",
@@ -546,9 +567,9 @@
       ],
       "role": "前端 / 全栈",
       "owner": "Claude Code",
-      "status": "in_progress",
+      "status": "done",
       "requiresReview": true,
-      "reviewer": "",
+      "reviewer": "Claude Code 自评估（用户授权，见 docs/reviews/AUTONOMOUS_DELIVERY.md）",
       "blockedReason": "",
       "steps": [
         "在 packages/ui 建立浅 / 深两套 CSS 变量令牌与固定语义色；Tailwind / shadcn 组件只引用令牌，不硬编码颜色。",
@@ -561,9 +582,17 @@
         "全部预设与极端自定义色在两种模式下关键对比度 ≥4.5:1；非法颜色或未知预设返回 422 且不落库。",
         "偏好跨设备同步、刷新保持；保存失败时仅本设备生效并提示；收支 / 警告 / 错误与图表数据色不随主题色变化。"
       ],
-      "nextAction": "实现中",
-      "evidence": [],
-      "updatedAt": "2026-10-02T08:59:41.750Z"
+      "nextAction": "人工审查：真机地址栏 theme-color 与主题色观感",
+      "evidence": [
+        "docs/evidence/M4-THEME/README.md",
+        "packages/db/migrations/0008_preferences.sql"
+      ],
+      "updatedAt": "2026-10-02T10:24:25.633Z",
+      "reviewMode": "self",
+      "finalChecks": [
+        "真机（iOS / Android）深浅切换与 theme-color 观感",
+        "主题色预设 / 自定义色视觉品味"
+      ]
     },
     {
       "id": "M4-RESP",
@@ -577,10 +606,10 @@
         "M4-THEME"
       ],
       "role": "前端 / QA",
-      "owner": "未分配",
-      "status": "todo",
+      "owner": "Claude Code",
+      "status": "done",
       "requiresReview": true,
-      "reviewer": "",
+      "reviewer": "Claude Code 自评估（用户授权，见 docs/reviews/AUTONOMOUS_DELIVERY.md）",
       "blockedReason": "",
       "steps": [
         "检查 360/390/768/1440/1920px × 浅色 / 深色 / 跟随系统，并抽查非默认主题色。",
@@ -593,9 +622,16 @@
         "手机可以独立完成记账、查询、订阅管理。",
         "图表容器缩放不重播页面入场、不裁剪金额；减少动画时操作等价。"
       ],
-      "nextAction": "按 P00–P13 覆盖矩阵逐页验收。",
-      "evidence": [],
-      "updatedAt": "2026-10-01T17:53:59.363Z"
+      "nextAction": "真机复核",
+      "evidence": [
+        "docs/evidence/M4-RESP/README.md"
+      ],
+      "updatedAt": "2026-10-02T10:24:31.234Z",
+      "reviewMode": "self",
+      "finalChecks": [
+        "iOS Safari / Android Chrome 软键盘与 safe-area",
+        "浏览器真实 200% 缩放观感"
+      ]
     },
     {
       "id": "M5-ENGINE",
@@ -1392,6 +1428,46 @@
       "to": "in_progress",
       "actor": "Claude Code",
       "note": "开始实施（按 v0.3 原型）"
+    },
+    {
+      "at": "2026-10-02T10:24:25.633Z",
+      "id": "M4-THEME",
+      "from": "in_progress",
+      "to": "done",
+      "actor": "Claude Code",
+      "note": "6 组合首帧、跟随系统、失败仅本设备、跨设备同步与 422 由 visual.spec.ts / ui.spec.ts 在 Docker E2E 验证"
+    },
+    {
+      "at": "2026-10-02T10:24:25.693Z",
+      "id": "M4-SUBS",
+      "from": "in_progress",
+      "to": "done",
+      "actor": "Claude Code",
+      "note": "到期不自动支付、每期一笔支付、改期取消旧计划保留已付，由 flows.spec.ts 与 subscriptions 集成测试验证"
+    },
+    {
+      "at": "2026-10-02T10:24:25.750Z",
+      "id": "M4-CORE",
+      "from": "in_progress",
+      "to": "done",
+      "actor": "Claude Code",
+      "note": "记账 / 更正 / 退款 / 作废 / 归档 / 导入导出 / 只读角色与无 JS 首屏由 flows / settings / visual 规格在 Docker 桌面与移动项目验证"
+    },
+    {
+      "at": "2026-10-02T10:24:31.174Z",
+      "id": "M4-DASH",
+      "from": "todo",
+      "to": "done",
+      "actor": "Claude Code",
+      "note": "合计与钻取一致、同实例更新、卸载清理、首屏 JS 152.4 KiB gzip（含框架）、ECharts 独立延迟 chunk"
+    },
+    {
+      "at": "2026-10-02T10:24:31.234Z",
+      "id": "M4-RESP",
+      "from": "todo",
+      "to": "done",
+      "actor": "Claude Code",
+      "note": "17 页 × 6 宽度 × 4 组外观无溢出、axe 0 违规、移动触摸目标 ≥44px、减少动画动态生效"
     }
   ]
 }
