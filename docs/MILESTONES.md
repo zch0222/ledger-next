@@ -2,20 +2,20 @@
 
 > 自动生成：请更新 milestones.json 或运行 scripts/progress.mjs；不要直接修改本文件。
 
-数据版本：1 · 最近更新：2026-10-02T08:19:14.934Z
+数据版本：1 · 最近更新：2026-10-02T08:58:35.541Z
 
 完成率按原始估算人日加权，只有 done 计入；in_review 不计完成。文档完成不代表业务开发完成。
 
-**全部工作：25.2%（14.5/57.5 人日） · 业务开发：19.6% · G0：完成**
+**全部工作：36.5%（21/57.5 人日） · 业务开发：31.8% · G0：完成**
 
-其中 4 项为实现者自评估完成（用户授权跳过逐项人工审查），统一列入文末“最终人工审查清单”；G1 发布签署仍需真实评审人。
+其中 7 项为实现者自评估完成（用户授权跳过逐项人工审查），统一列入文末“最终人工审查清单”；G1 发布签署仍需真实评审人。
 
 | 里程碑 | 状态分布 | 完成人日 / 估算人日 | 完成率 |
 | --- | --- | --- | --- |
 | M0 开发前设计与验收 | 完成 4 | 4 / 4 | 100.0% |
 | M1 工程、身份与 REST 契约 | 完成 3 | 5.5 / 5.5 | 100.0% |
-| M2 记账核心与数据 | 待开始 1，完成 2 | 5 / 7 | 71.4% |
-| M3 多币种汇率与报表 | 待开始 2 | 0 / 4.5 | 0.0% |
+| M2 记账核心与数据 | 完成 3 | 7 / 7 | 100.0% |
+| M3 多币种汇率与报表 | 完成 2 | 4.5 / 4.5 | 100.0% |
 | M4 现代响应式产品 UI | 待开始 5 | 0 / 11.5 | 0.0% |
 | M5 提醒与全部通道 | 待开始 7 | 0 / 11 | 0.0% |
 | M6 MCP、Skill 与四 Agent | 待开始 6 | 0 / 6.5 | 0.0% |
@@ -23,9 +23,8 @@
 
 ## 下一步
 
-- **M2-IMPORT** CSV 导入导出与可撤销批次（待开始；全栈开发）：准备多币种 CSV 样例和错误样例。
-- **M3-FX** 分钟汇率、历史补录和降级（待开始；后端 / 集成）：取得 FX 测试账号，验证报价频率与批量能力。
 - **M4-CORE** 认证、账目、账户与设置 UI（待开始；前端 / 全栈）：先打通 SSR 账目列表与记账抽屉。
+- **M4-SUBS** 周期订阅与支付确认（待开始；全栈开发）：先验证周期日期算法再连接订阅 UI。
 - **M4-THEME** 外观：主题色与深浅模式（待开始；前端 / 全栈）：先落地令牌与生成器单测，再接偏好 API 与 SSR 注入。
 
 ## 任务总览
@@ -41,9 +40,9 @@
 | M1-API | OpenAPI、错误模型与 REST SDK | 完成 | Claude Code / 全栈开发 | M1-AUTH | 2 |
 | M2-MODEL | 账务 schema 与金额运算 | 完成 | Claude Code / 后端 / 数据 | M1-API | 2 |
 | M2-LEDGER | 收支、转账、退款与更正 | 完成 | Claude Code / 全栈开发 | M2-MODEL | 3 |
-| M2-IMPORT | CSV 导入导出与可撤销批次 | 待开始 | 未分配 / 全栈开发 | M2-LEDGER | 2 |
-| M3-FX | 分钟汇率、历史补录和降级 | 待开始 | 未分配 / 后端 / 集成 | M2-MODEL | 2.5 |
-| M3-REPORTS | 报表口径、聚合与缓存 | 待开始 | 未分配 / 后端 / 数据 | M2-LEDGER, M3-FX | 2 |
+| M2-IMPORT | CSV 导入导出与可撤销批次 | 完成 | Claude Code / 全栈开发 | M2-LEDGER | 2 |
+| M3-FX | 分钟汇率、历史补录和降级 | 完成 | Claude Code / 后端 / 集成 | M2-MODEL | 2.5 |
+| M3-REPORTS | 报表口径、聚合与缓存 | 完成 | Claude Code / 后端 / 数据 | M2-LEDGER, M3-FX | 2 |
 | M4-CORE | 认证、账目、账户与设置 UI | 待开始 | 未分配 / 前端 / 全栈 | M2-LEDGER | 3 |
 | M4-SUBS | 周期订阅与支付确认 | 待开始 | 未分配 / 全栈开发 | M2-LEDGER, M3-FX | 3 |
 | M4-DASH | 总览、分析与预算可视化 | 待开始 | 未分配 / 前端 | M3-REPORTS, M4-SUBS | 2 |
@@ -309,10 +308,11 @@
 
 ### M2-IMPORT · CSV 导入导出与可撤销批次
 
-- 状态：待开始；负责人：未分配；建议角色：全栈开发
+- 状态：完成；负责人：Claude Code；建议角色：全栈开发
 - 依赖：M2-LEDGER；未完成依赖：无
-- 估算：2 人日；更新：2026-10-02
-- 下一动作：准备多币种 CSV 样例和错误样例。
+- 估算：2 人日；更新：2026-10-02T08:58:35.485Z
+- 下一动作：Web 导入向导随 M4-CORE
+- 评审人：Claude Code 自评估（用户授权，见 docs/reviews/AUTONOMOUS_DELIVERY.md）（自评估，待最终人工审查）
 
 **执行步骤**
 
@@ -322,19 +322,25 @@
 
 **验收标准**
 
-- [ ] 重复导入不重复记账，错误行有行号与原因。
-- [ ] 导出合计一致、无越权下载，撤销可追踪。
+- [x] 重复导入不重复记账，错误行有行号与原因。
+- [x] 导出合计一致、无越权下载，撤销可追踪。
 
 **证据**
 
-尚无完成证据。
+- [docs/evidence/M2-IMPORT/README.md](../docs/evidence/M2-IMPORT/README.md)
+- [packages/db/migrations/0006_imports.sql](../packages/db/migrations/0006_imports.sql)
+
+**待最终人工审查**
+
+- [ ] 人工用真实银行导出 CSV 走一遍映射、校验、提交与撤销
 
 ### M3-FX · 分钟汇率、历史补录和降级
 
-- 状态：待开始；负责人：未分配；建议角色：后端 / 集成
+- 状态：完成；负责人：Claude Code；建议角色：后端 / 集成
 - 依赖：M2-MODEL；未完成依赖：无
-- 估算：2.5 人日；更新：2026-10-02
-- 下一动作：取得 FX 测试账号，验证报价频率与批量能力。
+- 估算：2.5 人日；更新：2026-10-02T08:39:21.733Z
+- 下一动作：最终人工审查：真实供应商套餐与源时间延迟
+- 评审人：Claude Code 自评估（用户授权，见 docs/reviews/AUTONOMOUS_DELIVERY.md）（自评估，待最终人工审查）
 
 **执行步骤**
 
@@ -344,19 +350,26 @@
 
 **验收标准**
 
-- [ ] 正常源更新年龄目标达成或清楚记录差距。
-- [ ] 休市、过期、补录不改写历史；源故障不阻塞 SSR。
+- [x] 正常源更新年龄目标达成或清楚记录差距。
+- [x] 休市、过期、补录不改写历史；源故障不阻塞 SSR。
 
 **证据**
 
-尚无完成证据。
+- [docs/evidence/M3-FX/README.md](../docs/evidence/M3-FX/README.md)
+- [packages/db/migrations/0005_fx.sql](../packages/db/migrations/0005_fx.sql)
+
+**待最终人工审查**
+
+- [ ] 用真实 FX 供应商凭据核实 60 秒更新、配额、历史覆盖与展示许可，并测量 source age
+- [ ] 核对 P09 汇率页的 stale / suspect 提示文案
 
 ### M3-REPORTS · 报表口径、聚合与缓存
 
-- 状态：待开始；负责人：未分配；建议角色：后端 / 数据
-- 依赖：M2-LEDGER, M3-FX；未完成依赖：M3-FX
-- 估算：2 人日；更新：2026-10-02
-- 下一动作：为演示数据建立可人工核算的报表基准。
+- 状态：完成；负责人：Claude Code；建议角色：后端 / 数据
+- 依赖：M2-LEDGER, M3-FX；未完成依赖：无
+- 估算：2 人日；更新：2026-10-02T08:58:35.541Z
+- 下一动作：upcomingBills 随 M4-SUBS 接入；规模化查询计划随 M7-PERF
+- 评审人：Claude Code 自评估（用户授权，见 docs/reviews/AUTONOMOUS_DELIVERY.md）（自评估，待最终人工审查）
 
 **执行步骤**
 
@@ -366,12 +379,17 @@
 
 **验收标准**
 
-- [ ] 报表与有效明细合计一致；转账不计支出。
-- [ ] 不同用户、币种、口径缓存不混用；写后统计版本可追踪。
+- [x] 报表与有效明细合计一致；转账不计支出。
+- [x] 不同用户、币种、口径缓存不混用；写后统计版本可追踪。
 
 **证据**
 
-尚无完成证据。
+- [docs/evidence/M3-REPORTS/README.md](../docs/evidence/M3-REPORTS/README.md)
+- [packages/db/migrations/0007_reports.sql](../packages/db/migrations/0007_reports.sql)
+
+**待最终人工审查**
+
+- [ ] 抽查 12 个月真实数据的报表与明细对账
 
 ### M4-CORE · 认证、账目、账户与设置 UI
 
@@ -398,7 +416,7 @@
 ### M4-SUBS · 周期订阅与支付确认
 
 - 状态：待开始；负责人：未分配；建议角色：全栈开发
-- 依赖：M2-LEDGER, M3-FX；未完成依赖：M3-FX
+- 依赖：M2-LEDGER, M3-FX；未完成依赖：无
 - 估算：3 人日；更新：2026-10-02
 - 下一动作：先验证周期日期算法再连接订阅 UI。
 
@@ -420,7 +438,7 @@
 ### M4-DASH · 总览、分析与预算可视化
 
 - 状态：待开始；负责人：未分配；建议角色：前端
-- 依赖：M3-REPORTS, M4-SUBS；未完成依赖：M3-REPORTS, M4-SUBS
+- 依赖：M3-REPORTS, M4-SUBS；未完成依赖：M4-SUBS
 - 估算：2 人日；更新：2026-10-01T17:27:06.037Z
 - 下一动作：按统一报表响应实现图表与钻取。
 
@@ -646,7 +664,7 @@
 ### M6-SERVER · MCP HTTP / stdio 服务与令牌
 
 - 状态：待开始；负责人：未分配；建议角色：全栈 / Agent 集成
-- 依赖：M1-API, M3-REPORTS, M4-SUBS, M5-ENGINE；未完成依赖：M3-REPORTS, M4-SUBS, M5-ENGINE
+- 依赖：M1-API, M3-REPORTS, M4-SUBS, M5-ENGINE；未完成依赖：M4-SUBS, M5-ENGINE
 - 估算：2.5 人日；更新：2026-10-02
 - 下一动作：先实现只读 context/summary，再加入 preview/create。
 
@@ -824,7 +842,7 @@
 ### M7-E2E · 完整业务回归与导入导出
 
 - 状态：待开始；负责人：未分配；建议角色：QA
-- 依赖：M2-IMPORT, M7-SEC；未完成依赖：M2-IMPORT, M7-SEC
+- 依赖：M2-IMPORT, M7-SEC；未完成依赖：M7-SEC
 - 估算：2 人日；更新：2026-10-02
 - 下一动作：按测试环境和真实接收人执行最终回归。
 
@@ -897,6 +915,9 @@
 | M1-API | OpenAPI、错误模型与 REST SDK | docs/evidence/M1-API/README.md；packages/contracts/openapi.json；docs/evidence/SELF_REVIEW.md | 核对远程 GitHub Actions 的 contract:check 与 Docker E2E 结果 |
 | M2-MODEL | 账务 schema 与金额运算 | docs/evidence/M2-MODEL/README.md；packages/db/migrations/0003_ledger_core.sql；docs/evidence/SELF_REVIEW.md | 按验收标准复核 |
 | M2-LEDGER | 收支、转账、退款与更正 | docs/evidence/M2-LEDGER/README.md；packages/db/migrations/0004_previews.sql；docs/evidence/SELF_REVIEW.md | 按验收标准复核 |
+| M2-IMPORT | CSV 导入导出与可撤销批次 | docs/evidence/M2-IMPORT/README.md；packages/db/migrations/0006_imports.sql | 人工用真实银行导出 CSV 走一遍映射、校验、提交与撤销 |
+| M3-FX | 分钟汇率、历史补录和降级 | docs/evidence/M3-FX/README.md；packages/db/migrations/0005_fx.sql | 用真实 FX 供应商凭据核实 60 秒更新、配额、历史覆盖与展示许可，并测量 source age；核对 P09 汇率页的 stale / suspect 提示文案 |
+| M3-REPORTS | 报表口径、聚合与缓存 | docs/evidence/M3-REPORTS/README.md；packages/db/migrations/0007_reports.sql | 抽查 12 个月真实数据的报表与明细对账 |
 
 ## 变更历史
 
@@ -927,3 +948,9 @@
 | 2026-10-02T08:19:14.809Z | M1-API | todo → done | Claude Code | 契约检查与 contract.api.ts 5 个用例通过，自评估完成 |
 | 2026-10-02T08:19:14.856Z | M2-MODEL | todo → done | Claude Code | 精度单测、MySQL 集成与迁移回滚演练通过，自评估完成 |
 | 2026-10-02T08:19:14.934Z | M2-LEDGER | todo → done | Claude Code | 幂等、转账、退款、更正、作废的集成与 API E2E 通过，自评估完成 |
+| 2026-10-02T08:19:28.603Z | M3-FX | todo → in_progress | Claude Code | 开始实施；供应商按用户要求使用本地 mock，不连接真实服务 |
+| 2026-10-02T08:39:21.733Z | M3-FX | in_progress → done | Claude Code | Fixer 协议适配 + 本地 mock；新鲜度 / 锁定汇率 / 历史补录 / 人工汇率 / 刷新任务；Docker E2E：集成 36、Playwright 23 通过 |
+| 2026-10-02T08:39:26.875Z | M2-IMPORT | todo → in_progress | Claude Code | 开始实施：异步校验 / 提交 / 撤销（outbox → BullMQ）、行指纹去重、导出公式转义与创建者下载 |
+| 2026-10-02T08:52:26.377Z | M3-REPORTS | todo → in_progress | Claude Code | 报表 5 个接口与预算 CRUD 实现；数据版本缓存键；集成 53 通过（本机 MySQL） |
+| 2026-10-02T08:58:35.485Z | M2-IMPORT | in_progress → done | Claude Code | 异步校验 / 提交 / 撤销、行指纹去重、导出防公式注入与创建者下载；Docker E2E：集成 53、Playwright 26 通过 |
+| 2026-10-02T08:58:35.541Z | M3-REPORTS | in_progress → done | Claude Code | summary / cash-flow / 分类 / 净资产 / 预算进度与预算 CRUD；数据版本缓存；Docker E2E 通过 |

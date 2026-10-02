@@ -8,9 +8,13 @@ import { addMember, changeMember, createLedger, getLedger, listAuditEvents, list
 import { archiveAccount, createAccount, getAccount, listAccounts, presentAccount, updateAccount } from '../../../../../packages/domain/src/accounts';
 import { archiveCategory, archiveTag, createCategory, createTag, listCategories, listTags, presentCategory, presentTag, updateCategory, updateTag } from '../../../../../packages/domain/src/catalog';
 import { correctTransaction, createPreview, createRefund, createTransaction, getTransaction, listTransactions, voidTransaction } from '../../../../../packages/domain/src/transactions';
+import { createImportJob, getImportJob, listImportJobs, requestImportCommit, requestImportReversal } from '../../../../../packages/domain/src/imports';
+import { createExportJob, downloadExport, getExportJob, listExportJobs } from '../../../../../packages/domain/src/exports';
+import { accountBalances, archiveBudget, budgetProgress, cashFlow, categoryBreakdown, createBudget, listBudgets, presentBudget, reportSummary, updateBudget } from '../../../../../packages/domain/src/reports';
+import { createManualRateRecord, createRefreshJob, getExchangeRates, getRefreshJob, listManualRateRecords } from '../../../../../packages/domain/src/fx';
 
 export type ApiContext = AuthContext & { user: { name: string; email: string } };
-export type ApiResult = { status: 200 | 201 | 204; data?: unknown; headers?: Record<string, string>; page?: { nextCursor: string | null; hasMore: boolean } };
+export type ApiResult = { status: 200 | 201 | 202 | 204; data?: unknown; headers?: Record<string, string>; page?: { nextCursor: string | null; hasMore: boolean }; file?: { content: string; name: string; type: string } };
 type Input = { ctx: ApiContext; params: Record<string, string>; query: Record<string, unknown>; body: unknown; request: Request; operationId: string };
 type Handler = (input: Input, db?: Executor) => Promise<ApiResult>;
 
@@ -118,5 +122,55 @@ export const handlers: Record<StableOperationId, Handler> = {
     const refund = await createRefund(ctx, params.ledgerId, params.transactionId, body, db);
     return { status: 201, data: refund, headers: { ...location(params.ledgerId, 'transactions', refund.id), ...etag(refund.version) } };
   },
+  async createImportJob({ ctx, params, body }, db) {
+    const job = await createImportJob(ctx, params.ledgerId, body as { fileName: string; content: string; mapping: string }, db);
+    return { status: 202, data: job, headers: location(params.ledgerId, 'import-jobs', job.id) };
+  },
+  listImportJobs: input => pagedBy(input, { fetch: keyset => listImportJobs(input.ctx, input.params.ledgerId, keyset), position: row => row.position, schema: createdPosition, present: rows => rows.map(({ position, ...rest }) => { void position; return rest; }) }),
+  async getImportJob({ ctx, params }) { return { status: 200, data: await getImportJob(ctx, params.ledgerId, params.importJobId) }; },
+  async createImportCommit({ ctx, params }, db) {
+    const job = await requestImportCommit(ctx, params.ledgerId, params.importJobId, db);
+    return { status: 202, data: job, headers: location(params.ledgerId, 'import-jobs', job.id) };
+  },
+  async createImportReversal({ ctx, params }, db) {
+    const job = await requestImportReversal(ctx, params.ledgerId, params.importJobId, db);
+    return { status: 202, data: job, headers: location(params.ledgerId, 'import-jobs', job.id) };
+  },
+  async createExportJob({ ctx, params, body }, db) {
+    const job = await createExportJob(ctx, params.ledgerId, body, db);
+    return { status: 202, data: job, headers: location(params.ledgerId, 'export-jobs', job.id) };
+  },
+  listExportJobs: input => pagedBy(input, { fetch: keyset => listExportJobs(input.ctx, input.params.ledgerId, keyset), position: row => row.position, schema: createdPosition, present: rows => rows.map(({ position, ...rest }) => { void position; return rest; }) }),
+  async getExportJob({ ctx, params }) { return { status: 200, data: await getExportJob(ctx, params.ledgerId, params.exportJobId) }; },
+  async downloadExportFile({ ctx, params }) {
+    const file = await downloadExport(ctx, params.ledgerId, params.exportJobId);
+    return { status: 200, file: { content: file.content, name: file.fileName, type: 'text/csv' } };
+  },
+  async getReportSummary({ ctx, params, query }) { return { status: 200, data: await reportSummary(ctx, params.ledgerId, query) }; },
+  async getCashFlow({ ctx, params, query }) { return { status: 200, data: await cashFlow(ctx, params.ledgerId, query) }; },
+  async getCategoryBreakdown({ ctx, params, query }) { return { status: 200, data: await categoryBreakdown(ctx, params.ledgerId, query) }; },
+  async getAccountBalances({ ctx, params, query }) { return { status: 200, data: await accountBalances(ctx, params.ledgerId, query) }; },
+  async getBudgetProgress({ ctx, params, query }) { return { status: 200, data: await budgetProgress(ctx, params.ledgerId, query) }; },
+  listBudgets: input => paged(input, keyset => listBudgets(input.ctx, input.params.ledgerId, keyset), presentBudget),
+  async createBudget({ ctx, params, body }, db) {
+    const budget = await createBudget(ctx, params.ledgerId, body, db);
+    return { status: 201, data: budget, headers: { ...location(params.ledgerId, 'budgets', budget.id), ...etag(budget.version) } };
+  },
+  async updateBudget({ ctx, params, body, request }) { const budget = await updateBudget(ctx, params.ledgerId, params.budgetId, body, ifMatch(request)); return { status: 200, data: budget, headers: etag(budget.version) }; },
+  async archiveBudget({ ctx, params, request }) { const budget = await archiveBudget(ctx, params.ledgerId, params.budgetId, ifMatch(request)); return { status: 200, data: budget, headers: etag(budget.version) }; },
+  async getExchangeRates({ query }) { return { status: 200, data: await getExchangeRates(query) }; },
+  listManualRateRecords: input => pagedBy(input, {
+    fetch: keyset => listManualRateRecords(input.ctx, input.params.ledgerId, keyset), position: row => [row.createdAtDate.toISOString(), row.id], schema: createdPosition,
+    present: rows => rows.map(({ createdAtDate, ...rest }) => { void createdAtDate; return rest; }),
+  }),
+  async createManualRateRecord({ ctx, params, body }, db) {
+    const record = await createManualRateRecord(ctx, params.ledgerId, body, db);
+    return { status: 201, data: record, headers: location(params.ledgerId, 'manual-rate-records', record.id) };
+  },
+  async createExchangeRateRefreshJob({ ctx, body }) {
+    const { job } = await createRefreshJob({ ...ctx, email: ctx.user.email }, body);
+    return { status: 202, data: job, headers: { Location: `/api/v1/exchange-rate-refresh-jobs/${job.id}` } };
+  },
+  async getExchangeRateRefreshJob({ ctx, params }) { return { status: 200, data: await getRefreshJob({ ...ctx, email: ctx.user.email }, params.jobId) }; },
   listAuditEvents: input => paged(input, keyset => listAuditEvents(input.ctx, input.params.ledgerId, { action: input.query.action as string | undefined, ...keyset }), event => ({ ...event, createdAt: event.createdAt.toISOString() })),
 };

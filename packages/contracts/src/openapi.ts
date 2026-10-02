@@ -82,6 +82,10 @@ function operationObject(o: OperationDef) {
   if (o.idempotency) headers['Idempotent-Replayed'] = { $ref: '#/components/headers/Idempotent-Replayed' };
   const success: Json = { description: o.summary, headers };
   if (o.response) success.content = { 'application/json': { schema: schemaRef(idOf(o.response, responses, o.id)) } };
+  if (o.responseType) {
+    success.content = { [o.responseType]: { schema: { type: 'string' } } };
+    headers['Content-Disposition'] = { description: 'attachment; filename*=UTF-8\'\'…', schema: { type: 'string' } };
+  }
   const result: Json = {
     operationId: o.id, tags: [o.tag], summary: o.summary,
     description: [o.description, o.stability === 'planned' ? `计划于 ${o.milestone} 实现；当前返回 501。` : null, o.conflict ? `业务冲突码：${o.conflict}。` : null].filter(Boolean).join('\n\n') || undefined,

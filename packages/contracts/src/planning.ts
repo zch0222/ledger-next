@@ -39,13 +39,14 @@ export const Budget = resource('Budget', z.object({
   id: uuid, name: z.string().nullable(), categoryId: uuid.nullable().meta({ description: 'null 表示总预算' }),
   period: z.enum(['week', 'month', 'year']), amount: Money, startDate: LocalDate,
   alertThresholds: z.array(z.number().int().min(1).max(200)), archivedAt: Timestamp.nullable(), version,
-}), '周期边界按账本时区；金额为账本基准币');
+}), '自然周（周一起）/ 自然月 / 自然年，周期边界按账本时区；金额须为账本基准币，按历史入账金额统计，退款冲减，转账不占预算');
 export const BudgetCreate = input('BudgetCreate', z.object({
   name: z.string().max(80).optional(), categoryId: uuid.optional(), period: z.enum(['week', 'month', 'year']), amount: Money, startDate: LocalDate,
   alertThresholds: z.array(z.number().int().min(1).max(200)).max(5).default([80, 100]),
 }).strict());
 export const BudgetUpdate = input('BudgetUpdate', z.object({ name: z.string().max(80).nullable().optional(), amount: Money.optional(), alertThresholds: z.array(z.number().int().min(1).max(200)).max(5).optional() }).strict());
 
+export const BudgetProgressQuery = z.object({ date: LocalDate.optional().meta({ description: '统计包含该日的周期，默认账本时区今天' }) }).strict();
 const valuationMode = z.enum(['historical', 'current']).meta({ description: 'historical 使用入账时 base_amount；current 按 asOf 参考汇率估值' });
 export const ReportQuery = z.object({ dateFrom: LocalDate, dateTo: LocalDate, currency: Currency.optional(), valuationMode: valuationMode.default('historical'), accountId: uuid.optional(), categoryId: uuid.optional() }).strict();
 const reportBasis = { currency: Currency, valuationMode, partial: z.boolean(), excludedCount: z.number().int().min(0).meta({ description: '因缺汇率被排除的交易数' }), dataVersion: z.number().int().min(0), sourceAt: Timestamp.nullable() };
@@ -67,6 +68,13 @@ export const AccountBalances = resource('AccountBalances', z.object({
   asOf: Timestamp, total: Decimal,
   items: z.array(z.object({ accountId: uuid, name: z.string(), currency: Currency, balance: Decimal, valuation: Decimal.nullable(), freshness: Freshness })), ...reportBasis,
 }), '净资产估值：各账户原币余额按 asOf 参考汇率折算，缺率部分计入 excludedCount');
+export const BudgetProgress = resource('BudgetProgress', z.object({
+  date: LocalDate,
+  items: z.array(z.object({
+    budgetId: uuid, name: z.string().nullable(), categoryId: uuid.nullable(), period: z.enum(['week', 'month', 'year']), periodStart: LocalDate, periodEnd: LocalDate.meta({ description: '不含当日' }),
+    amount: Money, spent: Decimal, remaining: Decimal, ratio: z.string().meta({ description: '已用比例（小数，4 位）' }), reachedThresholds: z.array(z.number().int()),
+  })), ...reportBasis,
+}), '预算进度：分类预算含其子分类；超过 80% 时 UI 除变色外显示文字提示');
 export const AccountBalancesQuery = z.object({ asOf: Timestamp.optional(), currency: Currency.optional() }).strict();
 
 export const ExchangeRates = resource('ExchangeRates', z.object({

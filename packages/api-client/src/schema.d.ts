@@ -53,11 +53,25 @@ export type paths = {
         };
         get?: never;
         put?: never;
-        /**
-         * 去重刷新任务（系统管理员）
-         * @description 计划于 M3-FX 实现；当前返回 501。
-         */
+        /** 去重刷新任务（系统管理员） */
         post: operations["createExchangeRateRefreshJob"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/exchange-rate-refresh-jobs/{jobId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 刷新任务状态（系统管理员） */
+        get: operations["getExchangeRateRefreshJob"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -71,10 +85,7 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * 参考汇率与新鲜度
-         * @description 计划于 M3-FX 实现；当前返回 501。
-         */
+        /** 参考汇率与新鲜度 */
         get: operations["getExchangeRates"];
         put?: never;
         post?: never;
@@ -295,16 +306,10 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * 预算
-         * @description 计划于 M3-REPORTS 实现；当前返回 501。
-         */
+        /** 预算 */
         get: operations["listBudgets"];
         put?: never;
-        /**
-         * 新建预算
-         * @description 计划于 M3-REPORTS 实现；当前返回 501。
-         */
+        /** 新建预算 */
         post: operations["createBudget"];
         delete?: never;
         options?: never;
@@ -322,17 +327,11 @@ export type paths = {
         get?: never;
         put?: never;
         post?: never;
-        /**
-         * 归档预算
-         * @description 计划于 M3-REPORTS 实现；当前返回 501。
-         */
+        /** 归档预算 */
         delete: operations["archiveBudget"];
         options?: never;
         head?: never;
-        /**
-         * 修改预算
-         * @description 计划于 M3-REPORTS 实现；当前返回 501。
-         */
+        /** 修改预算 */
         patch: operations["updateBudget"];
         trace?: never;
     };
@@ -379,16 +378,10 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * 导出任务
-         * @description 计划于 M2-IMPORT 实现；当前返回 501。
-         */
+        /** 我创建的导出任务 */
         get: operations["listExportJobs"];
         put?: never;
-        /**
-         * 创建导出任务
-         * @description 计划于 M2-IMPORT 实现；当前返回 501。
-         */
+        /** 创建导出任务 */
         post: operations["createExportJob"];
         delete?: never;
         options?: never;
@@ -403,11 +396,28 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * 导出状态与短期下载地址
-         * @description 计划于 M2-IMPORT 实现；当前返回 501。
-         */
+        /** 导出状态与短期下载地址 */
         get: operations["getExportJob"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ledgers/{ledgerId}/export-jobs/{exportJobId}/file": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 下载导出文件（仅创建者，1 小时内）
+         * @description 业务冲突码：EXPORT_NOT_READY。
+         */
+        get: operations["downloadExportFile"];
         put?: never;
         post?: never;
         delete?: never;
@@ -423,16 +433,10 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * 导入任务
-         * @description 计划于 M2-IMPORT 实现；当前返回 501。
-         */
+        /** 导入任务（新到旧） */
         get: operations["listImportJobs"];
         put?: never;
-        /**
-         * 上传 CSV 并校验预览
-         * @description 计划于 M2-IMPORT 实现；当前返回 501。
-         */
+        /** 上传 CSV，异步校验并生成预览 */
         post: operations["createImportJob"];
         delete?: never;
         options?: never;
@@ -447,10 +451,7 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * 导入任务状态与行级错误
-         * @description 计划于 M2-IMPORT 实现；当前返回 501。
-         */
+        /** 导入任务状态与行级错误 */
         get: operations["getImportJob"];
         put?: never;
         post?: never;
@@ -470,10 +471,8 @@ export type paths = {
         get?: never;
         put?: never;
         /**
-         * 提交已校验批次
-         * @description 计划于 M2-IMPORT 实现；当前返回 501。
-         *
-         *     业务冲突码：IMPORT_NOT_VALIDATED。
+         * 提交已校验批次（异步入账）
+         * @description 业务冲突码：IMPORT_NOT_VALIDATED。
          */
         post: operations["createImportCommit"];
         delete?: never;
@@ -492,10 +491,8 @@ export type paths = {
         get?: never;
         put?: never;
         /**
-         * 撤销该批次生成的账务
-         * @description 计划于 M2-IMPORT 实现；当前返回 501。
-         *
-         *     业务冲突码：IMPORT_NOT_COMMITTED。
+         * 撤销该批次生成的账务（异步作废）
+         * @description 业务冲突码：IMPORT_NOT_COMMITTED。
          */
         post: operations["createImportReversal"];
         delete?: never;
@@ -511,12 +508,10 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** 账本的人工汇率记录（新到旧） */
+        get: operations["listManualRateRecords"];
         put?: never;
-        /**
-         * 有理由的人工汇率
-         * @description 计划于 M3-FX 实现；当前返回 501。
-         */
+        /** 有理由的人工汇率 */
         post: operations["createManualRateRecord"];
         delete?: never;
         options?: never;
@@ -750,11 +745,25 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * 账户余额与净资产估值
-         * @description 计划于 M3-REPORTS 实现；当前返回 501。
-         */
+        /** 账户余额与净资产估值 */
         get: operations["getAccountBalances"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ledgers/{ledgerId}/reports/budget-progress": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 预算进度与阈值 */
+        get: operations["getBudgetProgress"];
         put?: never;
         post?: never;
         delete?: never;
@@ -770,10 +779,7 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * 收支趋势
-         * @description 计划于 M3-REPORTS 实现；当前返回 501。
-         */
+        /** 收支趋势 */
         get: operations["getCashFlow"];
         put?: never;
         post?: never;
@@ -790,10 +796,7 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * 分类排行
-         * @description 计划于 M3-REPORTS 实现；当前返回 501。
-         */
+        /** 分类排行 */
         get: operations["getCategoryBreakdown"];
         put?: never;
         post?: never;
@@ -810,10 +813,7 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * KPI 汇总
-         * @description 计划于 M3-REPORTS 实现；当前返回 501。
-         */
+        /** KPI 汇总 */
         get: operations["getReportSummary"];
         put?: never;
         post?: never;
@@ -1460,6 +1460,57 @@ export type components = {
             meta: components["schemas"]["Meta"];
             page: components["schemas"]["Page"];
         };
+        BudgetProgress: {
+            currency: components["schemas"]["Currency"];
+            dataVersion: number;
+            /**
+             * Format: date
+             * @description 业务日期 YYYY-MM-DD，按账本 / 订阅时区解释
+             */
+            date: string;
+            /** @description 因缺汇率被排除的交易数 */
+            excludedCount: number;
+            items: {
+                amount: components["schemas"]["Money"];
+                /** Format: uuid */
+                budgetId: string;
+                categoryId: string | null;
+                name: string | null;
+                /** @enum {string} */
+                period: "week" | "month" | "year";
+                /**
+                 * Format: date
+                 * @description 不含当日
+                 */
+                periodEnd: string;
+                /**
+                 * Format: date
+                 * @description 业务日期 YYYY-MM-DD，按账本 / 订阅时区解释
+                 */
+                periodStart: string;
+                /** @description 已用比例（小数，4 位） */
+                ratio: string;
+                reachedThresholds: number[];
+                remaining: components["schemas"]["Decimal"];
+                spent: components["schemas"]["Decimal"];
+            }[];
+            partial: boolean;
+            sourceAt: string | null;
+            /**
+             * @description historical 使用入账时 base_amount；current 按 asOf 参考汇率估值
+             * @enum {string}
+             */
+            valuationMode: "historical" | "current";
+        };
+        BudgetProgressList: {
+            data: components["schemas"]["BudgetProgress"][];
+            meta: components["schemas"]["Meta"];
+            page: components["schemas"]["Page"];
+        };
+        BudgetProgressResponse: {
+            data: components["schemas"]["BudgetProgress"];
+            meta: components["schemas"]["Meta"];
+        };
         BudgetResponse: {
             data: components["schemas"]["Budget"];
             meta: components["schemas"]["Meta"];
@@ -1677,11 +1728,14 @@ export type components = {
         Freshness: "fresh" | "delayed" | "stale" | "market_closed" | "missing" | "manual";
         ImportJob: {
             committedAt: string | null;
+            committedRows: number;
             /**
              * Format: date-time
              * @description RFC 3339 UTC 时间
              */
             createdAt: string;
+            /** @description 已在之前批次入账而跳过的行（包含在 errorRows 中） */
+            duplicateRows: number;
             errorRows: number;
             /** @description 最多返回前 100 条行级错误，带行号 */
             errors: {
@@ -1690,11 +1744,13 @@ export type components = {
                 message: string;
                 row: number;
             }[];
+            failureReason: string | null;
             fileName: string;
             fileSha256: string;
             /** Format: uuid */
             id: string;
             revertedAt: string | null;
+            revertedRows: number;
             rowCount: number;
             /** @enum {string} */
             status: "validating" | "validated" | "committing" | "committed" | "failed" | "reverting" | "reverted";
@@ -1703,10 +1759,10 @@ export type components = {
         ImportJobCreate: {
             /**
              * Format: binary
-             * @description UTF-8 CSV，最大 5 MB
+             * @description UTF-8 CSV（可带 BOM），最大 5 MB、10,000 行
              */
             file: string;
-            /** @description JSON：CSV 列到 date/amount/currency/account/category/note 的映射 */
+            /** @description ImportMapping 的 JSON 字符串 */
             mapping: string;
         };
         ImportJobList: {
@@ -1717,6 +1773,31 @@ export type components = {
         ImportJobResponse: {
             data: components["schemas"]["ImportJob"];
             meta: components["schemas"]["Meta"];
+        };
+        ImportMapping: {
+            /** @description CSV 表头名 → 字段。account / category 按名称匹配；currency 须与账户币种一致 */
+            columns: {
+                account: string;
+                amount: string;
+                category?: string;
+                currency?: string;
+                date: string;
+                kind?: string;
+                merchant?: string;
+                note?: string;
+            };
+            /**
+             * @description 默认 YYYY-MM-DD
+             * @enum {string}
+             */
+            dateFormat?: "YYYY-MM-DD" | "YYYY/MM/DD" | "DD/MM/YYYY" | "MM/DD/YYYY";
+            /**
+             * @description 无类型列时：设置后所有行按此类型且金额须为正；不设置则负数为支出、正数为收入
+             * @enum {string}
+             */
+            defaultKind?: "expense" | "income";
+            /** @description 业务日期所在时区，默认账本时区 */
+            timezone?: string;
         };
         Ledger: {
             baseCurrency: components["schemas"]["Currency"];
@@ -2561,6 +2642,8 @@ export type components = {
              * @description RFC 3339 UTC 时间
              */
             occurredAt: string;
+            /** @description 跨币种退款必填：按原支付币种计的退款金额，用于累计上限与基准币冲减 */
+            originalAmount?: components["schemas"]["Money"];
             /** Format: uuid */
             originalTransactionId: string;
             settlement: components["schemas"]["Money"];
@@ -2869,7 +2952,33 @@ export interface operations {
             415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    getExchangeRateRefreshJob: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                jobId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 刷新任务状态（系统管理员） */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["X-Request-Id"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExchangeRateRefreshJobResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
+            429: components["responses"]["TooManyRequests"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -2902,7 +3011,6 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -3620,7 +3728,6 @@ export interface operations {
             404: components["responses"]["NotFound"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -3664,7 +3771,6 @@ export interface operations {
             415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -3700,7 +3806,6 @@ export interface operations {
             412: components["responses"]["PreconditionFailed"];
             428: components["responses"]["PreconditionRequired"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -3744,7 +3849,6 @@ export interface operations {
             422: components["responses"]["ValidationFailed"];
             428: components["responses"]["PreconditionRequired"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -3921,7 +4025,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description 导出任务 */
+            /** @description 我创建的导出任务 */
             200: {
                 headers: {
                     "X-Request-Id": components["headers"]["X-Request-Id"];
@@ -3937,7 +4041,6 @@ export interface operations {
             404: components["responses"]["NotFound"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -3980,7 +4083,6 @@ export interface operations {
             415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -4010,7 +4112,38 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    downloadExportFile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                exportJobId: string;
+                ledgerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 下载导出文件（仅创建者，1 小时内） */
+            200: {
+                headers: {
+                    /** @description attachment; filename*=UTF-8''… */
+                    "Content-Disposition"?: string;
+                    "X-Request-Id": components["headers"]["X-Request-Id"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            429: components["responses"]["TooManyRequests"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -4030,7 +4163,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description 导入任务 */
+            /** @description 导入任务（新到旧） */
             200: {
                 headers: {
                     "X-Request-Id": components["headers"]["X-Request-Id"];
@@ -4046,7 +4179,6 @@ export interface operations {
             404: components["responses"]["NotFound"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -4068,7 +4200,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description 上传 CSV 并校验预览 */
+            /** @description 上传 CSV，异步校验并生成预览 */
             202: {
                 headers: {
                     "Idempotent-Replayed": components["headers"]["Idempotent-Replayed"];
@@ -4089,7 +4221,6 @@ export interface operations {
             415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -4119,7 +4250,6 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -4138,7 +4268,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description 提交已校验批次 */
+            /** @description 提交已校验批次（异步入账） */
             202: {
                 headers: {
                     "Idempotent-Replayed": components["headers"]["Idempotent-Replayed"];
@@ -4157,7 +4287,6 @@ export interface operations {
             409: components["responses"]["Conflict"];
             415: components["responses"]["UnsupportedMediaType"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -4176,7 +4305,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description 撤销该批次生成的账务 */
+            /** @description 撤销该批次生成的账务（异步作废） */
             202: {
                 headers: {
                     "Idempotent-Replayed": components["headers"]["Idempotent-Replayed"];
@@ -4195,7 +4324,41 @@ export interface operations {
             409: components["responses"]["Conflict"];
             415: components["responses"]["UnsupportedMediaType"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    listManualRateRecords: {
+        parameters: {
+            query?: {
+                /** @description 上一页返回的 nextCursor；篡改或与筛选条件不符返回 400 */
+                cursor?: string;
+                /** @description 每页条数，默认 50，最多 100 */
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                ledgerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 账本的人工汇率记录（新到旧） */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["X-Request-Id"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ManualRateRecordList"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationFailed"];
+            429: components["responses"]["TooManyRequests"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -4238,7 +4401,6 @@ export interface operations {
             415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -4834,7 +4996,38 @@ export interface operations {
             404: components["responses"]["NotFound"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    getBudgetProgress: {
+        parameters: {
+            query?: {
+                /** @description 统计包含该日的周期，默认账本时区今天 */
+                date?: string;
+            };
+            header?: never;
+            path: {
+                ledgerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 预算进度与阈值 */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["X-Request-Id"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BudgetProgressResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationFailed"];
+            429: components["responses"]["TooManyRequests"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -4875,7 +5068,6 @@ export interface operations {
             404: components["responses"]["NotFound"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -4916,7 +5108,6 @@ export interface operations {
             404: components["responses"]["NotFound"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -4956,7 +5147,6 @@ export interface operations {
             404: components["responses"]["NotFound"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };

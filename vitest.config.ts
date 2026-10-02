@@ -6,6 +6,7 @@ export default defineConfig({ test: {
     provider: 'v8', reporter: ['text', 'json-summary', 'html'],
     include: [
       'packages/domain/src/policy.ts', 'packages/domain/src/cursor.ts', 'packages/domain/src/idempotency.ts', 'packages/domain/src/money.ts', 'packages/domain/src/dates.ts',
+      'packages/domain/src/fx-pure.ts', 'packages/domain/src/fx-provider.ts', 'packages/domain/src/csv.ts', 'packages/domain/src/report-periods.ts',
       'packages/db/src/migrate-files.ts',
       'packages/contracts/src/*.ts', 'packages/ui/src/theme.mjs',
     ],

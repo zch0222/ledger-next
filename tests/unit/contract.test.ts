@@ -44,13 +44,17 @@ describe('OpenAPI document', () => {
       expect(doc.components[group], ref).toHaveProperty([name]);
     }
   });
-  it('marks exactly the implemented operations stable (M1 + M2-LEDGER)', () => {
-    expect(ops.filter(x => x.o['x-stability'] === 'stable').map(x => x.o.operationId).sort()).toEqual([
-      'archiveAccount', 'archiveCategory', 'archiveTag', 'createAccount', 'createCategory', 'createLedger', 'createMembership', 'createRefund', 'createTag',
-      'createTransaction', 'createTransactionPreview', 'deleteMembership', 'getAccount', 'getLedger', 'getMe', 'getTransaction', 'listAccounts', 'listAuditEvents',
-      'listCategories', 'listLedgers', 'listMemberships', 'listTags', 'listTransactions', 'updateAccount', 'updateCategory', 'updateLedger', 'updateMembership',
-      'updateTag', 'updateTransaction', 'voidTransaction',
-    ]);
+  // Grows with each milestone; an operation turns stable only together with its handler and tests.
+  const IMPLEMENTED = {
+    M1: ['createLedger', 'createMembership', 'deleteMembership', 'getLedger', 'getMe', 'listAuditEvents', 'listLedgers', 'listMemberships', 'updateLedger', 'updateMembership'],
+    'M2-LEDGER': ['archiveAccount', 'archiveCategory', 'archiveTag', 'createAccount', 'createCategory', 'createRefund', 'createTag', 'createTransaction', 'createTransactionPreview',
+      'getAccount', 'getTransaction', 'listAccounts', 'listCategories', 'listTags', 'listTransactions', 'updateAccount', 'updateCategory', 'updateTag', 'updateTransaction', 'voidTransaction'],
+    'M2-IMPORT': ['createExportJob', 'createImportCommit', 'createImportJob', 'createImportReversal', 'downloadExportFile', 'getExportJob', 'getImportJob', 'listExportJobs', 'listImportJobs'],
+    'M3-REPORTS': ['archiveBudget', 'createBudget', 'getAccountBalances', 'getBudgetProgress', 'getCashFlow', 'getCategoryBreakdown', 'getReportSummary', 'listBudgets', 'updateBudget'],
+    'M3-FX': ['createExchangeRateRefreshJob', 'createManualRateRecord', 'getExchangeRateRefreshJob', 'getExchangeRates', 'listManualRateRecords'],
+  };
+  it('marks exactly the implemented operations stable', () => {
+    expect(ops.filter(x => x.o['x-stability'] === 'stable').map(x => x.o.operationId).sort()).toEqual(Object.values(IMPLEMENTED).flat().sort());
   });
 });
 
@@ -59,7 +63,7 @@ describe('operation matching', () => {
   it('matches templates, literals win over method mismatches', () => {
     expect(matchOperation('GET', '/ledgers')).toMatchObject({ kind: 'match', operation: { id: 'listLedgers' } });
     expect(matchOperation('patch', `/ledgers/${id}/memberships/${id}`)).toMatchObject({ kind: 'match', operation: { id: 'updateMembership' }, params: { ledgerId: id, membershipId: id } });
-    expect(matchOperation('GET', `/ledgers/${id}/reports/summary`)).toMatchObject({ kind: 'match', operation: { id: 'getReportSummary', stability: 'planned' } });
+    expect(matchOperation('GET', `/ledgers/${id}/reports/summary`)).toMatchObject({ kind: 'match', operation: { id: 'getReportSummary' } });
     expect(matchOperation('GET', '/me/preferences')).toMatchObject({ kind: 'match', operation: { id: 'getPreferences' } });
   });
   it('reports allowed methods and unknown paths', () => {

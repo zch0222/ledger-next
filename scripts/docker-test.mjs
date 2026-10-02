@@ -10,13 +10,13 @@ const env = { ...process.env, MYSQL_DATABASE: 'ledger_test', MYSQL_USER: 'ledger
 // Each run owns its Compose project and volumes; never remove a user's development database.
 const project = `ledger-e2e-${process.pid}`;
 const LATEST_MIGRATION = readdirSync('packages/db/migrations').filter(f => f.endsWith('.sql')).sort().at(-1);
-const args = ['compose', '-p', project, '-f', 'compose.yaml', '-f', 'compose.test.yaml'];
+const args = ['compose', '-p', project, '-f', 'compose.yaml', '-f', 'compose.mock.yaml', '-f', 'compose.test.yaml'];
 mkdirSync('test-results', { recursive: true }); mkdirSync('playwright-report', { recursive: true });
 // Behind a TLS-intercepting proxy, LEDGER_BUILD_CA names a CA bundle trusted only while installing packages.
 if (process.env.LEDGER_BUILD_CA) {
   // Outside test-results/: Playwright empties that folder when it starts.
   const overlay = path.join(mkdtempSync(path.join(tmpdir(), 'ledger-e2e-')), 'compose.build-ca.tests.yaml');
-  writeFileSync(overlay, 'services:\n  tests: { build: { secrets: [build_ca] } }\n');
+  writeFileSync(overlay, 'services:\n  tests: { build: { secrets: [build_ca] } }\n  mock-services: { build: { secrets: [build_ca] } }\n');
   args.push('-f', 'compose.build-ca.yaml', '-f', overlay);
 }
 function run(params) {

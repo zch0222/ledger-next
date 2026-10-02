@@ -2,11 +2,20 @@ services:
   web:
     ports: !override []
     restart: "no"
+    environment:
+      LEDGER_ADMIN_EMAILS: admin-e2e@example.test
   mysql:
     restart: "no"
   redis:
     restart: "no"
   worker:
+    restart: "no"
+    environment:
+      # Fast schedule so the suite can observe fetches, failures and recovery within seconds.
+      FX_POLL_SECONDS: "2"
+      FX_STALE_FAILURES: "3"
+      FX_TIMEOUT_MS: "1500"
+  mock-services:
     restart: "no"
   tests:
     build: { context: ., target: tests }
@@ -15,6 +24,12 @@ services:
       # Isolated test database for the MySQL integration suite.
       DATABASE_URL: mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql:3306/${MYSQL_DATABASE}
       APP_ORIGIN: http://web:3000
+      MOCK_URL: http://mock-services:4010
+      REDIS_URL: redis://redis:6379
+      # Integration tests keep their FX batches under their own provider name; the worker owns "fixer".
+      FX_PROVIDER: itest
+      FX_PROVIDER_URL: http://mock-services:4010/fixer
+      FX_PROVIDER_KEY: mock-fixer-key
       CI: "1"
       PERSISTENCE_EMAIL: ${PERSISTENCE_EMAIL:-}
       PERSISTENCE_PASSWORD: ${PERSISTENCE_PASSWORD:-}

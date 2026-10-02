@@ -33,6 +33,11 @@ USER node
 # Run node directly so SIGTERM reaches the worker and a graceful stop exits 0.
 CMD ["node", "--import", "tsx", "apps/worker/src/index.ts"]
 
+# Local protocol mocks for third-party services (compose.mock.yaml); never part of a production deployment.
+FROM source AS mock-services
+USER node
+CMD ["node", "--import", "tsx", "apps/mock-services/src/index.ts"]
+
 FROM source AS migrate
 USER node
 CMD ["node", "--import", "tsx", "packages/db/src/migrate.ts"]

@@ -1,0 +1,22 @@
+# Local protocol mocks for every third-party service (FX provider; notification channels from M5). Used by
+# `pnpm test:e2e` and for local demos: docker compose -f compose.yaml -f compose.mock.yaml up -d --build --wait
+# Production deployments never include this file; they configure real provider URLs and credentials instead.
+services:
+  mock-services:
+    build: { context: ., target: mock-services }
+    init: true
+    environment:
+      MOCK_PORT: "4010"
+      MOCK_FIXER_KEY: mock-fixer-key
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4010/__health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+  worker:
+    environment:
+      FX_PROVIDER_URL: http://mock-services:4010/fixer
+      FX_PROVIDER_KEY: mock-fixer-key
+    depends_on:
+      mock-services: { condition: service_healthy }

@@ -1,0 +1,307 @@
+import { createHash, randomUUID } from 'node:crypto';
+import { and, asc, eq, gt, gte, inArray, isNull, lt, lte, ne, or, sql, type SQL } from 'drizzle-orm';
+import type { z } from 'zod';
+import { AccountBalancesQuery, BudgetCreate, BudgetProgressQuery, BudgetUpdate, CashFlowQuery, CategoryBreakdownQuery, ReportQuery } from '../../contracts/src/planning';
+import { database, type Executor, type Tx } from '../../db/src/index';
+import { cacheGet, cacheSet, redis } from '../../db/src/redis';
+import { accountPostings, accounts, budgets, categories, ledgerDataVersions, transactionAmounts, transactions } from '../../db/src/schema';
+import { ledgerAccess } from './access';
+import { audit, emit } from './audit';
+import { localDate, zonedInstant } from './dates';
+import { bucketOf, buckets, periodOf } from './report-periods';
+
+export { bucketOf, buckets, periodOf };
+import { manualRate, quote, type Freshness } from './fx';
+import { canonicalJson } from './idempotency';
+import type { AuthContext, Keyset } from './identity';
+import { convert, formatAmount, parseAmount, sum, toColumn } from './money';
+import { DomainError, requireVersion } from './policy';
+
+type Db = Executor | Tx;
+type Ledger = { baseCurrency: string; timezone: string };
+type Basis = { currency: string; valuationMode: 'historical' | 'current'; partial: boolean; excludedCount: number; dataVersion: number; sourceAt: string | null };
+const CACHE_TTL_SECONDS = 30;
+
+export async function dataVersion(db: Db, ledgerId: string) {
+  const [row] = await db.select({ version: ledgerDataVersions.version }).from(ledgerDataVersions).where(eq(ledgerDataVersions.ledgerId, ledgerId));
+  return Number(row?.version ?? 0);
+}
+/**
+ * Report cache (TECHNICAL_DESIGN §7.2): key = ledger + data version + FX version (current valuation only) + report +
+ * every query parameter. Authorization runs before the cache is consulted; a write bumps the data version, so a
+ * cached aggregate is never served after the data it summarized changed.
+ */
+async function cached<T>(ledgerId: string, report: string, query: Record<string, unknown>, current: boolean, compute: (version: number) => Promise<T>): Promise<T> {
+  const version = await dataVersion(database(), ledgerId);
+  let fxVersion = '';
+  if (current) { try { fxVersion = (await redis()?.get('fx:version')) ?? ''; } catch { fxVersion = String(Date.now()); } }
+  const key = `report:v1:${ledgerId}:${version}:${fxVersion}:${report}:${createHash('sha256').update(canonicalJson(query)).digest('base64url').slice(0, 22)}`;
+  const hit = await cacheGet(key);
+  if (hit) { try { return JSON.parse(hit) as T; } catch { /* recompute */ } }
+  const value = await compute(version);
+  await cacheSet(key, JSON.stringify(value), CACHE_TTL_SECONDS);
+  return value;
+}
+
+type Row = { id: string; kind: 'expense' | 'income' | 'refund'; localDate: string; categoryId: string | null; accountId: string | null; baseAmount: string; baseCurrency: string; settlementAmount: string; settlementCurrency: string };
+/** Effective business versions only (posted); transfers never enter income / expense. */
+async function periodRows(db: Db, ledgerId: string, q: { dateFrom: string; dateTo: string; accountId?: string; categoryIds?: string[] | null }): Promise<Row[]> {
+  const conditions: (SQL | undefined)[] = [eq(transactions.ledgerId, ledgerId), eq(transactions.status, 'posted'), ne(transactions.kind, 'transfer'),
+    gte(transactions.localDate, q.dateFrom), lt(transactions.localDate, q.dateTo),
+    q.accountId ? eq(transactions.accountId, q.accountId) : undefined, q.categoryIds ? inArray(transactions.categoryId, q.categoryIds) : undefined];
+  const rows = await db.select({ id: transactions.id, kind: transactions.kind, localDate: transactions.localDate, categoryId: transactions.categoryId, accountId: transactions.accountId,
+    baseAmount: transactionAmounts.baseAmount, baseCurrency: transactionAmounts.baseCurrency, settlementAmount: transactionAmounts.settlementAmount, settlementCurrency: transactionAmounts.settlementCurrency })
+    .from(transactions).innerJoin(transactionAmounts, and(eq(transactionAmounts.ledgerId, transactions.ledgerId), eq(transactionAmounts.transactionId, transactions.id)))
+    .where(and(...conditions)).orderBy(asc(transactions.localDate), asc(transactions.id));
+  return rows as Row[];
+}
+
+/**
+ * Converts each row into the report currency, rounding per transaction so totals equal the converted details.
+ * historical: the booked base amount; another currency uses that day's cross rate (or the ledger's manual rate).
+ * current: the settlement amount at the latest reference rate. Rows without a rate are excluded and counted.
+ */
+function valuer(db: Db, ledgerId: string, ledger: Ledger, currency: string, mode: 'historical' | 'current', now = new Date()) {
+  const rates = new Map<string, { value: string; sourceAt: Date | null } | null>();
+  let excluded = 0, oldest: Date | null = null;
+  async function rate(from: string, at: Date, day: string) {
+    const key = `${from}:${mode === 'current' ? 'now' : day}`;
+    if (!rates.has(key)) {
+      const q = await quote(db, from, currency, at, now);
+      const usable = mode === 'current' ? q.freshness !== 'missing' : q.freshness === 'fresh';
+      const manual = usable ? null : await manualRate(db, ledgerId, from, currency, day);
+      rates.set(key, usable ? { value: q.value!, sourceAt: q.sourceAt } : manual ? { value: manual.value, sourceAt: null } : null);
+    }
+    return rates.get(key)!;
+  }
+  return {
+    async value(row: Row): Promise<string | null> {
+      const [amount, from] = mode === 'historical' ? [row.baseAmount, row.baseCurrency] : [row.settlementAmount, row.settlementCurrency];
+      if (from === currency) return formatAmount(sum([amount]), currency);
+      const r = await rate(from, mode === 'current' ? now : zonedInstant(row.localDate, '12:00', ledger.timezone), mode === 'current' ? localDate(now, ledger.timezone) : row.localDate);
+      if (!r) { excluded++; return null; }
+      if (r.sourceAt && (!oldest || r.sourceAt < oldest)) oldest = r.sourceAt;
+      return convert(sum([amount]).toFixed(), from, r.value, currency);
+    },
+    basis(version: number): Basis { return { currency, valuationMode: mode, partial: excluded > 0, excludedCount: excluded, dataVersion: version, sourceAt: (oldest as Date | null)?.toISOString() ?? null }; },
+  };
+}
+
+function range(q: { dateFrom: string; dateTo: string }) {
+  if (q.dateFrom >= q.dateTo) throw new DomainError(422, 'INVALID_RANGE', 'dateTo 须晚于 dateFrom（不含当日）');
+}
+async function categoryScope(db: Db, ledgerId: string, categoryId?: string) {
+  if (!categoryId) return null;
+  const children = await db.select({ id: categories.id }).from(categories).where(and(eq(categories.ledgerId, ledgerId), eq(categories.parentId, categoryId)));
+  return [categoryId, ...children.map(c => c.id)];
+}
+const zero = (currency: string) => formatAmount('0', currency);
+
+export async function reportSummary(ctx: AuthContext, ledgerId: string, query: unknown, now = new Date()) {
+  const q = ReportQuery.parse(query);
+  range(q);
+  const ledger = await ledgerAccess(database(), ctx, ledgerId, 'viewer');
+  const currency = q.currency ?? ledger.baseCurrency;
+  return cached(ledgerId, 'summary', { ...q, currency }, q.valuationMode === 'current', async version => {
+    const db = database(), v = valuer(db, ledgerId, ledger, currency, q.valuationMode, now);
+    const totals = { income: sum([]), expense: sum([]), refund: sum([]) };
+    for (const row of await periodRows(db, ledgerId, { ...q, categoryIds: await categoryScope(db, ledgerId, q.categoryId) })) {
+      const amount = await v.value(row);
+      if (amount !== null) totals[row.kind] = totals[row.kind].plus(amount);
+    }
+    const f = (value: ReturnType<typeof sum>) => formatAmount(value, currency);
+    return {
+      period: { dateFrom: q.dateFrom, dateTo: q.dateTo, timezone: ledger.timezone },
+      income: f(totals.income), expense: f(totals.expense), refunds: f(totals.refund), net: f(totals.income.minus(totals.expense).plus(totals.refund)),
+      upcomingBills: await upcomingBills(db, ledgerId, ledger, currency, now), ...v.basis(version),
+    };
+  });
+}
+
+/** Bills due within the next 7 days of the ledger's today; filled in once subscriptions exist (M4-SUBS). */
+let upcomingBillsProvider: ((db: Db, ledgerId: string, ledger: Ledger, currency: string, now: Date) => Promise<{ count: number; amount: string }>) | null = null;
+export function registerUpcomingBills(provider: typeof upcomingBillsProvider) { upcomingBillsProvider = provider; }
+async function upcomingBills(db: Db, ledgerId: string, ledger: Ledger, currency: string, now: Date) {
+  return upcomingBillsProvider ? upcomingBillsProvider(db, ledgerId, ledger, currency, now) : { count: 0, amount: zero(currency) };
+}
+
+export async function cashFlow(ctx: AuthContext, ledgerId: string, query: unknown, now = new Date()) {
+  const q = CashFlowQuery.parse(query);
+  range(q);
+  const points = buckets(q.dateFrom, q.dateTo, q.interval);
+  const ledger = await ledgerAccess(database(), ctx, ledgerId, 'viewer');
+  const currency = q.currency ?? ledger.baseCurrency;
+  return cached(ledgerId, 'cash-flow', { ...q, currency }, q.valuationMode === 'current', async version => {
+    const db = database(), v = valuer(db, ledgerId, ledger, currency, q.valuationMode, now);
+    const byBucket = new Map(points.map(p => [p, { income: sum([]), expense: sum([]) }]));
+    for (const row of await periodRows(db, ledgerId, { ...q, categoryIds: await categoryScope(db, ledgerId, q.categoryId) })) {
+      const amount = await v.value(row), bucket = byBucket.get(bucketOf(row.localDate, q.interval));
+      if (amount === null || !bucket) continue;
+      if (row.kind === 'income') bucket.income = bucket.income.plus(amount);
+      else bucket.expense = row.kind === 'expense' ? bucket.expense.plus(amount) : bucket.expense.minus(amount);
+    }
+    const f = (value: ReturnType<typeof sum>) => formatAmount(value, currency);
+    return { interval: q.interval, points: points.map(date => { const b = byBucket.get(date)!; return { date, income: f(b.income), expense: f(b.expense), net: f(b.income.minus(b.expense)) }; }), ...v.basis(version) };
+  });
+}
+
+export async function categoryBreakdown(ctx: AuthContext, ledgerId: string, query: unknown, now = new Date()) {
+  const q = CategoryBreakdownQuery.parse(query);
+  range(q);
+  const ledger = await ledgerAccess(database(), ctx, ledgerId, 'viewer');
+  const currency = q.currency ?? ledger.baseCurrency;
+  return cached(ledgerId, 'category-breakdown', { ...q, currency }, q.valuationMode === 'current', async version => {
+    const db = database(), v = valuer(db, ledgerId, ledger, currency, q.valuationMode, now);
+    const names = new Map((await db.select({ id: categories.id, name: categories.name }).from(categories).where(eq(categories.ledgerId, ledgerId))).map(c => [c.id, c.name]));
+    const groups = new Map<string | null, { amount: ReturnType<typeof sum>; count: number }>();
+    for (const row of await periodRows(db, ledgerId, { ...q, categoryIds: await categoryScope(db, ledgerId, q.categoryId) })) {
+      if (q.kind === 'income' ? row.kind !== 'income' : row.kind === 'income') continue;
+      const amount = await v.value(row);
+      if (amount === null) continue;
+      const group = groups.get(row.categoryId) ?? { amount: sum([]), count: 0 };
+      group.amount = row.kind === 'refund' ? group.amount.minus(amount) : group.amount.plus(amount); // refunds offset their category
+      if (row.kind !== 'refund') group.count++;
+      groups.set(row.categoryId, group);
+    }
+    const total = sum([...groups.values()].map(g => g.amount));
+    const items = [...groups.entries()].map(([categoryId, g]) => ({
+      categoryId, name: categoryId ? names.get(categoryId) ?? '已删除分类' : '未分类', amount: formatAmount(g.amount, currency),
+      share: total.isZero() ? '0' : g.amount.dividedBy(total).toDecimalPlaces(4).toFixed(), count: g.count,
+    })).sort((a, b) => sum([b.amount]).comparedTo(a.amount) || a.name.localeCompare(b.name));
+    return { kind: q.kind, total: formatAmount(total, currency), items, ...v.basis(version) };
+  });
+}
+
+/**
+ * Net worth at an instant: each account's balance from its postings (by transaction time) valued at the reference
+ * rate for that instant; credit cards stay negative. Accounts without a usable rate are excluded and counted.
+ */
+export async function accountBalances(ctx: AuthContext, ledgerId: string, query: unknown, now = new Date()) {
+  const q = AccountBalancesQuery.parse(query);
+  const asOf = q.asOf ? new Date(q.asOf) : now;
+  if (asOf.getTime() > now.getTime() + 60_000) throw new DomainError(422, 'INVALID_AS_OF', 'asOf 不能晚于当前时间');
+  const ledger = await ledgerAccess(database(), ctx, ledgerId, 'viewer');
+  const currency = q.currency ?? ledger.baseCurrency;
+  return cached(ledgerId, 'account-balances', { asOf: q.asOf ?? 'now', currency }, true, async version => {
+    const db = database();
+    // Entries may be backdated, so an account counts at any instant before it was archived (with its opening balance).
+    const rows = await db.select().from(accounts).where(and(eq(accounts.ledgerId, ledgerId), or(isNull(accounts.archivedAt), gt(accounts.archivedAt, asOf)))).orderBy(asc(accounts.createdAt), asc(accounts.id));
+    const historic = q.asOf !== undefined;
+    const sums = historic && rows.length ? new Map((await db.select({ accountId: accountPostings.accountId, total: sql<string>`COALESCE(SUM(${accountPostings.signedAmount}), 0)` }).from(accountPostings)
+      .innerJoin(transactions, and(eq(transactions.ledgerId, accountPostings.ledgerId), eq(transactions.id, accountPostings.transactionId)))
+      .where(and(eq(accountPostings.ledgerId, ledgerId), lte(transactions.occurredAt, asOf))).groupBy(accountPostings.accountId)).map(r => [r.accountId, r.total])) : null;
+    let total = sum([]), excluded = 0, oldest: Date | null = null;
+    const items = [];
+    for (const account of rows) {
+      const balance = formatAmount(sums ? sum([account.openingBalance, sums.get(account.id) ?? '0']) : sum([account.balance]), account.currency);
+      let valuation: string | null = balance, freshness: Freshness = 'fresh';
+      if (account.currency !== currency) {
+        const r = await quote(db, account.currency, currency, asOf, now);
+        if (r.freshness !== 'missing') { valuation = convert(balance, account.currency, r.value!, currency); freshness = r.freshness; if (r.sourceAt && (!oldest || r.sourceAt < oldest)) oldest = r.sourceAt; }
+        else {
+          const manual = await manualRate(db, ledgerId, account.currency, currency, localDate(asOf, ledger.timezone));
+          if (manual) { valuation = convert(balance, account.currency, manual.value, currency); freshness = 'manual'; }
+          else { valuation = null; freshness = 'missing'; excluded++; }
+        }
+      } else valuation = formatAmount(balance, currency);
+      if (valuation !== null) total = total.plus(valuation);
+      items.push({ accountId: account.id, name: account.name, currency: account.currency, balance, valuation, freshness });
+    }
+    return { asOf: asOf.toISOString(), total: formatAmount(total, currency), items, currency, valuationMode: 'current' as const, partial: excluded > 0, excludedCount: excluded, dataVersion: version, sourceAt: (oldest as Date | null)?.toISOString() ?? null };
+  });
+}
+
+// ---------- budgets ----------
+
+type BudgetRow = typeof budgets.$inferSelect;
+export const presentBudget = (row: BudgetRow) => ({
+  id: row.id, name: row.name, categoryId: row.categoryId, period: row.period, amount: { amount: formatAmount(row.amount, row.currency), currency: row.currency },
+  startDate: row.startDate, alertThresholds: row.alertThresholds as number[], archivedAt: row.archivedAt?.toISOString() ?? null, version: row.version,
+});
+const budgetNotFound = () => new DomainError(404, 'NOT_FOUND', '预算不存在或你没有访问权限');
+async function expenseCategory(tx: Tx, ledgerId: string, categoryId: string) {
+  const [row] = await tx.select().from(categories).where(and(eq(categories.ledgerId, ledgerId), eq(categories.id, categoryId)));
+  if (!row || row.archivedAt || row.kind !== 'expense') throw new DomainError(422, 'INVALID_CATEGORY', '预算只能针对未归档的支出分类');
+}
+export async function listBudgets(ctx: AuthContext, ledgerId: string, page: Keyset) {
+  await ledgerAccess(database(), ctx, ledgerId, 'viewer');
+  const after = page.after && or(gt(budgets.createdAt, new Date(page.after[0])), and(eq(budgets.createdAt, new Date(page.after[0])), gt(budgets.id, page.after[1])));
+  return database().select().from(budgets).where(and(eq(budgets.ledgerId, ledgerId), isNull(budgets.archivedAt), after)).orderBy(asc(budgets.createdAt), asc(budgets.id)).limit(page.limit + 1);
+}
+/** Budgets are in the ledger's base currency and use booked (historical) amounts. */
+export async function createBudget(ctx: AuthContext, ledgerId: string, input: unknown, db: Executor = database()) {
+  const data = BudgetCreate.parse(input);
+  return db.transaction(async tx => {
+    const ledger = await ledgerAccess(tx, ctx, ledgerId, 'editor', true);
+    if (data.amount.currency !== ledger.baseCurrency) throw new DomainError(422, 'BUDGET_CURRENCY', `预算须使用账本基准币 ${ledger.baseCurrency}`);
+    const amount = parseAmount(data.amount.amount, data.amount.currency);
+    if (data.categoryId) await expenseCategory(tx, ledgerId, data.categoryId);
+    const now = new Date(), row: BudgetRow = { id: randomUUID(), ledgerId, name: data.name ?? null, categoryId: data.categoryId ?? null, period: data.period, amount: toColumn(amount), currency: data.amount.currency, startDate: data.startDate, alertThresholds: [...new Set(data.alertThresholds)].sort((a, b) => a - b), archivedAt: null, version: 1, createdAt: now, updatedAt: now };
+    await tx.insert(budgets).values(row);
+    await audit(tx, ctx, ledgerId, 'budget.created', row.id);
+    await emit(tx, ledgerId, 'budget.created', { budgetId: row.id });
+    return presentBudget(row);
+  });
+}
+async function lockBudget(tx: Tx, ledgerId: string, id: string) {
+  const [row] = await tx.select().from(budgets).where(and(eq(budgets.ledgerId, ledgerId), eq(budgets.id, id))).for('update');
+  if (!row) throw budgetNotFound();
+  return row;
+}
+export async function updateBudget(ctx: AuthContext, ledgerId: string, id: string, input: unknown, etag: string | null) {
+  const data = BudgetUpdate.parse(input);
+  return database().transaction(async tx => {
+    const ledger = await ledgerAccess(tx, ctx, ledgerId, 'editor', true);
+    const row = await lockBudget(tx, ledgerId, id);
+    requireVersion(etag, row.version);
+    if (row.archivedAt) throw new DomainError(409, 'BUDGET_ARCHIVED', '预算已归档');
+    if (data.amount && data.amount.currency !== ledger.baseCurrency) throw new DomainError(422, 'BUDGET_CURRENCY', `预算须使用账本基准币 ${ledger.baseCurrency}`);
+    const changes = { ...(data.name !== undefined ? { name: data.name } : {}), ...(data.amount ? { amount: toColumn(parseAmount(data.amount.amount, data.amount.currency)) } : {}),
+      ...(data.alertThresholds ? { alertThresholds: [...new Set(data.alertThresholds)].sort((a, b) => a - b) } : {}), version: row.version + 1, updatedAt: new Date() };
+    await tx.update(budgets).set(changes).where(and(eq(budgets.ledgerId, ledgerId), eq(budgets.id, id)));
+    await audit(tx, ctx, ledgerId, 'budget.updated', id);
+    await emit(tx, ledgerId, 'budget.updated', { budgetId: id });
+    return presentBudget({ ...row, ...changes });
+  });
+}
+export async function archiveBudget(ctx: AuthContext, ledgerId: string, id: string, etag: string | null) {
+  return database().transaction(async tx => {
+    await ledgerAccess(tx, ctx, ledgerId, 'editor', true);
+    const row = await lockBudget(tx, ledgerId, id);
+    if (!etag) requireVersion(etag, row.version);
+    if (row.archivedAt) return presentBudget(row);
+    requireVersion(etag, row.version);
+    const changes = { archivedAt: new Date(), version: row.version + 1, updatedAt: new Date() };
+    await tx.update(budgets).set(changes).where(and(eq(budgets.ledgerId, ledgerId), eq(budgets.id, id)));
+    await audit(tx, ctx, ledgerId, 'budget.archived', id);
+    await emit(tx, ledgerId, 'budget.archived', { budgetId: id });
+    return presentBudget({ ...row, ...changes });
+  });
+}
+
+/** Spending against each active budget in the period containing `date` (historical amounts; refunds offset). */
+export async function budgetProgress(ctx: AuthContext, ledgerId: string, query: unknown, now = new Date()) {
+  const q = BudgetProgressQuery.parse(query);
+  const ledger = await ledgerAccess(database(), ctx, ledgerId, 'viewer');
+  const date = q.date ?? localDate(now, ledger.timezone);
+  return cached(ledgerId, 'budget-progress', { date }, false, async version => {
+    const db = database();
+    const rows = await db.select().from(budgets).where(and(eq(budgets.ledgerId, ledgerId), isNull(budgets.archivedAt), lte(budgets.startDate, date))).orderBy(asc(budgets.createdAt), asc(budgets.id));
+    const items = [];
+    for (const budget of rows) {
+      const { start, end } = periodOf(date, budget.period);
+      const spentRows = await periodRows(db, ledgerId, { dateFrom: start > budget.startDate ? start : budget.startDate, dateTo: end, categoryIds: await categoryScope(db, ledgerId, budget.categoryId ?? undefined) });
+      let spent = sum([]);
+      for (const row of spentRows) if (row.kind !== 'income' && row.baseCurrency === budget.currency) spent = row.kind === 'expense' ? spent.plus(row.baseAmount) : spent.minus(row.baseAmount);
+      const amount = sum([budget.amount]), ratio = spent.dividedBy(amount);
+      items.push({
+        budgetId: budget.id, name: budget.name, categoryId: budget.categoryId, period: budget.period, periodStart: start, periodEnd: end,
+        amount: { amount: formatAmount(amount, budget.currency), currency: budget.currency }, spent: formatAmount(spent, budget.currency), remaining: formatAmount(amount.minus(spent), budget.currency),
+        ratio: ratio.toDecimalPlaces(4).toFixed(), reachedThresholds: (budget.alertThresholds as number[]).filter(t => ratio.times(100).greaterThanOrEqualTo(t)),
+      });
+    }
+    return { date, items, currency: ledger.baseCurrency, valuationMode: 'historical' as const, partial: false, excludedCount: 0, dataVersion: version, sourceAt: null };
+  });
+}
+export type BudgetProgressItem = Awaited<ReturnType<typeof budgetProgress>>['items'][number];
+export type ReportQueryInput = z.input<typeof ReportQuery>;

@@ -4,6 +4,6 @@ import nextTypescript from 'eslint-config-next/typescript';
 export default defineConfig([
   ...nextVitals,
   ...nextTypescript,
-  { settings: { next: { rootDir: 'apps/web' } } },
+  { settings: { next: { rootDir: 'apps/web' }, react: { version: '19.3' } } },
   globalIgnores(['**/.next/**', '**/dist/**', 'coverage/**', 'docs/**']),
 ]);

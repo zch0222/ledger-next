@@ -59,16 +59,26 @@ const importError = z.object({ row: z.number().int().min(1), column: z.string().
 export const ImportJob = resource('ImportJob', z.object({
   id: uuid, status: z.enum(['validating', 'validated', 'committing', 'committed', 'failed', 'reverting', 'reverted']),
   fileName: z.string(), fileSha256: z.string(), rowCount: z.number().int().min(0), validRows: z.number().int().min(0), errorRows: z.number().int().min(0),
+  duplicateRows: z.number().int().min(0).meta({ description: '已在之前批次入账而跳过的行（包含在 errorRows 中）' }),
+  committedRows: z.number().int().min(0), revertedRows: z.number().int().min(0), failureReason: z.string().nullable(),
   errors: z.array(importError).max(100).meta({ description: '最多返回前 100 条行级错误，带行号' }), createdAt: Timestamp, committedAt: Timestamp.nullable(), revertedAt: Timestamp.nullable(),
-}), '文件 / 行指纹去重；提交与撤销为异步任务');
+}), '文件 / 行指纹去重；校验、提交与撤销均为异步任务');
+const column = z.string().trim().min(1).max(80);
+export const ImportMapping = input('ImportMapping', z.object({
+  columns: z.object({ date: column, amount: column, account: column, kind: column.optional(), currency: column.optional(), category: column.optional(), merchant: column.optional(), note: column.optional() }).strict()
+    .meta({ description: 'CSV 表头名 → 字段。account / category 按名称匹配；currency 须与账户币种一致' }),
+  dateFormat: z.enum(['YYYY-MM-DD', 'YYYY/MM/DD', 'DD/MM/YYYY', 'MM/DD/YYYY']).optional().meta({ description: '默认 YYYY-MM-DD' }),
+  timezone: Timezone.optional().meta({ description: '业务日期所在时区，默认账本时区' }),
+  defaultKind: z.enum(['expense', 'income']).optional().meta({ description: '无类型列时：设置后所有行按此类型且金额须为正；不设置则负数为支出、正数为收入' }),
+}).strict(), 'CSV 列映射；转账与退款不支持导入');
 export const ImportJobCreate = input('ImportJobCreate', z.object({
-  file: z.string().meta({ format: 'binary', description: 'UTF-8 CSV，最大 5 MB' }),
-  mapping: z.string().max(4096).meta({ description: 'JSON：CSV 列到 date/amount/currency/account/category/note 的映射' }),
+  file: z.string().meta({ format: 'binary', description: 'UTF-8 CSV（可带 BOM），最大 5 MB、10,000 行' }),
+  mapping: z.string().max(4096).meta({ description: 'ImportMapping 的 JSON 字符串' }),
 }).strict());
 export const ExportJob = resource('ExportJob', z.object({
   id: uuid, status: z.enum(['queued', 'running', 'ready', 'failed', 'expired']), format: z.literal('csv'),
   rowCount: z.number().int().nullable(), downloadUrl: z.string().nullable().meta({ description: '短期有效、需同一用户鉴权的下载地址' }), expiresAt: Timestamp.nullable(), createdAt: Timestamp,
-}), 'CSV 输出对 = + - @ 开头单元格转义，防公式注入');
+}), 'CSV（UTF-8 BOM）对 = + - @ TAB CR 开头的单元格加前导撇号，防公式注入；下载地址 1 小时内有效且仅创建者可用');
 export const ExportJobCreate = input('ExportJobCreate', z.object({ format: z.literal('csv'), dateFrom: LocalDate.optional(), dateTo: LocalDate.optional(), accountId: uuid.optional(), categoryId: uuid.optional() }).strict());
 
 export const ApiToken = resource('ApiToken', z.object({

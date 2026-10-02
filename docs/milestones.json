@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "project": "Ledger Next",
-  "updatedAt": "2026-10-02T08:19:14.934Z",
+  "updatedAt": "2026-10-02T08:58:35.541Z",
   "timezone": "Asia/Hong_Kong",
   "milestones": [
     {
@@ -350,10 +350,10 @@
         "M2-LEDGER"
       ],
       "role": "全栈开发",
-      "owner": "未分配",
-      "status": "todo",
+      "owner": "Claude Code",
+      "status": "done",
       "requiresReview": true,
-      "reviewer": "",
+      "reviewer": "Claude Code 自评估（用户授权，见 docs/reviews/AUTONOMOUS_DELIVERY.md）",
       "blockedReason": "",
       "steps": [
         "实现列映射、预览、行校验和文件/行指纹去重。",
@@ -364,9 +364,16 @@
         "重复导入不重复记账，错误行有行号与原因。",
         "导出合计一致、无越权下载，撤销可追踪。"
       ],
-      "nextAction": "准备多币种 CSV 样例和错误样例。",
-      "evidence": [],
-      "updatedAt": "2026-10-02"
+      "nextAction": "Web 导入向导随 M4-CORE",
+      "evidence": [
+        "docs/evidence/M2-IMPORT/README.md",
+        "packages/db/migrations/0006_imports.sql"
+      ],
+      "updatedAt": "2026-10-02T08:58:35.485Z",
+      "reviewMode": "self",
+      "finalChecks": [
+        "人工用真实银行导出 CSV 走一遍映射、校验、提交与撤销"
+      ]
     },
     {
       "id": "M3-FX",
@@ -378,10 +385,10 @@
         "M2-MODEL"
       ],
       "role": "后端 / 集成",
-      "owner": "未分配",
-      "status": "todo",
+      "owner": "Claude Code",
+      "status": "done",
       "requiresReview": true,
-      "reviewer": "",
+      "reviewer": "Claude Code 自评估（用户授权，见 docs/reviews/AUTONOMOUS_DELIVERY.md）",
       "blockedReason": "",
       "steps": [
         "确认主源套餐、配额、历史覆盖与展示许可。",
@@ -392,9 +399,17 @@
         "正常源更新年龄目标达成或清楚记录差距。",
         "休市、过期、补录不改写历史；源故障不阻塞 SSR。"
       ],
-      "nextAction": "取得 FX 测试账号，验证报价频率与批量能力。",
-      "evidence": [],
-      "updatedAt": "2026-10-02"
+      "nextAction": "最终人工审查：真实供应商套餐与源时间延迟",
+      "evidence": [
+        "docs/evidence/M3-FX/README.md",
+        "packages/db/migrations/0005_fx.sql"
+      ],
+      "updatedAt": "2026-10-02T08:39:21.733Z",
+      "reviewMode": "self",
+      "finalChecks": [
+        "用真实 FX 供应商凭据核实 60 秒更新、配额、历史覆盖与展示许可，并测量 source age",
+        "核对 P09 汇率页的 stale / suspect 提示文案"
+      ]
     },
     {
       "id": "M3-REPORTS",
@@ -407,10 +422,10 @@
         "M3-FX"
       ],
       "role": "后端 / 数据",
-      "owner": "未分配",
-      "status": "todo",
+      "owner": "Claude Code",
+      "status": "done",
       "requiresReview": true,
-      "reviewer": "",
+      "reviewer": "Claude Code 自评估（用户授权，见 docs/reviews/AUTONOMOUS_DELIVERY.md）",
       "blockedReason": "",
       "steps": [
         "实现历史收支、净资产估值、分类、趋势与预算聚合。",
@@ -421,9 +436,16 @@
         "报表与有效明细合计一致；转账不计支出。",
         "不同用户、币种、口径缓存不混用；写后统计版本可追踪。"
       ],
-      "nextAction": "为演示数据建立可人工核算的报表基准。",
-      "evidence": [],
-      "updatedAt": "2026-10-02"
+      "nextAction": "upcomingBills 随 M4-SUBS 接入；规模化查询计划随 M7-PERF",
+      "evidence": [
+        "docs/evidence/M3-REPORTS/README.md",
+        "packages/db/migrations/0007_reports.sql"
+      ],
+      "updatedAt": "2026-10-02T08:58:35.541Z",
+      "reviewMode": "self",
+      "finalChecks": [
+        "抽查 12 个月真实数据的报表与明细对账"
+      ]
     },
     {
       "id": "M4-CORE",
@@ -1298,6 +1320,54 @@
       "to": "done",
       "actor": "Claude Code",
       "note": "幂等、转账、退款、更正、作废的集成与 API E2E 通过，自评估完成"
+    },
+    {
+      "at": "2026-10-02T08:19:28.603Z",
+      "id": "M3-FX",
+      "from": "todo",
+      "to": "in_progress",
+      "actor": "Claude Code",
+      "note": "开始实施；供应商按用户要求使用本地 mock，不连接真实服务"
+    },
+    {
+      "at": "2026-10-02T08:39:21.733Z",
+      "id": "M3-FX",
+      "from": "in_progress",
+      "to": "done",
+      "actor": "Claude Code",
+      "note": "Fixer 协议适配 + 本地 mock；新鲜度 / 锁定汇率 / 历史补录 / 人工汇率 / 刷新任务；Docker E2E：集成 36、Playwright 23 通过"
+    },
+    {
+      "at": "2026-10-02T08:39:26.875Z",
+      "id": "M2-IMPORT",
+      "from": "todo",
+      "to": "in_progress",
+      "actor": "Claude Code",
+      "note": "开始实施：异步校验 / 提交 / 撤销（outbox → BullMQ）、行指纹去重、导出公式转义与创建者下载"
+    },
+    {
+      "at": "2026-10-02T08:52:26.377Z",
+      "id": "M3-REPORTS",
+      "from": "todo",
+      "to": "in_progress",
+      "actor": "Claude Code",
+      "note": "报表 5 个接口与预算 CRUD 实现；数据版本缓存键；集成 53 通过（本机 MySQL）"
+    },
+    {
+      "at": "2026-10-02T08:58:35.485Z",
+      "id": "M2-IMPORT",
+      "from": "in_progress",
+      "to": "done",
+      "actor": "Claude Code",
+      "note": "异步校验 / 提交 / 撤销、行指纹去重、导出防公式注入与创建者下载；Docker E2E：集成 53、Playwright 26 通过"
+    },
+    {
+      "at": "2026-10-02T08:58:35.541Z",
+      "id": "M3-REPORTS",
+      "from": "in_progress",
+      "to": "done",
+      "actor": "Claude Code",
+      "note": "summary / cash-flow / 分类 / 净资产 / 预算进度与预算 CRUD；数据版本缓存；Docker E2E 通过"
     }
   ]
 }

@@ -1,4 +1,4 @@
-import { boolean, char, date, datetime, decimal, index, int, json, mediumtext, mysqlEnum, mysqlTable, primaryKey, smallint, text, tinyint, uniqueIndex, varchar } from 'drizzle-orm/mysql-core';
+import { bigint, boolean, char, date, datetime, decimal, index, int, json, mediumtext, mysqlEnum, mysqlTable, primaryKey, smallint, text, tinyint, uniqueIndex, varchar } from 'drizzle-orm/mysql-core';
 
 const id = () => varchar('id', { length: 36 }).primaryKey();
 const createdAt = () => datetime('created_at', { mode: 'date', fsp: 3 }).notNull();
@@ -131,3 +131,70 @@ export const transactionLinks = mysqlTable('transaction_links', {
   ledgerId: varchar('ledger_id', { length: 36 }).notNull(), childId: varchar('child_id', { length: 36 }).primaryKey(),
   parentId: varchar('parent_id', { length: 36 }).notNull(), kind: mysqlEnum('kind', ['fee']).notNull(),
 }, t => [index('transaction_link_parent_idx').on(t.ledgerId, t.parentId)]);
+
+// M3-FX (migration 0005).
+export const fxBatches = mysqlTable('fx_batches', {
+  id: id(), provider: varchar('provider', { length: 40 }).notNull(), pivotCurrency: varchar('pivot_currency', { length: 3 }).notNull(),
+  kind: mysqlEnum('kind', ['latest', 'historical']).notNull(), sourceAt: datetime('source_at', { mode: 'date', fsp: 3 }).notNull(),
+  fetchedAt: datetime('fetched_at', { mode: 'date', fsp: 3 }).notNull(), effectiveDate: date('effective_date', { mode: 'string' }).notNull(),
+  quality: mysqlEnum('quality', ['accepted', 'suspect']).notNull(), note: varchar('note', { length: 200 }), createdAt: createdAt(),
+}, t => [uniqueIndex('fx_batch_source_uq').on(t.provider, t.kind, t.sourceAt), index('fx_batch_lookup_idx').on(t.provider, t.quality, t.sourceAt)]);
+export const fxRates = mysqlTable('fx_rates', {
+  batchId: varchar('batch_id', { length: 36 }).notNull(), quoteCurrency: varchar('quote_currency', { length: 3 }).notNull(),
+  rate: decimal('rate', { precision: 38, scale: 18 }).notNull(),
+}, t => [primaryKey({ columns: [t.batchId, t.quoteCurrency] })]);
+export const fxFetchStatus = mysqlTable('fx_fetch_status', {
+  provider: varchar('provider', { length: 40 }).primaryKey(), lastAttemptAt: datetime('last_attempt_at', { mode: 'date', fsp: 3 }),
+  lastSuccessAt: datetime('last_success_at', { mode: 'date', fsp: 3 }), consecutiveFailures: int('consecutive_failures').notNull().default(0),
+  lastError: varchar('last_error', { length: 200 }), updatedAt: updatedAt(),
+});
+export const manualRateRecords = mysqlTable('manual_rate_records', {
+  id: id(), ledgerId: ledgerId(), baseCurrency: varchar('base_currency', { length: 3 }).notNull(), quoteCurrency: varchar('quote_currency', { length: 3 }).notNull(),
+  rate: decimal('rate', { precision: 38, scale: 18 }).notNull(), effectiveDate: date('effective_date', { mode: 'string' }).notNull(),
+  reason: varchar('reason', { length: 200 }).notNull(), createdBy: varchar('created_by', { length: 36 }).notNull().references(() => user.id), createdAt: createdAt(),
+}, t => [index('manual_rate_lookup_idx').on(t.ledgerId, t.baseCurrency, t.quoteCurrency, t.effectiveDate)]);
+export const fxRefreshJobs = mysqlTable('fx_refresh_jobs', {
+  id: id(), status: mysqlEnum('status', ['queued', 'running', 'succeeded', 'failed']).notNull(), reason: varchar('reason', { length: 200 }),
+  requestedBy: varchar('requested_by', { length: 36 }).notNull().references(() => user.id), error: varchar('error', { length: 200 }),
+  createdAt: createdAt(), completedAt: datetime('completed_at', { mode: 'date', fsp: 3 }),
+}, t => [index('fx_refresh_status_idx').on(t.status, t.createdAt)]);
+export const fxHistoryRequests = mysqlTable('fx_history_requests', {
+  provider: varchar('provider', { length: 40 }).notNull(), effectiveDate: date('effective_date', { mode: 'string' }).notNull(),
+  status: mysqlEnum('status', ['pending', 'done', 'failed']).notNull(), attempts: int('attempts').notNull().default(0),
+  lastError: varchar('last_error', { length: 200 }), createdAt: createdAt(), updatedAt: updatedAt(),
+}, t => [primaryKey({ columns: [t.provider, t.effectiveDate] }), index('fx_history_status_idx').on(t.status, t.updatedAt)]);
+
+// M2-IMPORT (migration 0006). import_rows.committed_fingerprint is a generated column and is never written.
+export const importJobs = mysqlTable('import_jobs', {
+  id: id(), ledgerId: ledgerId(), createdBy: varchar('created_by', { length: 36 }).notNull().references(() => user.id),
+  status: mysqlEnum('status', ['validating', 'validated', 'committing', 'committed', 'failed', 'reverting', 'reverted']).notNull(),
+  fileName: varchar('file_name', { length: 255 }).notNull(), fileSha256: char('file_sha256', { length: 64 }).notNull(), mapping: json('mapping').notNull(),
+  content: mediumtext('content'), rowCount: int('row_count').notNull().default(0), validRows: int('valid_rows').notNull().default(0),
+  errorRows: int('error_rows').notNull().default(0), committedRows: int('committed_rows').notNull().default(0), revertedRows: int('reverted_rows').notNull().default(0),
+  failureReason: varchar('failure_reason', { length: 200 }), requestedBy: varchar('requested_by', { length: 36 }),
+  createdAt: createdAt(), updatedAt: updatedAt(), committedAt: datetime('committed_at', { mode: 'date', fsp: 3 }), revertedAt: datetime('reverted_at', { mode: 'date', fsp: 3 }),
+}, t => [uniqueIndex('import_job_ledger_uq').on(t.ledgerId, t.id), index('import_job_ledger_created_idx').on(t.ledgerId, t.createdAt), index('import_job_status_idx').on(t.status, t.updatedAt)]);
+export const importRows = mysqlTable('import_rows', {
+  id: id(), ledgerId: varchar('ledger_id', { length: 36 }).notNull(), jobId: varchar('job_id', { length: 36 }).notNull(), rowNo: int('row_no').notNull(),
+  fingerprint: char('fingerprint', { length: 64 }).notNull(), status: mysqlEnum('status', ['valid', 'error', 'duplicate', 'committed', 'reverted', 'skipped']).notNull(),
+  data: json('data'), errorCode: varchar('error_code', { length: 40 }), errorColumn: varchar('error_column', { length: 80 }), errorMessage: varchar('error_message', { length: 200 }),
+  transactionId: varchar('transaction_id', { length: 36 }),
+}, t => [uniqueIndex('import_row_job_uq').on(t.jobId, t.rowNo), index('import_row_job_status_idx').on(t.jobId, t.status), index('import_row_fingerprint_idx').on(t.ledgerId, t.fingerprint)]);
+export const exportJobs = mysqlTable('export_jobs', {
+  id: id(), ledgerId: ledgerId(), createdBy: varchar('created_by', { length: 36 }).notNull().references(() => user.id),
+  status: mysqlEnum('status', ['queued', 'running', 'ready', 'failed', 'expired']).notNull(), format: mysqlEnum('format', ['csv']).notNull(), filters: json('filters').notNull(),
+  rowCount: int('row_count'), content: mediumtext('content'), contentSha256: char('content_sha256', { length: 64 }), failureReason: varchar('failure_reason', { length: 200 }),
+  expiresAt: datetime('expires_at', { mode: 'date', fsp: 3 }), createdAt: createdAt(), updatedAt: updatedAt(), completedAt: datetime('completed_at', { mode: 'date', fsp: 3 }),
+}, t => [index('export_job_ledger_created_idx').on(t.ledgerId, t.createdAt), index('export_job_status_idx').on(t.status, t.updatedAt)]);
+
+// M3-REPORTS (migration 0007).
+export const budgets = mysqlTable('budgets', {
+  id: id(), ledgerId: ledgerId(), name: varchar('name', { length: 80 }), categoryId: varchar('category_id', { length: 36 }),
+  period: mysqlEnum('period', ['week', 'month', 'year']).notNull(), amount: money('amount').notNull(), currency: varchar('currency', { length: 3 }).notNull(),
+  startDate: date('start_date', { mode: 'string' }).notNull(), alertThresholds: json('alert_thresholds').notNull(), archivedAt: datetime('archived_at', { mode: 'date', fsp: 3 }),
+  version: int('version').notNull().default(1), createdAt: createdAt(), updatedAt: updatedAt(),
+}, t => [uniqueIndex('budget_ledger_uq').on(t.ledgerId, t.id), index('budget_ledger_archived_idx').on(t.ledgerId, t.archivedAt)]);
+export const ledgerDataVersions = mysqlTable('ledger_data_versions', {
+  ledgerId: varchar('ledger_id', { length: 36 }).primaryKey(), version: bigint('version', { mode: 'number' }).notNull(), updatedAt: updatedAt(),
+});
+

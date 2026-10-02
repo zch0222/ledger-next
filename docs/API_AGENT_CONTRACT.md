@@ -1,6 +1,6 @@
 # REST API、MCP 与配套 Skill 契约
 
-版本 0.3 · 2026-10-02 · 可执行契约。下表全部资源已转换为 OpenAPI 3.1：[packages/contracts/openapi.json](../packages/contracts/openapi.json)（由 `packages/contracts/src` 的 Zod 定义生成，`pnpm contract:generate`），类型化 REST SDK 位于 `packages/api-client`。每个操作带 `x-stability`：`stable` 为已实现并受 CI 破坏性变更门禁保护（当前 30 个：M1 的 `/me`、`/ledgers`、`L`、`L/memberships`、`L/audit-events`，以及 M2-LEDGER 的账户、分类、标签和交易预览 / 创建 / 查询 / 更正 / 作废 / 退款）；`planned` 为已发布、尚未实现的契约，返回 501 并标注 `x-milestone`，实现时可调整。认证库协议为 `/api/auth/*`。下列远程域名是示例，MCP 配置不表示现在可以连接。
+版本 0.3 · 2026-10-02 · 可执行契约。下表全部资源已转换为 OpenAPI 3.1：[packages/contracts/openapi.json](../packages/contracts/openapi.json)（由 `packages/contracts/src` 的 Zod 定义生成，`pnpm contract:generate`），类型化 REST SDK 位于 `packages/api-client`。每个操作带 `x-stability`：`stable` 为已实现并受 CI 破坏性变更门禁保护（M1 身份 / 账本 / 成员 / 审计，M2 账户、分类、标签、交易、导入导出，M3 汇率、报表与预算；具体清单见 openapi.json 与 `tests/unit/contract.test.ts`）；`planned` 为已发布、尚未实现的契约，返回 501 并标注 `x-milestone`，实现时可调整。认证库协议为 `/api/auth/*`。下列远程域名是示例，MCP 配置不表示现在可以连接。
 
 ## 1. 公共 REST 规则
 
@@ -166,6 +166,13 @@ M2-LEDGER 已实现的规则（以 OpenAPI 与 `tests/e2e/ledger.api.ts` 为准�
 - 更正（PATCH + If-Match + 新预览）在同一事务内冲正旧版本 posting、把旧版本标为 voided，并写入 `replacesId` 指向旧版本的新交易；作废（DELETE + If-Match）追加反向 posting，重复作废不再变化。posting 只追加不改写。
 - 列表默认只返回有效交易（`status=posted`），可用 `voided` / `all` 查看历史版本；`accountId` 同时匹配转账两端；按业务日期或基准金额 keyset 分页。
 - 每次写入的审计记录与 outbox 事件与资金变化同一事务提交。
+
+M2-IMPORT / M3 已实现的规则：
+
+- 导入：`POST L/import-jobs`（multipart：`file` + `mapping` JSON，需 Idempotency-Key，按文件摘要指纹）→ 202，Worker 异步校验；`GET` 轮询 `validated` 后 `POST …/commits` 入账，owner 可 `POST …/reversals` 撤销。错误行带行号、列名与错误码（INVALID_DATE、ACCOUNT_NOT_FOUND、AMOUNT_PRECISION、CATEGORY_NOT_FOUND、UNSUPPORTED_KIND、FX_RATE_MISSING、DUPLICATE_ROW…），已入账的行再次上传记为 DUPLICATE_ROW。
+- 导出：`POST L/export-jobs` → 202；`ready` 后 `downloadUrl` 指向 `GET …/export-jobs/{id}/file`（text/csv，仅创建者，1 小时内）。
+- 汇率：`GET /exchange-rates?base=&quotes=&asOf=` 返回每个币种的 value / sourceAt / fetchedAt / freshness / source；新鲜度按源时间。交易预览默认 fresh-only：delayed 附 `FX_DELAYED` 警告，stale 返回 422 FX_RATE_STALE（需 `accept-stale`），无报价 422 FX_RATE_MISSING（需人工汇率；回溯日期会排队补录）。提交复用预览锁定的汇率。跨币种退款需 `originalAmount`（原支付币种的退款额）。
+- 报表：summary / cash-flow / category-breakdown / account-balances / budget-progress 均带 currency、valuationMode、partial、excludedCount、dataVersion、sourceAt。dataVersion 随每次资金写入递增，可用于判断统计是否已追上写入。
 
 ~~~json
 {

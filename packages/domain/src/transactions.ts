@@ -9,6 +9,7 @@ import { audit, emit } from './audit';
 import { localDate } from './dates';
 import { canonicalJson, requestFingerprint } from './idempotency';
 import type { AuthContext } from './identity';
+import { quote } from './fx';
 import { compare, convert, crossRate, formatAmount, parseAmount, parseRate, signedAmount, sum, toColumn } from './money';
 import { appendPostings, reversePostings, type PostingLine } from './postings';
 import { DomainError, requireVersion } from './policy';
@@ -16,7 +17,8 @@ import { DomainError, requireVersion } from './policy';
 const PREVIEW_TTL_MS = 10 * 60 * 1000;
 type Input = z.infer<typeof TransactionPreviewCreate>;
 type Money = { amount: string; currency: string };
-type Rate = { snapshotId?: string; base: string; quote: string; value: string; source: string; sourceAt: string | null; freshness: 'manual' | 'fresh' | 'delayed' | 'stale' | 'market_closed' | 'missing'; manualReason: string | null };
+export type Rate = { snapshotId?: string; batchId?: string | null; base: string; quote: string; value: string; source: string; sourceAt: string | null; freshness: 'manual' | 'fresh' | 'delayed' | 'stale' | 'market_closed' | 'missing'; manualReason: string | null };
+type Warning = { code: string; message: string };
 /** One transaction to write. Everything here is deterministic from the input, so a submit can re-plan and compare. */
 type Entry = {
   kind: 'expense' | 'income' | 'transfer' | 'refund'; accountId: string | null; categoryId: string | null; tagIds: string[];
@@ -60,26 +62,45 @@ async function checkTags(tx: Tx, ledgerId: string, tagIds: string[] | undefined)
   if (rows.length !== ids.length) throw invalid('INVALID_TAG', '标签不存在或已归档');
   return ids;
 }
-/** Settlement → base. Provider quotes arrive with M3-FX; until then a foreign amount needs an explicit manual rate. */
-function baseValue(input: { fxPolicy: string; manualRate?: { value: string; reason: string } }, settlement: Money, baseCurrency: string): { base: Money & { estimated: boolean }; rate: Rate | null } {
+const choiceRequired = (message: string) => [{ path: 'fxPolicy', message, code: 'choice_required' }];
+/** Market reference rate at the transaction instant (M3-FX). Missing or stale quotes require an explicit user choice. */
+async function marketRate(tx: Tx, from: string, to: string, at: string, policy: string, warnings: Warning[]): Promise<Rate> {
+  const q = await quote(tx, from, to, new Date(at));
+  if (q.freshness === 'missing') throw new DomainError(422, 'FX_RATE_MISSING', `暂无 ${from}/${to} 可用汇率：请填写人工汇率，或稍后重试（历史汇率已排队补录）`, {}, choiceRequired('请填写人工汇率或稍后重试'));
+  if (q.freshness === 'stale' && policy !== 'accept-stale') throw new DomainError(422, 'FX_RATE_STALE', '汇率已过期', {}, choiceRequired('请选择沿用旧率、输入人工汇率或保存草稿'));
+  const sourceAt = q.sourceAt?.toISOString() ?? null;
+  if (q.freshness === 'delayed') warnings.push({ code: 'FX_DELAYED', message: `汇率更新延迟，报价时间 ${sourceAt}` });
+  if (q.freshness === 'stale') warnings.push({ code: 'FX_STALE_ACCEPTED', message: `已确认沿用旧汇率，报价时间 ${sourceAt}` });
+  return { batchId: q.batchId, base: from, quote: to, value: q.value, source: q.source ?? 'market', sourceAt, freshness: q.freshness, manualReason: null };
+}
+/**
+ * Settlement → base. A manual rate needs fxPolicy "manual"; otherwise the market quote at the instant is used.
+ * On submit `locked` is the rate the preview showed: it is reused as-is, never re-quoted at a newer price.
+ */
+async function baseValue(tx: Tx, input: { fxPolicy: string; manualRate?: { value: string; reason: string } }, settlement: Money, baseCurrency: string, at: string, locked: Rate | null | undefined, warnings: Warning[]): Promise<{ base: Money & { estimated: boolean }; rate: Rate | null }> {
   if (input.manualRate && input.fxPolicy !== 'manual') throw invalid('INVALID_FX_POLICY', '提供人工汇率时 fxPolicy 须为 manual');
   if (settlement.currency === baseCurrency) return { base: { ...settlement, estimated: false }, rate: null };
-  if (input.fxPolicy !== 'manual' || !input.manualRate) throw invalid('FX_RATE_MISSING', `暂无 ${settlement.currency}/${baseCurrency} 可用汇率：请填写人工汇率，或改用基准币记账`);
-  const value = parseRate(input.manualRate.value);
-  return {
-    base: { amount: convert(settlement.amount, settlement.currency, value, baseCurrency), currency: baseCurrency, estimated: false },
-    rate: { base: settlement.currency, quote: baseCurrency, value, source: 'manual', sourceAt: null, freshness: 'manual', manualReason: input.manualRate.reason },
-  };
+  let rate: Rate;
+  if (input.fxPolicy === 'manual') {
+    if (!input.manualRate) throw new DomainError(422, 'FX_RATE_MISSING', '选择人工汇率时请填写汇率与理由', {}, choiceRequired('请填写人工汇率'));
+    rate = { base: settlement.currency, quote: baseCurrency, value: parseRate(input.manualRate.value), source: 'manual', sourceAt: null, freshness: 'manual', manualReason: input.manualRate.reason };
+  } else if (locked !== undefined) {
+    if (!locked || locked.base !== settlement.currency || locked.quote !== baseCurrency) throw conflict('PREVIEW_STALE', '汇率条件已变化，请重新预览');
+    rate = locked;
+  } else rate = await marketRate(tx, settlement.currency, baseCurrency, at, input.fxPolicy, warnings);
+  return { base: { amount: convert(settlement.amount, settlement.currency, rate.value, baseCurrency), currency: baseCurrency, estimated: false }, rate };
 }
 async function refundedSoFar(tx: Tx, ledgerId: string, originalId: string) {
   // Locking read: sees refunds committed after this transaction's snapshot, so two refunds cannot both pass the cap.
-  const rows = await tx.select({ amount: transactionAmounts.settlementAmount }).from(transactionAmounts)
+  // A refund's original amount is what it gives back in the original payment's currency (equal to settlement unless cross-currency).
+  const rows = await tx.select({ amount: transactionAmounts.originalAmount }).from(transactionAmounts)
     .innerJoin(transactions, and(eq(transactions.ledgerId, transactionAmounts.ledgerId), eq(transactions.id, transactionAmounts.transactionId)))
     .where(and(eq(transactions.ledgerId, ledgerId), eq(transactions.refundOf, originalId), eq(transactions.status, 'posted'))).for('share');
   return sum(rows.map(r => r.amount));
 }
 
-async function plan(tx: Tx, ledgerId: string, baseCurrency: string, input: Input, lock: boolean): Promise<{ plan: Plan; accountVersions: Record<string, number>; balances: Map<string, AccountRow> }> {
+async function plan(tx: Tx, ledgerId: string, baseCurrency: string, input: Input, lock: boolean, locked?: Plan): Promise<{ plan: Plan; accountVersions: Record<string, number>; balances: Map<string, AccountRow>; warnings: Warning[] }> {
+  const warnings: Warning[] = [];
   const when = { occurredAt: new Date(input.occurredAt).toISOString(), localDate: localDate(new Date(input.occurredAt), input.timezone), timezone: input.timezone };
   if (input.kind === 'transfer') {
     if (input.sourceAccountId === input.targetAccountId) throw invalid('SAME_ACCOUNT', '转出与转入账户不能相同');
@@ -92,7 +113,7 @@ async function plan(tx: Tx, ledgerId: string, baseCurrency: string, input: Input
     if (source.currency !== baseCurrency && target.currency === baseCurrency) {
       // The transfer itself states the rate: what left the source bought exactly this much base currency.
       valued = { base: { ...targetAmount, estimated: false }, rate: { base: source.currency, quote: target.currency, value: crossRate(sourceAmount.amount, targetAmount.amount), source: 'transfer', sourceAt: null, freshness: 'manual', manualReason: '由转账双方金额推算' } };
-    } else valued = baseValue(input, sourceAmount, baseCurrency);
+    } else valued = await baseValue(tx, input, sourceAmount, baseCurrency, when.occurredAt, locked?.main.rate, warnings);
     const main: Entry = { kind: 'transfer', accountId: null, categoryId: null, tagIds: [], merchant: null, note: input.note ?? null, ...when, refundOf: null, original: sourceAmount, settlement: sourceAmount, ...valued,
       postings: [{ accountId: source.id, amount: signedAmount('transfer_out', sourceAmount.amount) }, { accountId: target.id, amount: signedAmount('transfer_in', targetAmount.amount) }] };
     let fee: Entry | null = null;
@@ -102,7 +123,7 @@ async function plan(tx: Tx, ledgerId: string, baseCurrency: string, input: Input
       fee = { kind: 'expense', accountId: source.id, categoryId: await checkCategory(tx, ledgerId, input.fee.categoryId, 'expense'), tagIds: [], merchant: null, note: '转账手续费', ...when, refundOf: null,
         original: feeAmount, settlement: feeAmount, base, rate: valued.rate, postings: [{ accountId: source.id, amount: signedAmount('expense', feeAmount.amount) }] };
     }
-    return { plan: { main, fee }, accountVersions: { [source.id]: source.version, [target.id]: target.version }, balances: found };
+    return { plan: { main, fee }, accountVersions: { [source.id]: source.version, [target.id]: target.version }, balances: found, warnings };
   }
   if (input.kind === 'refund') {
     const originalQuery = tx.select().from(transactions).where(and(eq(transactions.ledgerId, ledgerId), eq(transactions.id, input.originalTransactionId)));
@@ -111,30 +132,45 @@ async function plan(tx: Tx, ledgerId: string, baseCurrency: string, input: Input
     if (original.kind !== 'expense' || original.status !== 'posted') throw invalid('NOT_REFUNDABLE', '只能对有效的支出登记退款');
     const [paid] = await tx.select().from(transactionAmounts).where(and(eq(transactionAmounts.ledgerId, ledgerId), eq(transactionAmounts.transactionId, original.id)));
     const found = await loadAccounts(tx, ledgerId, [input.accountId], lock), account = found.get(input.accountId)!;
-    if (account.currency !== paid.settlementCurrency) throw invalid('CURRENCY_MISMATCH', `退款须退回 ${paid.settlementCurrency} 账户；跨币种退款随汇率模块（M3-FX）支持`);
     const settlement = { amount: amountIn(input.settlement, account, '退款金额'), currency: account.currency };
+    // `refunded` is what goes back in the original payment's currency; it drives the cap and the base offset.
+    let refunded: Money = settlement;
+    if (account.currency !== paid.settlementCurrency || input.originalAmount) {
+      if (!input.originalAmount) throw invalid('ORIGINAL_AMOUNT_REQUIRED', `跨币种退款需填写按原支付币种 ${paid.settlementCurrency} 计的退款金额`);
+      if (input.originalAmount.currency !== paid.settlementCurrency) throw invalid('CURRENCY_MISMATCH', `退款对应金额须为原支付币种 ${paid.settlementCurrency}`);
+      refunded = { amount: parseAmount(input.originalAmount.amount, input.originalAmount.currency), currency: paid.settlementCurrency };
+      if (account.currency === paid.settlementCurrency && compare(refunded.amount, settlement.amount) !== 0) throw invalid('REFUND_AMOUNT_MISMATCH', '同币种退款的对应金额须与退款金额一致');
+    }
     const remaining = sum([paid.settlementAmount]).minus(await refundedSoFar(tx, ledgerId, original.id));
-    if (remaining.lessThan(settlement.amount)) throw conflict('REFUND_EXCEEDS_PAID', `退款累计不能超过原支付金额，可退 ${formatAmount(remaining, account.currency)} ${account.currency}`);
+    if (remaining.lessThan(refunded.amount)) throw conflict('REFUND_EXCEEDS_PAID', `退款累计不能超过原支付金额，可退 ${formatAmount(remaining, paid.settlementCurrency)} ${paid.settlementCurrency}`);
     // A refund is valued at the original's locked rate, so it offsets exactly what the expense counted.
-    let rate: Rate | null = null, base: Money = settlement;
+    let originalRate: Rate | null = null, base: Money = refunded;
     if (paid.fxSnapshotId) {
       const [snapshot] = await tx.select().from(fxSnapshots).where(and(eq(fxSnapshots.ledgerId, ledgerId), eq(fxSnapshots.id, paid.fxSnapshotId)));
-      rate = { snapshotId: snapshot.id, base: snapshot.baseCurrency, quote: snapshot.quoteCurrency, value: sum([snapshot.rate]).toFixed(), source: snapshot.source, sourceAt: snapshot.sourceAt?.toISOString() ?? null, freshness: snapshot.freshness, manualReason: snapshot.manualReason };
-      base = { amount: convert(settlement.amount, settlement.currency, rate.value, paid.baseCurrency), currency: paid.baseCurrency };
+      originalRate = { snapshotId: snapshot.id, base: snapshot.baseCurrency, quote: snapshot.quoteCurrency, value: sum([snapshot.rate]).toFixed(), source: snapshot.source, sourceAt: snapshot.sourceAt?.toISOString() ?? null, freshness: snapshot.freshness, manualReason: snapshot.manualReason };
+      base = { amount: convert(refunded.amount, refunded.currency, originalRate.value, paid.baseCurrency), currency: paid.baseCurrency };
+    }
+    let rate: Rate | null = null;
+    // Money received in the base currency is its own valuation; any difference to the original is an FX effect.
+    if (settlement.currency === paid.baseCurrency) base = settlement;
+    else if (settlement.currency === refunded.currency) rate = originalRate;
+    else {
+      if (compare(base.amount, '0') <= 0) throw invalid('REFUND_TOO_SMALL', '退款金额过小，无法折算');
+      rate = { base: settlement.currency, quote: base.currency, value: crossRate(settlement.amount, base.amount), source: 'refund', sourceAt: null, freshness: 'manual', manualReason: '由跨币种退款金额推算' };
     }
     const main: Entry = { kind: 'refund', accountId: account.id, categoryId: original.categoryId, tagIds: [], merchant: original.merchant, note: input.note ?? null, ...when, refundOf: original.id,
-      original: settlement, settlement, base: { ...base, estimated: false }, rate, postings: [{ accountId: account.id, amount: signedAmount('refund', settlement.amount) }] };
-    return { plan: { main, fee: null }, accountVersions: { [account.id]: account.version }, balances: found };
+      original: refunded, settlement, base: { ...base, estimated: false }, rate, postings: [{ accountId: account.id, amount: signedAmount('refund', settlement.amount) }] };
+    return { plan: { main, fee: null }, accountVersions: { [account.id]: account.version }, balances: found, warnings };
   }
   const found = await loadAccounts(tx, ledgerId, [input.accountId], lock), account = found.get(input.accountId)!;
   const settlement = { amount: amountIn(input.settlement, account, '结算金额'), currency: account.currency };
   const original = input.original ? { amount: parseAmount(input.original.amount, input.original.currency), currency: input.original.currency } : settlement;
   const main: Entry = {
     kind: input.kind, accountId: account.id, categoryId: await checkCategory(tx, ledgerId, input.categoryId, input.kind), tagIds: await checkTags(tx, ledgerId, input.tagIds),
-    merchant: input.merchant ?? null, note: input.note ?? null, ...when, refundOf: null, original, settlement, ...baseValue(input, settlement, baseCurrency),
+    merchant: input.merchant ?? null, note: input.note ?? null, ...when, refundOf: null, original, settlement, ...(await baseValue(tx, input, settlement, baseCurrency, when.occurredAt, locked?.main.rate, warnings)),
     postings: [{ accountId: account.id, amount: signedAmount(input.kind, settlement.amount) }],
   };
-  return { plan: { main, fee: null }, accountVersions: { [account.id]: account.version }, balances: found };
+  return { plan: { main, fee: null }, accountVersions: { [account.id]: account.version }, balances: found, warnings };
 }
 
 function deltas(p: Plan) {
@@ -148,12 +184,12 @@ export async function createPreview(ctx: AuthContext, ledgerId: string, body: un
   const input = TransactionPreviewCreate.parse(body);
   return database().transaction(async tx => {
     const ledger = await ledgerAccess(tx, ctx, ledgerId, 'editor');
-    const { plan: p, accountVersions, balances } = await plan(tx, ledgerId, ledger.baseCurrency, input, false);
+    const { plan: p, accountVersions, balances, warnings: fxWarnings } = await plan(tx, ledgerId, ledger.baseCurrency, input, false);
     const accountDeltas = [...deltas(p)].map(([accountId, amounts]) => ({ accountId, delta: formatAmount(sum(amounts), balances.get(accountId)!.currency), currency: balances.get(accountId)!.currency }));
-    const warnings = accountDeltas.flatMap(d => {
+    const warnings = [...fxWarnings, ...accountDeltas.flatMap(d => {
       const account = balances.get(d.accountId)!;
       return account.type !== 'credit_card' && sum([account.balance, d.delta]).isNegative() ? [{ code: 'NEGATIVE_BALANCE', message: `${account.name} 记账后余额为负` }] : [];
-    });
+    })];
     const id = randomUUID(), now = new Date(), expiresAt = new Date(now.getTime() + PREVIEW_TTL_MS);
     const normalizedInputHash = `sha256:${requestFingerprint(input)}`;
     await tx.insert(writePreviews).values({ id, ledgerId, actorId: ctx.userId, kind: input.kind, bodyHash: normalizedInputHash.slice(7), normalizedInput: input, computed: p, accountVersions, expiresAt, createdAt: now });
@@ -171,23 +207,24 @@ async function consume(tx: Tx, ctx: AuthContext, ledgerId: string, baseCurrency:
   if (preview.consumedAt) throw conflict('PREVIEW_CONSUMED', '该预览已提交；如需再记一笔请重新预览');
   if (preview.expiresAt <= new Date()) throw invalid('PREVIEW_EXPIRED', '预览已过期，请重新预览');
   if (!kinds.includes(preview.kind)) throw invalid('PREVIEW_KIND_MISMATCH', '预览类型与该操作不符');
-  const replanned = await plan(tx, ledgerId, baseCurrency, preview.normalizedInput as Input, true);
+  // Re-plan under account locks with the preview's locked rate, so only account / catalog changes can make it stale.
+  const replanned = await plan(tx, ledgerId, baseCurrency, preview.normalizedInput as Input, true, preview.computed as Plan);
   if (canonicalJson(replanned.accountVersions) !== canonicalJson(preview.accountVersions) || canonicalJson(replanned.plan) !== canonicalJson(preview.computed))
     throw conflict('PREVIEW_STALE', '账户、分类或金额条件已变化，请重新预览');
   return { preview, plan: preview.computed as Plan };
 }
 
-async function writeEntry(tx: Tx, ctx: AuthContext, ledgerId: string, entry: Entry, replacesId: string | null) {
+async function writeEntry(tx: Tx, ctx: AuthContext, ledgerId: string, entry: Entry, replacesId: string | null, source: 'web' | 'import' = SOURCE) {
   const id = randomUUID(), now = new Date();
   await tx.insert(transactions).values({
     id, ledgerId, kind: entry.kind, occurredAt: new Date(entry.occurredAt), localDate: entry.localDate, timezone: entry.timezone,
     accountId: entry.accountId, categoryId: entry.categoryId, merchant: entry.merchant, note: entry.note, refundOf: entry.refundOf, replacesId,
-    source: SOURCE, createdBy: ctx.userId, createdAt: now, updatedAt: now,
+    source, createdBy: ctx.userId, createdAt: now, updatedAt: now,
   });
   let snapshotId = entry.rate?.snapshotId ?? null;
   if (entry.rate && !snapshotId) {
     snapshotId = randomUUID();
-    await tx.insert(fxSnapshots).values({ id: snapshotId, ledgerId, baseCurrency: entry.rate.base, quoteCurrency: entry.rate.quote, rate: entry.rate.value, source: entry.rate.source, sourceAt: entry.rate.sourceAt ? new Date(entry.rate.sourceAt) : null, freshness: entry.rate.freshness, manualReason: entry.rate.manualReason, createdBy: ctx.userId, createdAt: now });
+    await tx.insert(fxSnapshots).values({ id: snapshotId, ledgerId, baseCurrency: entry.rate.base, quoteCurrency: entry.rate.quote, rate: entry.rate.value, source: entry.rate.source, sourceAt: entry.rate.sourceAt ? new Date(entry.rate.sourceAt) : null, freshness: entry.rate.freshness, batchId: entry.rate.batchId ?? null, manualReason: entry.rate.manualReason, createdBy: ctx.userId, createdAt: now });
   }
   await tx.insert(transactionAmounts).values({
     ledgerId, transactionId: id, originalAmount: toColumn(entry.original.amount), originalCurrency: entry.original.currency,
@@ -285,6 +322,37 @@ export async function createRefund(ctx: AuthContext, ledgerId: string, originalI
     await markConsumed(tx, preview.id, id);
     return (await present(tx, ledgerId, [id]))[0];
   });
+}
+
+// ---------- imports (M2-IMPORT) ----------
+
+/** A pre-validated CSV row: amounts and the locked rate were computed at validation and are booked unchanged. */
+export type ImportedEntry = {
+  kind: 'expense' | 'income'; accountId: string; categoryId: string | null; merchant: string | null; note: string | null;
+  occurredAt: string; localDate: string; timezone: string; settlement: Money; base: Money; rate: Rate | null;
+};
+/** Books one import row with source "import" inside the caller's transaction (audit + outbox included). */
+export async function bookImportedEntry(tx: Tx, ctx: AuthContext, ledgerId: string, row: ImportedEntry) {
+  const entry: Entry = {
+    kind: row.kind, accountId: row.accountId, categoryId: row.categoryId, tagIds: [], merchant: row.merchant, note: row.note,
+    occurredAt: row.occurredAt, localDate: row.localDate, timezone: row.timezone, refundOf: null,
+    original: row.settlement, settlement: row.settlement, base: { ...row.base, estimated: false }, rate: row.rate,
+    postings: [{ accountId: row.accountId, amount: signedAmount(row.kind, row.settlement.amount) }],
+  };
+  const id = await writeEntry(tx, ctx, ledgerId, entry, null, 'import');
+  await audit(tx, ctx, ledgerId, 'transaction.imported', id);
+  await emit(tx, ledgerId, 'transaction.created', { transactionId: id, kind: row.kind, replacesId: null, source: 'import' });
+  return id;
+}
+/** Voids one imported transaction for a batch reversal; a refunded expense is left alone and reported. */
+export async function voidImportedTransaction(tx: Tx, ctx: AuthContext, ledgerId: string, id: string): Promise<'voided' | 'already_voided' | 'has_refunds'> {
+  const row = await lockTransaction(tx, ledgerId, id);
+  if (row.status === 'voided') return 'already_voided';
+  if (await hasPostedRefunds(tx, ledgerId, id)) return 'has_refunds';
+  await voidRow(tx, ledgerId, row);
+  await audit(tx, ctx, ledgerId, 'transaction.voided', id);
+  await emit(tx, ledgerId, 'transaction.voided', { transactionId: id, kind: row.kind, source: 'import_reversal' });
+  return 'voided';
 }
 
 // ---------- reading ----------

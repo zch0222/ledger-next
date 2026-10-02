@@ -3087,14 +3087,13 @@
         "tags": [
           "Imports"
         ],
-        "summary": "上传 CSV 并校验预览",
-        "description": "计划于 M2-IMPORT 实现；当前返回 501。",
+        "summary": "上传 CSV，异步校验并生成预览",
         "security": [
           {
             "session": []
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M2-IMPORT",
         "x-ledger-role": "editor",
         "x-idempotency": "required",
@@ -3124,7 +3123,7 @@
         },
         "responses": {
           "202": {
-            "description": "上传 CSV 并校验预览",
+            "description": "上传 CSV，异步校验并生成预览",
             "headers": {
               "X-Request-Id": {
                 "$ref": "#/components/headers/X-Request-Id"
@@ -3171,9 +3170,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -3184,14 +3180,13 @@
         "tags": [
           "Imports"
         ],
-        "summary": "导入任务",
-        "description": "计划于 M2-IMPORT 实现；当前返回 501。",
+        "summary": "导入任务（新到旧）",
         "security": [
           {
             "session": []
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M2-IMPORT",
         "x-ledger-role": "editor",
         "parameters": [
@@ -3229,7 +3224,7 @@
         ],
         "responses": {
           "200": {
-            "description": "导入任务",
+            "description": "导入任务（新到旧）",
             "headers": {
               "X-Request-Id": {
                 "$ref": "#/components/headers/X-Request-Id"
@@ -3261,9 +3256,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -3277,13 +3269,12 @@
           "Imports"
         ],
         "summary": "导入任务状态与行级错误",
-        "description": "计划于 M2-IMPORT 实现；当前返回 501。",
         "security": [
           {
             "session": []
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M2-IMPORT",
         "x-ledger-role": "editor",
         "parameters": [
@@ -3334,9 +3325,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -3349,14 +3337,14 @@
         "tags": [
           "Imports"
         ],
-        "summary": "提交已校验批次",
-        "description": "计划于 M2-IMPORT 实现；当前返回 501。\n\n业务冲突码：IMPORT_NOT_VALIDATED。",
+        "summary": "提交已校验批次（异步入账）",
+        "description": "业务冲突码：IMPORT_NOT_VALIDATED。",
         "security": [
           {
             "session": []
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M2-IMPORT",
         "x-ledger-role": "editor",
         "x-idempotency": "required",
@@ -3385,7 +3373,7 @@
         ],
         "responses": {
           "202": {
-            "description": "提交已校验批次",
+            "description": "提交已校验批次（异步入账）",
             "headers": {
               "X-Request-Id": {
                 "$ref": "#/components/headers/X-Request-Id"
@@ -3426,9 +3414,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -3441,14 +3426,14 @@
         "tags": [
           "Imports"
         ],
-        "summary": "撤销该批次生成的账务",
-        "description": "计划于 M2-IMPORT 实现；当前返回 501。\n\n业务冲突码：IMPORT_NOT_COMMITTED。",
+        "summary": "撤销该批次生成的账务（异步作废）",
+        "description": "业务冲突码：IMPORT_NOT_COMMITTED。",
         "security": [
           {
             "session": []
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M2-IMPORT",
         "x-ledger-role": "owner",
         "x-idempotency": "required",
@@ -3477,7 +3462,7 @@
         ],
         "responses": {
           "202": {
-            "description": "撤销该批次生成的账务",
+            "description": "撤销该批次生成的账务（异步作废）",
             "headers": {
               "X-Request-Id": {
                 "$ref": "#/components/headers/X-Request-Id"
@@ -3518,9 +3503,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -3534,7 +3516,6 @@
           "Exports"
         ],
         "summary": "创建导出任务",
-        "description": "计划于 M2-IMPORT 实现；当前返回 501。",
         "security": [
           {
             "session": []
@@ -3545,7 +3526,7 @@
             ]
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M2-IMPORT",
         "x-ledger-role": "viewer",
         "x-idempotency": "optional",
@@ -3622,9 +3603,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -3635,8 +3613,7 @@
         "tags": [
           "Exports"
         ],
-        "summary": "导出任务",
-        "description": "计划于 M2-IMPORT 实现；当前返回 501。",
+        "summary": "我创建的导出任务",
         "security": [
           {
             "session": []
@@ -3647,7 +3624,7 @@
             ]
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M2-IMPORT",
         "x-ledger-role": "viewer",
         "parameters": [
@@ -3685,7 +3662,7 @@
         ],
         "responses": {
           "200": {
-            "description": "导出任务",
+            "description": "我创建的导出任务",
             "headers": {
               "X-Request-Id": {
                 "$ref": "#/components/headers/X-Request-Id"
@@ -3717,9 +3694,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -3733,7 +3707,6 @@
           "Exports"
         ],
         "summary": "导出状态与短期下载地址",
-        "description": "计划于 M2-IMPORT 实现；当前返回 501。",
         "security": [
           {
             "session": []
@@ -3744,7 +3717,7 @@
             ]
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M2-IMPORT",
         "x-ledger-role": "viewer",
         "parameters": [
@@ -3795,8 +3768,89 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
+          "503": {
+            "$ref": "#/components/responses/ServiceUnavailable"
+          }
+        }
+      }
+    },
+    "/ledgers/{ledgerId}/export-jobs/{exportJobId}/file": {
+      "get": {
+        "operationId": "downloadExportFile",
+        "tags": [
+          "Exports"
+        ],
+        "summary": "下载导出文件（仅创建者，1 小时内）",
+        "description": "业务冲突码：EXPORT_NOT_READY。",
+        "security": [
+          {
+            "session": []
+          },
+          {
+            "pat": [
+              "exports:read"
+            ]
+          }
+        ],
+        "x-stability": "stable",
+        "x-milestone": "M2-IMPORT",
+        "x-ledger-role": "viewer",
+        "parameters": [
+          {
+            "name": "ledgerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "exportJobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "下载导出文件（仅创建者，1 小时内）",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/X-Request-Id"
+              },
+              "Content-Disposition": {
+                "description": "attachment; filename*=UTF-8''…",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
           },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
@@ -3811,7 +3865,6 @@
           "ExchangeRates"
         ],
         "summary": "参考汇率与新鲜度",
-        "description": "计划于 M3-FX 实现；当前返回 501。",
         "security": [
           {
             "session": []
@@ -3822,7 +3875,7 @@
             ]
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M3-FX",
         "parameters": [
           {
@@ -3889,9 +3942,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -3899,13 +3949,103 @@
       }
     },
     "/ledgers/{ledgerId}/manual-rate-records": {
+      "get": {
+        "operationId": "listManualRateRecords",
+        "tags": [
+          "ExchangeRates"
+        ],
+        "summary": "账本的人工汇率记录（新到旧）",
+        "security": [
+          {
+            "session": []
+          },
+          {
+            "pat": [
+              "fx:read"
+            ]
+          }
+        ],
+        "x-stability": "stable",
+        "x-milestone": "M3-FX",
+        "x-ledger-role": "viewer",
+        "parameters": [
+          {
+            "name": "ledgerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "每页条数，默认 50，最多 100",
+            "schema": {
+              "default": 50,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "description": "上一页返回的 nextCursor；篡改或与筛选条件不符返回 400",
+            "schema": {
+              "type": "string",
+              "maxLength": 512
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "账本的人工汇率记录（新到旧）",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/X-Request-Id"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManualRateRecordList"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationFailed"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "503": {
+            "$ref": "#/components/responses/ServiceUnavailable"
+          }
+        }
+      },
       "post": {
         "operationId": "createManualRateRecord",
         "tags": [
           "ExchangeRates"
         ],
         "summary": "有理由的人工汇率",
-        "description": "计划于 M3-FX 实现；当前返回 501。",
         "security": [
           {
             "session": []
@@ -3916,7 +4056,7 @@
             ]
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M3-FX",
         "x-ledger-role": "editor",
         "x-idempotency": "optional",
@@ -3993,9 +4133,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -4009,13 +4146,12 @@
           "ExchangeRates"
         ],
         "summary": "去重刷新任务（系统管理员）",
-        "description": "计划于 M3-FX 实现；当前返回 501。",
         "security": [
           {
             "session": []
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M3-FX",
         "requestBody": {
           "required": true,
@@ -4067,8 +4203,61 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
+          "503": {
+            "$ref": "#/components/responses/ServiceUnavailable"
+          }
+        }
+      }
+    },
+    "/exchange-rate-refresh-jobs/{jobId}": {
+      "get": {
+        "operationId": "getExchangeRateRefreshJob",
+        "tags": [
+          "ExchangeRates"
+        ],
+        "summary": "刷新任务状态（系统管理员）",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "x-stability": "stable",
+        "x-milestone": "M3-FX",
+        "parameters": [
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "刷新任务状态（系统管理员）",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/X-Request-Id"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExchangeRateRefreshJobResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
           },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
@@ -4083,7 +4272,6 @@
           "Reports"
         ],
         "summary": "KPI 汇总",
-        "description": "计划于 M3-REPORTS 实现；当前返回 501。",
         "security": [
           {
             "session": []
@@ -4094,7 +4282,7 @@
             ]
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M3-REPORTS",
         "x-ledger-role": "viewer",
         "parameters": [
@@ -4206,9 +4394,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -4222,7 +4407,6 @@
           "Reports"
         ],
         "summary": "收支趋势",
-        "description": "计划于 M3-REPORTS 实现；当前返回 501。",
         "security": [
           {
             "session": []
@@ -4233,7 +4417,7 @@
             ]
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M3-REPORTS",
         "x-ledger-role": "viewer",
         "parameters": [
@@ -4359,9 +4543,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -4375,7 +4556,6 @@
           "Reports"
         ],
         "summary": "分类排行",
-        "description": "计划于 M3-REPORTS 实现；当前返回 501。",
         "security": [
           {
             "session": []
@@ -4386,7 +4566,7 @@
             ]
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M3-REPORTS",
         "x-ledger-role": "viewer",
         "parameters": [
@@ -4511,9 +4691,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -4527,7 +4704,6 @@
           "Reports"
         ],
         "summary": "账户余额与净资产估值",
-        "description": "计划于 M3-REPORTS 实现；当前返回 501。",
         "security": [
           {
             "session": []
@@ -4538,7 +4714,7 @@
             ]
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M3-REPORTS",
         "x-ledger-role": "viewer",
         "parameters": [
@@ -4608,8 +4784,83 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
+          "503": {
+            "$ref": "#/components/responses/ServiceUnavailable"
+          }
+        }
+      }
+    },
+    "/ledgers/{ledgerId}/reports/budget-progress": {
+      "get": {
+        "operationId": "getBudgetProgress",
+        "tags": [
+          "Reports"
+        ],
+        "summary": "预算进度与阈值",
+        "security": [
+          {
+            "session": []
+          },
+          {
+            "pat": [
+              "budgets:read"
+            ]
+          }
+        ],
+        "x-stability": "stable",
+        "x-milestone": "M3-REPORTS",
+        "x-ledger-role": "viewer",
+        "parameters": [
+          {
+            "name": "ledgerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "date",
+            "in": "query",
+            "required": false,
+            "description": "统计包含该日的周期，默认账本时区今天",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "预算进度与阈值",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/X-Request-Id"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BudgetProgressResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationFailed"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
           },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
@@ -4624,7 +4875,6 @@
           "Budgets"
         ],
         "summary": "预算",
-        "description": "计划于 M3-REPORTS 实现；当前返回 501。",
         "security": [
           {
             "session": []
@@ -4635,7 +4885,7 @@
             ]
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M3-REPORTS",
         "x-ledger-role": "viewer",
         "parameters": [
@@ -4705,9 +4955,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -4719,7 +4966,6 @@
           "Budgets"
         ],
         "summary": "新建预算",
-        "description": "计划于 M3-REPORTS 实现；当前返回 501。",
         "security": [
           {
             "session": []
@@ -4730,7 +4976,7 @@
             ]
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M3-REPORTS",
         "x-ledger-role": "editor",
         "x-idempotency": "optional",
@@ -4810,9 +5056,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -4826,7 +5069,6 @@
           "Budgets"
         ],
         "summary": "修改预算",
-        "description": "计划于 M3-REPORTS 实现；当前返回 501。",
         "security": [
           {
             "session": []
@@ -4837,7 +5079,7 @@
             ]
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M3-REPORTS",
         "x-ledger-role": "editor",
         "parameters": [
@@ -4922,9 +5164,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -4936,7 +5175,6 @@
           "Budgets"
         ],
         "summary": "归档预算",
-        "description": "计划于 M3-REPORTS 实现；当前返回 501。",
         "security": [
           {
             "session": []
@@ -4947,7 +5185,7 @@
             ]
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M3-REPORTS",
         "x-ledger-role": "editor",
         "parameters": [
@@ -5009,9 +5247,6 @@
           },
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
-          },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
           },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
@@ -9389,6 +9624,189 @@
         ],
         "additionalProperties": false
       },
+      "BudgetProgress": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date",
+            "description": "业务日期 YYYY-MM-DD，按账本 / 订阅时区解释"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "budgetId": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "name": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "categoryId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "period": {
+                  "type": "string",
+                  "enum": [
+                    "week",
+                    "month",
+                    "year"
+                  ]
+                },
+                "periodStart": {
+                  "type": "string",
+                  "format": "date",
+                  "description": "业务日期 YYYY-MM-DD，按账本 / 订阅时区解释"
+                },
+                "periodEnd": {
+                  "type": "string",
+                  "format": "date",
+                  "description": "不含当日"
+                },
+                "amount": {
+                  "$ref": "#/components/schemas/Money"
+                },
+                "spent": {
+                  "$ref": "#/components/schemas/Decimal"
+                },
+                "remaining": {
+                  "$ref": "#/components/schemas/Decimal"
+                },
+                "ratio": {
+                  "type": "string",
+                  "description": "已用比例（小数，4 位）"
+                },
+                "reachedThresholds": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  }
+                }
+              },
+              "required": [
+                "budgetId",
+                "name",
+                "categoryId",
+                "period",
+                "periodStart",
+                "periodEnd",
+                "amount",
+                "spent",
+                "remaining",
+                "ratio",
+                "reachedThresholds"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "currency": {
+            "$ref": "#/components/schemas/Currency"
+          },
+          "valuationMode": {
+            "type": "string",
+            "enum": [
+              "historical",
+              "current"
+            ],
+            "description": "historical 使用入账时 base_amount；current 按 asOf 参考汇率估值"
+          },
+          "partial": {
+            "type": "boolean"
+          },
+          "excludedCount": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991,
+            "description": "因缺汇率被排除的交易数"
+          },
+          "dataVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "sourceAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "description": "RFC 3339 UTC 时间"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "date",
+          "items",
+          "currency",
+          "valuationMode",
+          "partial",
+          "excludedCount",
+          "dataVersion",
+          "sourceAt"
+        ],
+        "additionalProperties": false
+      },
+      "BudgetProgressList": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BudgetProgress"
+            }
+          },
+          "page": {
+            "$ref": "#/components/schemas/Page"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        },
+        "required": [
+          "data",
+          "page",
+          "meta"
+        ],
+        "additionalProperties": false
+      },
+      "BudgetProgressResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/BudgetProgress"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ],
+        "additionalProperties": false
+      },
       "BudgetResponse": {
         "type": "object",
         "properties": {
@@ -10350,6 +10768,32 @@
             "minimum": 0,
             "maximum": 9007199254740991
           },
+          "duplicateRows": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991,
+            "description": "已在之前批次入账而跳过的行（包含在 errorRows 中）"
+          },
+          "committedRows": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "revertedRows": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "failureReason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "errors": {
             "maxItems": 100,
             "type": "array",
@@ -10426,6 +10870,10 @@
           "rowCount",
           "validRows",
           "errorRows",
+          "duplicateRows",
+          "committedRows",
+          "revertedRows",
+          "failureReason",
           "errors",
           "createdAt",
           "committedAt",
@@ -10439,12 +10887,12 @@
           "file": {
             "type": "string",
             "format": "binary",
-            "description": "UTF-8 CSV，最大 5 MB"
+            "description": "UTF-8 CSV（可带 BOM），最大 5 MB、10,000 行"
           },
           "mapping": {
             "type": "string",
             "maxLength": 4096,
-            "description": "JSON：CSV 列到 date/amount/currency/account/category/note 的映射"
+            "description": "ImportMapping 的 JSON 字符串"
           }
         },
         "required": [
@@ -10489,6 +10937,90 @@
         "required": [
           "data",
           "meta"
+        ],
+        "additionalProperties": false
+      },
+      "ImportMapping": {
+        "type": "object",
+        "properties": {
+          "columns": {
+            "type": "object",
+            "properties": {
+              "date": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              },
+              "amount": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              },
+              "account": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              },
+              "kind": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              },
+              "currency": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              },
+              "category": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              },
+              "merchant": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              },
+              "note": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              }
+            },
+            "required": [
+              "date",
+              "amount",
+              "account"
+            ],
+            "additionalProperties": false,
+            "description": "CSV 表头名 → 字段。account / category 按名称匹配；currency 须与账户币种一致"
+          },
+          "dateFormat": {
+            "description": "默认 YYYY-MM-DD",
+            "type": "string",
+            "enum": [
+              "YYYY-MM-DD",
+              "YYYY/MM/DD",
+              "DD/MM/YYYY",
+              "MM/DD/YYYY"
+            ]
+          },
+          "timezone": {
+            "description": "业务日期所在时区，默认账本时区",
+            "type": "string",
+            "maxLength": 64
+          },
+          "defaultKind": {
+            "description": "无类型列时：设置后所有行按此类型且金额须为正；不设置则负数为支出、正数为收入",
+            "type": "string",
+            "enum": [
+              "expense",
+              "income"
+            ]
+          }
+        },
+        "required": [
+          "columns"
         ],
         "additionalProperties": false
       },
@@ -13797,6 +14329,10 @@
                 "format": "uuid"
               },
               "settlement": {
+                "$ref": "#/components/schemas/Money"
+              },
+              "originalAmount": {
+                "description": "跨币种退款必填：按原支付币种计的退款金额，用于累计上限与基准币冲减",
                 "$ref": "#/components/schemas/Money"
               },
               "note": {

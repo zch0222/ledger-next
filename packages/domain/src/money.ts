@@ -48,6 +48,21 @@ export function parseRate(value: string) {
   return rate.toFixed();
 }
 
+/**
+ * Provider market data (may use exponent notation or more than 18 decimals) → canonical DECIMAL(38,18) text.
+ * Rounded HALF_EVEN to 18 decimals; non-positive, non-finite or out-of-range values are rejected.
+ */
+export function normalizeRate(value: string) {
+  if (typeof value !== 'string' || !/^\d+(\.\d+)?([eE][+-]?\d+)?$/.test(value)) throw invalid('INVALID_RATE', '汇率须为正的十进制数');
+  const rate = new D(value).toDecimalPlaces(RATE_SCALE);
+  if (rate.isZero()) throw invalid('RATE_UNDERFLOW', '汇率低于可记录精度');
+  if (rate.gte(RATE_LIMIT)) throw invalid('RATE_OUT_OF_RANGE', '汇率超出可记录范围');
+  return rate.toFixed();
+}
+/** Relative change |b − a| / a, for detecting implausible jumps between two provider batches. */
+export function relativeChange(previous: string, next: string) { return new D(next).minus(previous).abs().dividedBy(previous); }
+export const exceeds = (value: InstanceType<typeof D>, threshold: string) => value.greaterThan(threshold);
+
 /** Formats a stored or computed value with exactly the currency's minor units; precision loss is a bug, so it throws. */
 export function formatAmount(value: string | Value, currency: string) {
   const units = minorUnits(currency), amount = new D(value);
