@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { afterAll, describe, expect, it } from 'vitest';
 import { closeRedis } from '../../packages/db/src/redis';
-import { clientAddress, enforce, exhausted, hit, LIMITS, MONEY_WRITES } from '../../packages/domain/src/rate-limit';
+import { authRateLimitStorage, clientAddress, enforce, exhausted, hit, LIMITS, MONEY_WRITES } from '../../packages/domain/src/rate-limit';
 
 // M7-SEC: fixed one-minute windows in Redis, counted per bucket and id, with Retry-After until the window ends.
 afterAll(async () => { await closeRedis(); });
@@ -31,5 +31,16 @@ describe('rate limits', () => {
     expect(clientAddress(new Headers({ 'x-forwarded-for': '2001:db8::1' }))).toBe('2001:db8::1');
     expect(clientAddress(new Headers({ 'x-forwarded-for': 'evil"key' }))).toBeNull();
     expect(clientAddress(new Headers())).toBeNull();
+  });
+  it('share the sign-in throttle between web processes through Redis', async () => {
+    const one = authRateLimitStorage(), two = authRateLimitStorage(), key = `203.0.113.9|/sign-in/email|${randomUUID()}`, rule = { window: 10, max: 3 };
+    expect(await one.consume(key, rule)).toEqual({ allowed: true, retryAfter: null });
+    expect(await two.consume(key, rule)).toEqual({ allowed: true, retryAfter: null }); // another process, same budget
+    expect(await one.consume(key, rule)).toEqual({ allowed: true, retryAfter: null });
+    const refused = await two.consume(key, rule);
+    expect(refused.allowed).toBe(false);
+    expect(refused.retryAfter).toBeGreaterThan(0);
+    expect(refused.retryAfter).toBeLessThanOrEqual(10);
+    expect(await one.consume(`${key}-other`, rule)).toEqual({ allowed: true, retryAfter: null });
   });
 });

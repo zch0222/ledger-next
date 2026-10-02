@@ -2,6 +2,7 @@ import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from '@better-auth/drizzle-adapter';
 import { database } from '../../../../packages/db/src/index';
 import * as schema from '../../../../packages/db/src/schema';
+import { authRateLimitStorage } from '../../../../packages/domain/src/rate-limit';
 
 let instance: ReturnType<typeof createAuth> | undefined;
 function createAuth() {
@@ -16,7 +17,8 @@ function createAuth() {
     user: { changeEmail: { enabled: false }, deleteUser: { enabled: false } },
     session: { expiresIn: 60 * 60 * 24 * 7, updateAge: 60 * 60 * 24, cookieCache: { enabled: false } },
     advanced: { database: { generateId: 'uuid' }, useSecureCookies: new URL(baseURL).protocol === 'https:' },
-    rateLimit: { enabled: true, window: 60, max: 60 },
+    // Shared through Redis so every web process (cluster mode) enforces the same per-client budget.
+    rateLimit: { enabled: true, window: 60, max: 60, customStorage: authRateLimitStorage() },
   });
 }
 export function auth() { return instance ??= createAuth(); }

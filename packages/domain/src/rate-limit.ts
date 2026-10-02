@@ -56,3 +56,30 @@ export function clientAddress(headers: Headers) {
   const first = headers.get('x-forwarded-for')?.split(',')[0]?.trim();
   return first && /^[0-9a-fA-F:.]{2,45}$/.test(first) ? first : null;
 }
+
+/**
+ * Storage for Better Auth's sign-in / sign-up throttle, shared by every web process through Redis (fixed window per
+ * key). Without Redis it falls back to this process's memory, so authentication stays throttled, if less tightly.
+ */
+export function authRateLimitStorage() {
+  const memory = new Map<string, { count: number; until: number }>();
+  return {
+    async consume(key: string, rule: { window: number; max: number }) {
+      const client = await readyRedis();
+      if (client) {
+        try {
+          const redisKey = `rl:auth:${key}`;
+          const created = await client.set(redisKey, '1', 'EX', rule.window, 'NX');
+          const count = created ? 1 : await client.incr(redisKey);
+          if (count <= rule.max) return { allowed: true, retryAfter: null };
+          const ttl = await client.ttl(redisKey);
+          return { allowed: false, retryAfter: ttl > 0 ? ttl : rule.window };
+        } catch { /* fall back to memory below */ }
+      }
+      const now = Date.now(), entry = memory.get(key);
+      if (!entry || entry.until <= now) { memory.set(key, { count: 1, until: now + rule.window * 1000 }); return { allowed: true, retryAfter: null }; }
+      if (entry.count < rule.max) { entry.count++; return { allowed: true, retryAfter: null }; }
+      return { allowed: false, retryAfter: Math.ceil((entry.until - now) / 1000) };
+    },
+  };
+}

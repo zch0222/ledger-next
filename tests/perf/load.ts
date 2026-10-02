@@ -89,35 +89,47 @@ const ops: Op[] = [
 const total = ops.reduce((a, o) => a + o.weight, 0);
 const choose = () => { let r = Math.random() * total; for (const op of ops) { if ((r -= op.weight) < 0) return op; } return ops[0]; };
 const fxAge: number[] = [], fxFreshness: Record<string, number> = {};
-const deadline = Date.now() + SECONDS * 1000;
-const sampler = (async () => {
-  while (Date.now() < deadline) {
-    const r = await call(seed.users[0], 'GET', '/api/v1/exchange-rates?base=USD&quotes=CNY,HKD,EUR,JPY');
-    if (r.status === 200) for (const rate of data<{ rates: { sourceAt: string | null; freshness: string }[] }>(r).rates) {
-      fxFreshness[rate.freshness] = (fxFreshness[rate.freshness] ?? 0) + 1;
-      if (rate.sourceAt) fxAge.push((Date.now() - Date.parse(rate.sourceAt)) / 1000);
+/** One mixed run: VUS users in a closed loop; with `thinkMs` each user pauses 0.5–1.5 × thinkMs between actions. */
+async function mixed(seconds: number, thinkMs: number) {
+  for (const k of Object.keys(samples)) delete samples[k];
+  for (const k of Object.keys(errors)) delete errors[k];
+  for (const k of Object.keys(counts)) delete counts[k];
+  const deadline = Date.now() + seconds * 1000;
+  const sampler = (async () => {
+    while (Date.now() < deadline) {
+      const r = await call(seed.users[0], 'GET', '/api/v1/exchange-rates?base=USD&quotes=CNY,HKD,EUR,JPY');
+      if (r.status === 200) for (const rate of data<{ rates: { sourceAt: string | null; freshness: string }[] }>(r).rates) {
+        fxFreshness[rate.freshness] = (fxFreshness[rate.freshness] ?? 0) + 1;
+        if (rate.sourceAt) fxAge.push((Date.now() - Date.parse(rate.sourceAt)) / 1000);
+      }
+      await sleep(10_000);
     }
-    await sleep(10_000);
-  }
-})();
-const loadStarted = Date.now();
-await Promise.all(Array.from({ length: VUS }, async () => {
-  while (Date.now() < deadline) {
-    try { await choose().run(pick(seed.users)); } catch (error) { errors.exception = (errors.exception ?? 0) + 1; if ((errors.exception ?? 0) < 5) console.error(error); }
-  }
-}));
-await sampler;
-const elapsed = (Date.now() - loadStarted) / 1000;
-const requests = Object.values(counts).reduce((a, b) => a + b, 0);
-report.mixed = {
-  seconds: Math.round(elapsed), requests, throughputPerSecond: Math.round(requests / elapsed),
-  readShare: Math.round(100 * (requests - (counts['api.preview'] ?? 0) - (counts['api.create'] ?? 0)) / requests),
-  ops: Object.fromEntries(Object.keys(counts).filter(name => name !== 'page.dashboard.full').sort().map(name => [name, { ...stats(samples[name] ?? []), requests: counts[name], errors: errors[name] ?? 0, errorRate: Number(((errors[name] ?? 0) / counts[name] * 100).toFixed(3)) }])),
-  exceptions: errors.exception ?? 0,
-  dashboardFull: stats(samples['page.dashboard.full'] ?? []),
-};
+  })();
+  const started = Date.now();
+  await Promise.all(Array.from({ length: VUS }, async (_, i) => {
+    if (thinkMs) await sleep(Math.random() * thinkMs * (i % 10) / 10); // stagger the start
+    while (Date.now() < deadline) {
+      try { await choose().run(pick(seed.users)); } catch (error) { errors.exception = (errors.exception ?? 0) + 1; if ((errors.exception ?? 0) < 5) console.error(error); }
+      if (thinkMs) await sleep(thinkMs * (0.5 + Math.random()));
+    }
+  }));
+  await sampler;
+  const elapsed = (Date.now() - started) / 1000;
+  const requests = Object.values(counts).reduce((a, b) => a + b, 0);
+  return {
+    seconds: Math.round(elapsed), thinkMs, requests, throughputPerSecond: Math.round(requests / elapsed),
+    readShare: Math.round(100 * (requests - (counts['api.preview'] ?? 0) - (counts['api.create'] ?? 0)) / requests),
+    ops: Object.fromEntries(Object.keys(counts).filter(name => name !== 'page.dashboard.full').sort().map(name => [name, { ...stats(samples[name] ?? []), requests: counts[name], errors: errors[name] ?? 0, errorRate: Number(((errors[name] ?? 0) / counts[name] * 100).toFixed(3)) }])),
+    exceptions: errors.exception ?? 0,
+    dashboardFull: stats(samples['page.dashboard.full'] ?? []),
+  };
+}
+// Stress: no think time, so 100 requests are always in flight. User model: 100 concurrent users who read before acting.
+report.mixed = await mixed(SECONDS, 0);
+console.error(`mixed load (stress) done: ${(report.mixed as { requests: number }).requests} requests`);
+report.mixedUsers = await mixed(Number(process.env.PERF_USER_SECONDS ?? 300), Number(process.env.PERF_THINK_MS ?? 2000));
+console.error(`mixed load (user model) done: ${(report.mixedUsers as { requests: number }).requests} requests`);
 report.fx = { sourceAgeSeconds: stats(fxAge), freshness: fxFreshness };
-console.error(`mixed load done: ${requests} requests in ${elapsed.toFixed(0)} s`);
 
 // 5. Reminder scheduling delay: scheduled_at → first attempt, for the rules created above.
 const db = await mysql.createConnection(process.env.DATABASE_URL!);
