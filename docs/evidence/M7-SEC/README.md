@@ -1,5 +1,7 @@
 # M7-SEC · 权限、密钥与数据安全验收 · 验证记录
 
+运行：`LEDGER_BUILD_CA=… pnpm test:e2e`（commit `c4694e4` 的工作树）——MySQL 集成 82 passed（含 `rate-limit.test.ts`）、Playwright 74 passed（含 `security.api.ts` 4 项）、日志脱敏扫描 PASS、web 143 / worker 0 优雅停机；`pnpm audit --prod` 0 项。
+
 日期：2026-10-02（Asia/Hong_Kong）· 执行：Claude Code（实现者自评估）。本记录汇总本轮新增检查与此前各里程碑的安全用例；第三方服务均为本地 mock（D21）。
 
 ## 检查矩阵
@@ -19,7 +21,7 @@
 | SSRF | Webhook / 飞书 / 企微地址：仅 https、官方域名校验、私网与元数据地址拒绝、连接时再做 DNS 检查（防重绑定） | 通过 | `notify.api.ts`、`notifications.test.ts`、`net-guard.ts` |
 | 渠道密钥 | 信封加密（AES-256-GCM），API / 页面只回脱敏摘要；主密钥轮换 `pnpm channels:rewrap` | 通过 | M5 证据、`notifications.test.ts` |
 | 限流（新增） | 每会话 / 令牌 600 次每分钟；认证失败按来源地址 30 次后 429（即使随后用对令牌）；资金写入按账本：会话 120、令牌 30；429 带 Retry-After；Redis 不可用时放行 | 通过 | `security.api.ts`「rate limits…」、`rate-limit.test.ts` |
-| 日志脱敏（新增） | Docker 套件跑完后扫描 web / worker 全部日志：无 PAT、测试密码、Bot token、Bearer 头、备注 / 商户文本、供应商密钥 | 见 Docker 记录 | `scripts/docker-test.mjs` 日志扫描步骤 |
+| 日志脱敏（新增） | Docker 套件跑完后扫描 web / worker 全部日志：无 PAT、测试密码、Bot token、Bearer 头、备注 / 商户文本、供应商密钥 | 通过（2026-10-02 运行：web / worker 日志 93 KiB 无匹配） | `scripts/docker-test.mjs` 日志扫描步骤 |
 | 依赖漏洞（新增） | `pnpm audit --prod`：8 项（3 高）全部来自 nodemailer 8.0.11，升级到 10.0.13 后 0 项；同时修正 SMTP 超时参数被当作邮件默认值而失效的问题 | 已修复 | `pnpm audit --prod` |
 
 ## 问题记录

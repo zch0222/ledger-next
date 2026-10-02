@@ -102,3 +102,25 @@
 | M6-CODEX / CLAUDE / DSH / QODER | 记录实际 transport、协议、版本 | 部分 | transport / 协议 / SDK 版本已记录；客户端版本需真实安装后记录 |
 
 留给人工审查：真实客户端（版本号）复测 11 项；MCP Inspector 人工探查；反向代理 Host / Origin 设置。
+
+## 2026-10-02 · M7-SEC、M7-OPS、M7-E2E
+
+命令与结果：
+
+- `pnpm lint`、`pnpm typecheck`、`pnpm contract:check`、`pnpm audit --prod`（0 项）：通过。
+- `pnpm test:unit`：18 文件 186 passed（语句 97.97 %、分支 94.63 %、函数 95.95 %、行 98.67 %）。
+- `LEDGER_BUILD_CA=/root/.ccr/ca-bundle.crt pnpm test:e2e`（`c4694e4` 工作树）：迁移演练 → 持久化 PASS → 集成 82 passed → 有数据回滚被拒绝 → 混沌演练 PASS → Playwright 74 passed（api 37、desktop 19、mobile 18）→ 日志脱敏扫描 PASS → web 143 / worker 0。
+- `LEDGER_BUILD_CA=… pnpm test:ops`：通过（见 M7-OPS 证据）。
+
+本轮发现并修复：API 分层限流缺失（SEC-1，阻塞）；nodemailer 8.0.11 的 3 高 5 中公告（SEC-2）；SMTP 超时参数位置错误导致不生效（SEC-3）；缺少 CSP / Permissions-Policy 基线（SEC-4）；恢复后报表缓存可能与旧时间线重合（必须清空 Redis，D35）；备库只改主机会重置复制位置；Redis 首次连接期间限流失效（等待首次就绪，之后故障立即放行）。
+
+| 任务 | 验收标准 | 结论 | 证据 |
+| --- | --- | --- | --- |
+| M7-SEC | 无跨账本读写、无明文密钥泄露 | 通过 | `security.api.ts`（AC07 逐字节同“不存在”）、`identity.api.ts`、日志扫描、渠道密钥信封加密 |
+| M7-SEC | 高影响审批不能自批、不能复用到不同请求 | 通过 | `agents.test.ts`、`agents.api.ts`、`agents.spec.ts` |
+| M7-OPS | 恢复后余额与审计对账一致，RPO / RTO 有测量 | 通过（测试规模） | 备份恢复 RTO 25.1 s（RPO = 距上次备份，演练中 3 笔 / 81 s）；备库恢复 RTO 25.8 s、0 丢失 |
+| M7-OPS | TG 与国内通道可达，worker 不依赖 web | 部分 | worker 独立发送已验证；真实渠道可达需生产主机（人工） |
+| M7-E2E | P0 / P1 缺陷关闭，资金用例通过 | 通过 | 回归记录与缺陷清单（M7-E2E 证据） |
+| M7-E2E | 无 mock 代替真实必要渠道联调 | **未满足（按授权以 mock 代替）** | D21：真实渠道与客户端联调全部列入最终人工审查，不宣称已实测 |
+
+留给人工审查：生产部署与真实渠道、真机浏览器、渗透测试、G1 签署。

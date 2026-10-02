@@ -57,6 +57,17 @@
 
 无未关闭的 P0 / P1。
 
+## 运行记录
+
+2026-10-02，`LEDGER_BUILD_CA=/root/.ccr/ca-bundle.crt pnpm test:e2e`（commit `c4694e4` 的工作树）：
+
+- 迁移 0001–0011 → 回滚最新迁移（空表）→ 重放 → 重启 MySQL / Redis / web / worker 后账号与账本保留（PASS）。
+- MySQL 集成：10 个文件 82 passed。
+- 有数据时回滚被拒绝；提醒混沌演练 PASS（在途 unknown 不重发、停机期间到期只发一次、过期不发）。
+- Playwright：74 passed（api 37、desktop 19、mobile 18，含 P00–P13 全部页面的响应式与 axe 矩阵），0 failed、0 flaky。
+- 日志脱敏扫描 PASS；web 143 / worker 0 优雅停机。
+- 单元：`pnpm test:unit` 18 文件 186 passed，纯模块覆盖率语句 97.97 %、分支 94.63 %、函数 95.95 %、行 98.67 %。
+
 ## 留给人工审查
 
 - AC10：真实个人微信（pushplus）与企业微信接收截图（脱敏时间 / event_id）。
