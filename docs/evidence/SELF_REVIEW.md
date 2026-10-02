@@ -79,3 +79,26 @@
 | M5-CHAOS | 调度延迟符合预算，重复风险可见 | 通过（测试规模） | `notification-stats` 7 日统计与调度延迟；unknown 状态在投递记录中显式标注 |
 
 留给人工审查：各渠道真实接收截图、SMTP 送达率、预生产混沌演练与长时延迟分布（见各任务 finalChecks）。
+
+## 2026-10-02 · M6-SERVER、M6-SKILL、M6-CODEX、M6-CLAUDE、M6-DSH、M6-QODER
+
+命令与结果（commit `515beb9`）：
+
+- `pnpm lint`、`pnpm typecheck`、`pnpm contract:check`：通过（令牌持有 `reminders:read` 时可列出本人渠道，增量变更）。
+- `pnpm test:unit`：18 文件 185 测试通过；覆盖范围新增 `packages/mcp/src/*.ts`（MCP 工具经内存传输对脚本化 REST 全量覆盖）与 M5 的纯模块。
+- `LEDGER_BUILD_CA=/root/.ccr/ca-bundle.crt pnpm test:e2e`：迁移 0001–0011 → 回滚 / 重放 → 重启持久化 PASS → MySQL 集成 79 passed → 有数据回滚被拒绝 → 混沌演练 PASS → Playwright 69 passed（新增 agents.api 4、clients.api 4、agents.spec 2）→ web 143 / worker 0 优雅停机。
+
+本轮发现并修复：历史时点的汇率被工具文案标成“实时（2 分钟内）”（改为“当时的历史报价”，并补单元与端到端断言）；P10 工具表在手机宽度横向滚动但不可聚焦（axe）；Skill 安装备份放在 skills 目录内会被客户端当成第二个同名 Skill（移到 `.ledger-skill-backup/`）。
+
+不连接任何模型服务（D21）：四客户端为协议级模拟（D32），每个客户端 11 项中 8 项模拟通过，3 项（Skill 按需加载、缺字段先追问、不执行恶意备注）依赖模型本身，列入最终人工审查。
+
+| 任务 | 验收标准 | 结论 | 证据 |
+| --- | --- | --- | --- |
+| M6-SERVER | MCP 不直连数据库、不另写资金逻辑 | 通过 | `packages/mcp` 只用 REST；`/mcp` 进程内调用同一 REST 处理器 |
+| M6-SERVER | 只读不可写、撤销立即生效、幂等跨入口一致 | 通过 | `agents.api.ts`、`clients.api.ts`、`agents.spec.ts` |
+| M6-SKILL | 不虚构工具、权限、金额或成功状态 | 通过 | `skill.test.ts` lint；工具参考由 tools/list 生成 |
+| M6-SKILL | 安装说明无真实 secret，四包一致 | 通过 | `skill.test.ts`（同一 SKILL.md、校验和、凭据扫描） |
+| M6-CODEX / CLAUDE / DSH / QODER | 读、预览写入、幂等、权限撤销、Skill 发现 | 模拟通过（Skill 加载待人工） | `docs/evidence/M6-*/README.md` 逐项结果与 requestId |
+| M6-CODEX / CLAUDE / DSH / QODER | 记录实际 transport、协议、版本 | 部分 | transport / 协议 / SDK 版本已记录；客户端版本需真实安装后记录 |
+
+留给人工审查：真实客户端（版本号）复测 11 项；MCP Inspector 人工探查；反向代理 Host / Origin 设置。

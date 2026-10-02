@@ -1,0 +1,35 @@
+# M7-PERF overlay: the production images and worker defaults (no fast test schedules), local provider mocks, and a
+# load-generator container from the tests image. Used by `pnpm test:perf`; never part of a deployment.
+services:
+  web:
+    ports: !override []
+    restart: "no"
+  mysql:
+    restart: "no"
+  redis:
+    restart: "no"
+  worker:
+    restart: "no"
+  mock-services:
+    restart: "no"
+  tests:
+    build: { context: ., target: tests }
+    environment:
+      BASE_URL: http://web:3000
+      DATABASE_URL: mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql:3306/${MYSQL_DATABASE}
+      REDIS_URL: redis://redis:6379
+      MOCK_URL: http://mock-services:4010
+      PERF_OUT: test-results/perf
+      PERF_USERS: ${PERF_USERS:-1000}
+      PERF_BIG_TX: ${PERF_BIG_TX:-100000}
+      PERF_VUS: ${PERF_VUS:-100}
+      PERF_SECONDS: ${PERF_SECONDS:-600}
+      PERF_COLD_RUNS: ${PERF_COLD_RUNS:-20}
+      PERF_VITALS_RUNS: ${PERF_VITALS_RUNS:-20}
+    depends_on:
+      web: { condition: service_healthy }
+      worker: { condition: service_healthy }
+    volumes:
+      - ./test-results:/app/test-results
+    init: true
+    shm_size: 1gb

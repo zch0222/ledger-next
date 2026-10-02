@@ -4,14 +4,14 @@ export type Problem = { status: number; code: string; title: string; requestId?:
 export type RestResult<T = unknown> = { ok: true; status: number; data: T; page?: { nextCursor: string | null; hasMore: boolean }; requestId: string; headers: Headers } | { ok: false; status: number; problem: Problem };
 export type Rest = <T = unknown>(method: 'GET' | 'POST' | 'PATCH' | 'DELETE', path: string, options?: { query?: Record<string, string | number | boolean | undefined | null>; body?: unknown; headers?: Record<string, string>; timeoutMs?: number }) => Promise<RestResult<T>>;
 
-export function restClient(baseUrl: string, token: string, fetchImpl: typeof fetch = fetch): Rest {
+export function restClient(baseUrl: string, token: string, fetchImpl: typeof fetch = fetch, forward: Record<string, string> = {}): Rest {
   const base = baseUrl.replace(/\/$/, '');
   return async (method, path, options = {}) => {
     const url = new URL(`${base}${path}`);
     for (const [k, v] of Object.entries(options.query ?? {})) if (v !== undefined && v !== null && v !== '') url.searchParams.set(k, String(v));
     let response: Response;
     try {
-      response = await fetchImpl(url, { method, headers: { Authorization: `Bearer ${token}`, Accept: 'application/json', ...(options.body !== undefined ? { 'Content-Type': 'application/json' } : {}), ...options.headers },
+      response = await fetchImpl(url, { method, headers: { ...forward, Authorization: `Bearer ${token}`, Accept: 'application/json', ...(options.body !== undefined ? { 'Content-Type': 'application/json' } : {}), ...options.headers },
         body: options.body !== undefined ? JSON.stringify(options.body) : undefined, signal: AbortSignal.timeout(options.timeoutMs ?? 20_000) });
     } catch (error) {
       const timeout = (error as Error)?.name === 'TimeoutError';

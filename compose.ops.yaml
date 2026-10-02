@@ -1,0 +1,38 @@
+# M7-OPS drill overlay: a streaming standby (second MySQL, server-id 2) and the tests container that drives the drill.
+# Used by `pnpm test:ops`; a production standby would live on another host / volume.
+services:
+  web:
+    ports: !override []
+    restart: "no"
+  mysql:
+    restart: "no"
+  redis:
+    restart: "no"
+  worker:
+    restart: "no"
+  mock-services:
+    restart: "no"
+  mysql-replica:
+    image: mysql:8.4@sha256:6ea90827b1100f8f2ae306a539f86d2c264a26ed435a2a9f75551dd5c3aeb242
+    command: ["--server-id=2", "--read-only=ON", "--relay-log=relay"]
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "MYSQL_PWD=$$MYSQL_ROOT_PASSWORD mysql -uroot -e 'SELECT 1' >/dev/null 2>&1"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    volumes:
+      - mysql-replica-data:/var/lib/mysql
+    restart: "no"
+  tests:
+    build: { context: ., target: tests }
+    environment:
+      BASE_URL: http://web:3000
+      DATABASE_URL: mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql:3306/${MYSQL_DATABASE}
+      MOCK_URL: http://mock-services:4010
+    volumes:
+      - ./test-results:/app/test-results
+    init: true
+volumes:
+  mysql-replica-data:

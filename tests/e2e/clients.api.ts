@@ -215,3 +215,33 @@ for (const id of ['codex', 'claude-code', 'dsh', 'qoder'] as const) {
     expect(result.rows.filter(r => r.result === 'pass')).toHaveLength(8);
   });
 }
+
+test('AC09: four clients on one ledger share permissions and idempotency; revoking one stops only that one', async () => {
+  test.setTimeout(90_000);
+  const b = await book('ac09', '5000');
+  const ids = ['codex', 'claude-code', 'dsh', 'qoder'] as const;
+  const tokens = Object.fromEntries(await Promise.all(ids.map(async id => [id, await issue(b, WRITE)] as const)));
+  const clients = Object.fromEntries(await Promise.all(ids.map(async id => [id, (await CONNECT[id](packages[id])(tokens[id].token)).client] as const)));
+  const now = () => new Date(Date.now() - 60_000).toISOString();
+  const preview = async (client: Client, amount: string) => sc(await client.callTool({ name: 'ledger_preview_transaction', arguments: { ledgerId: b.ledger.id, transaction: { kind: 'expense', accountId: b.cash.id, settlement: { amount, currency: 'CNY' }, occurredAt: now(), timezone: 'Asia/Hong_Kong' } } }) as CallToolResult).previewId as string;
+  for (const [i, id] of ids.entries()) {
+    const created = await clients[id].callTool({ name: 'ledger_create_transaction', arguments: { ledgerId: b.ledger.id, previewId: await preview(clients[id], `${i + 1}.00`), idempotencyKey: randomUUID() } }) as CallToolResult;
+    expect(created.isError, text(created)).toBeFalsy();
+  }
+  // One write intent, two entrances: MCP (Codex) first, then the same key over plain REST with another token of the same user.
+  const key = randomUUID(), previewId = await preview(clients.codex, '9.99');
+  const viaMcp = sc(await clients.codex.callTool({ name: 'ledger_create_transaction', arguments: { ledgerId: b.ledger.id, previewId, idempotencyKey: key } }) as CallToolResult);
+  const viaRest = await fetch(`${BASE}${b.base}/transactions`, { method: 'POST', headers: { Authorization: `Bearer ${tokens.dsh.token}`, 'Content-Type': 'application/json', 'Idempotency-Key': key }, body: JSON.stringify({ previewId }) });
+  expect(viaRest.status).toBe(201);
+  expect(viaRest.headers.get('idempotent-replayed')).toBe('true');
+  expect(((await viaRest.json()) as { data: { id: string } }).data.id).toBe((viaMcp.transaction as { id: string }).id);
+  const listed = sc(await clients['claude-code'].callTool({ name: 'ledger_list_transactions', arguments: { ledgerId: b.ledger.id } }) as CallToolResult);
+  expect(listed.items).toHaveLength(5);
+  // Revoke Claude Code's token: it fails on its next call, the other three carry on.
+  expect((await b.client.delete(`/api/v1/api-tokens/${tokens['claude-code'].id}`)).status()).toBe(204);
+  const after = await clients['claude-code'].callTool({ name: 'ledger_get_context', arguments: {} }).then(r => r as CallToolResult, (e: Error) => e);
+  expect(after instanceof Error ? after.message : JSON.stringify(sc(after).error)).toMatch(/401|invalid_token|INVALID_TOKEN/);
+  for (const id of ['codex', 'dsh', 'qoder'] as const) expect(sc(await clients[id].callTool({ name: 'ledger_get_context', arguments: {} }) as CallToolResult).ledger).toMatchObject({ id: b.ledger.id });
+  for (const client of Object.values(clients)) await client.close().catch(() => undefined);
+  await b.client.dispose();
+});

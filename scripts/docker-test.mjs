@@ -54,6 +54,14 @@ try {
   if (run([...args, ...chaos, 'verify']) !== 0) throw new Error('Chaos drill verification failed');
   status = run([...args, 'run', '--rm', '--no-deps', 'tests']);
   if (status !== 0) run([...args, 'logs', '--no-color', '--tail', '100', 'web', 'worker', 'migrate']);
+  // M7-SEC log redaction: after every suite has run, web and worker logs must not contain credentials or the
+  // amounts / notes / merchants the tests wrote (they log ids, codes and request ids only).
+  const logs = spawnSync(docker, [...args, 'logs', '--no-color', 'web', 'worker'], { env, encoding: 'utf8', maxBuffer: 256 * 1024 * 1024 });
+  const leaks = [[/lnp_[A-Za-z0-9_-]{43}/, 'personal access token'], [/Ledger-test-only-2026!/, 'test password'], [/\b\d{9}:[A-Za-z0-9_-]{24,}/, 'Telegram bot token'],
+    [/Bearer\s+[A-Za-z0-9._-]{20,}/, 'Authorization header'], [/忽略之前的|秘密商户|onerror=alert/, 'note or merchant text'], [/mock-fixer-key|smtp:\/\/[^\s]*:[^\s]*@/, 'provider secret']]
+    .filter(([pattern]) => pattern.test(`${logs.stdout}${logs.stderr}`)).map(([, what]) => what);
+  if (logs.status !== 0) throw new Error('Could not read service logs for the redaction check');
+  if (leaks.length) { status = 1; console.error(`Service logs leak: ${leaks.join(', ')}`); } else console.log(`PASS: web / worker logs (${(logs.stdout.length / 1024).toFixed(0)} KiB) contain no credentials, notes or merchants`);
   // Graceful shutdown on SIGTERM. Next drains connections, then exits 143 by design; the worker exits 0.
   // 137 would mean Docker had to SIGKILL after the stop timeout.
   if (run([...args, 'stop', 'web', 'worker']) !== 0) throw new Error('Services did not stop');

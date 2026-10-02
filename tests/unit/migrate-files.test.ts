@@ -11,3 +11,8 @@ it('hashes migrations identically on LF and CRLF checkouts', () => {
 it('splits on statement breakpoints and drops empty fragments', () => {
   expect(statements('A;\r\n--> statement-breakpoint\r\nB;\n--> statement-breakpoint\n  \n')).toEqual(['A;\n', '\nB;\n']);
 });
+it('the readiness check expects exactly the newest migration file', async () => {
+  const { readdirSync } = await import('node:fs');
+  const { EXPECTED_MIGRATION } = await import('../../packages/db/src/schema-version');
+  expect(EXPECTED_MIGRATION).toBe(readdirSync('packages/db/migrations').filter(f => f.endsWith('.sql')).sort().at(-1));
+});

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "project": "Ledger Next",
-  "updatedAt": "2026-10-02T12:14:43.030Z",
+  "updatedAt": "2026-10-02T12:44:38.618Z",
   "timezone": "Asia/Hong_Kong",
   "milestones": [
     {
@@ -892,9 +892,9 @@
       ],
       "role": "全栈 / Agent 集成",
       "owner": "Claude Code",
-      "status": "in_progress",
+      "status": "done",
       "requiresReview": true,
-      "reviewer": "",
+      "reviewer": "Claude Code 自评估（用户授权，见 docs/reviews/AUTONOMOUS_DELIVERY.md）",
       "blockedReason": "",
       "steps": [
         "基于 REST SDK 实现工具 schemas、两个 transport 与查询 resources。",
@@ -905,9 +905,16 @@
         "MCP 不直连数据库、不另写资金逻辑。",
         "只读令牌不可写，撤销立即生效，幂等跨入口一致。"
       ],
-      "nextAction": "Docker E2E 全量验证后自评估核销；随后 M6-SKILL 正式包与生成器",
-      "evidence": [],
-      "updatedAt": "2026-10-02T12:14:43.030Z"
+      "nextAction": "已完成（自评估），待最终人工审查",
+      "evidence": [
+        "docs/evidence/M6-SERVER/README.md"
+      ],
+      "updatedAt": "2026-10-02T12:44:32.012Z",
+      "reviewMode": "self",
+      "finalChecks": [
+        "用 MCP Inspector 对 /mcp 与 stdio 做一次人工探查",
+        "生产反向代理下 Host / Origin / X-Forwarded-For 设置复核"
+      ]
     },
     {
       "id": "M6-SKILL",
@@ -919,10 +926,10 @@
         "M6-SERVER"
       ],
       "role": "Agent 集成",
-      "owner": "未分配",
-      "status": "todo",
+      "owner": "Claude Code",
+      "status": "done",
       "requiresReview": true,
-      "reviewer": "",
+      "reviewer": "Claude Code 自评估（用户授权，见 docs/reviews/AUTONOMOUS_DELIVERY.md）",
       "blockedReason": "",
       "steps": [
         "将草案对齐真实工具 schema，补少量真实用例。",
@@ -933,9 +940,15 @@
         "Skill 不虚构工具、权限、金额或成功状态。",
         "安装说明不含真实 secret，四包内容口径一致。"
       ],
-      "nextAction": "把设计草案升级为与已实现服务匹配的正式包。",
-      "evidence": [],
-      "updatedAt": "2026-10-02"
+      "nextAction": "已完成（自评估），触发边界待真实客户端验证",
+      "evidence": [
+        "docs/evidence/M6-SKILL/README.md"
+      ],
+      "updatedAt": "2026-10-02T12:44:38.359Z",
+      "reviewMode": "self",
+      "finalChecks": [
+        "四个真实客户端中验证 Skill 正例触发、反例不触发、缺字段先追问"
+      ]
     },
     {
       "id": "M6-CODEX",
@@ -947,10 +960,10 @@
         "M6-SKILL"
       ],
       "role": "Agent 集成 / QA",
-      "owner": "未分配",
-      "status": "todo",
+      "owner": "Claude Code",
+      "status": "done",
       "requiresReview": true,
-      "reviewer": "",
+      "reviewer": "Claude Code 自评估（用户授权，见 docs/reviews/AUTONOMOUS_DELIVERY.md）",
       "blockedReason": "",
       "steps": [
         "锁定客户端版本，配置独立测试账本和只读/可写令牌。",
@@ -961,9 +974,15 @@
         "该客户端读、预览写入、幂等、权限撤销和 Skill 发现通过。",
         "记录实际 transport、协议、版本；配置存在不能代替实测。"
       ],
-      "nextAction": "安装本项目正式包并在 Codex 中跑验收矩阵。",
-      "evidence": [],
-      "updatedAt": "2026-10-02"
+      "nextAction": "已完成（自评估·模拟），真实客户端联调待人工",
+      "evidence": [
+        "docs/evidence/M6-CODEX/README.md"
+      ],
+      "updatedAt": "2026-10-02T12:44:38.415Z",
+      "reviewMode": "self",
+      "finalChecks": [
+        "在真实 Codex（记录版本）中复测契约 §7 全部 11 项并保存脱敏输出、requestId 与数据库核对"
+      ]
     },
     {
       "id": "M6-CLAUDE",
@@ -975,10 +994,10 @@
         "M6-SKILL"
       ],
       "role": "Agent 集成 / QA",
-      "owner": "未分配",
-      "status": "todo",
+      "owner": "Claude Code",
+      "status": "done",
       "requiresReview": true,
-      "reviewer": "",
+      "reviewer": "Claude Code 自评估（用户授权，见 docs/reviews/AUTONOMOUS_DELIVERY.md）",
       "blockedReason": "",
       "steps": [
         "锁定客户端版本，配置独立测试账本和只读/可写令牌。",
@@ -989,9 +1008,15 @@
         "该客户端读、预览写入、幂等、权限撤销和 Skill 发现通过。",
         "记录实际 transport、协议、版本；配置存在不能代替实测。"
       ],
-      "nextAction": "安装本项目正式包并在 Claude Code 中跑验收矩阵。",
-      "evidence": [],
-      "updatedAt": "2026-10-02"
+      "nextAction": "已完成（自评估·模拟），真实客户端联调待人工",
+      "evidence": [
+        "docs/evidence/M6-CLAUDE/README.md"
+      ],
+      "updatedAt": "2026-10-02T12:44:38.478Z",
+      "reviewMode": "self",
+      "finalChecks": [
+        "在真实 Claude Code（记录版本）中复测契约 §7 全部 11 项并保存脱敏输出、requestId 与数据库核对"
+      ]
     },
     {
       "id": "M6-DSH",
@@ -1003,10 +1028,10 @@
         "M6-SKILL"
       ],
       "role": "Agent 集成 / QA",
-      "owner": "未分配",
-      "status": "todo",
+      "owner": "Claude Code",
+      "status": "done",
       "requiresReview": true,
-      "reviewer": "",
+      "reviewer": "Claude Code 自评估（用户授权，见 docs/reviews/AUTONOMOUS_DELIVERY.md）",
       "blockedReason": "",
       "steps": [
         "锁定客户端版本，配置独立测试账本和只读/可写令牌。",
@@ -1017,9 +1042,15 @@
         "该客户端读、预览写入、幂等、权限撤销和 Skill 发现通过。",
         "记录实际 transport、协议、版本；配置存在不能代替实测。"
       ],
-      "nextAction": "安装本项目正式包并在 DeepSeek Harness 中跑验收矩阵。",
-      "evidence": [],
-      "updatedAt": "2026-10-02"
+      "nextAction": "已完成（自评估·模拟），真实客户端联调待人工",
+      "evidence": [
+        "docs/evidence/M6-DSH/README.md"
+      ],
+      "updatedAt": "2026-10-02T12:44:38.545Z",
+      "reviewMode": "self",
+      "finalChecks": [
+        "在真实 dsh（记录版本）中复测契约 §7 全部 11 项并保存脱敏输出、requestId 与数据库核对"
+      ]
     },
     {
       "id": "M6-QODER",
@@ -1031,10 +1062,10 @@
         "M6-SKILL"
       ],
       "role": "Agent 集成 / QA",
-      "owner": "未分配",
-      "status": "todo",
+      "owner": "Claude Code",
+      "status": "done",
       "requiresReview": true,
-      "reviewer": "",
+      "reviewer": "Claude Code 自评估（用户授权，见 docs/reviews/AUTONOMOUS_DELIVERY.md）",
       "blockedReason": "",
       "steps": [
         "锁定客户端版本，配置独立测试账本和只读/可写令牌。",
@@ -1045,9 +1076,15 @@
         "该客户端读、预览写入、幂等、权限撤销和 Skill 发现通过。",
         "记录实际 transport、协议、版本；配置存在不能代替实测。"
       ],
-      "nextAction": "安装本项目正式包并在 Qoder IDE / CLI 中跑验收矩阵。",
-      "evidence": [],
-      "updatedAt": "2026-10-02"
+      "nextAction": "已完成（自评估·模拟），真实客户端联调待人工",
+      "evidence": [
+        "docs/evidence/M6-QODER/README.md"
+      ],
+      "updatedAt": "2026-10-02T12:44:38.618Z",
+      "reviewMode": "self",
+      "finalChecks": [
+        "在真实 Qoder（记录版本）中复测契约 §7 全部 11 项并保存脱敏输出、requestId 与数据库核对"
+      ]
     },
     {
       "id": "M7-SEC",
@@ -1641,6 +1678,54 @@
       "to": "in_progress",
       "actor": "Claude Code",
       "note": "MCP 服务实现：15 个工具 + 2 个资源（只经 REST、使用调用者令牌）；/mcp 无状态 Streamable HTTP（Host / Origin / Bearer / 大小检查）与 stdio 打包；P10 Agent 接入页（令牌只显示一次、审批、客户端配置）"
+    },
+    {
+      "at": "2026-10-02T12:44:32.012Z",
+      "id": "M6-SERVER",
+      "from": "in_progress",
+      "to": "done",
+      "actor": "Claude Code",
+      "note": "Docker E2E（515beb9）：Playwright 69 通过（agents.api 4、clients.api 4、agents.spec 2）；MCP 15 工具 + 2 资源只经 REST；只读不可写、撤销立即生效、幂等跨入口一致、审批绑定请求"
+    },
+    {
+      "at": "2026-10-02T12:44:38.359Z",
+      "id": "M6-SKILL",
+      "from": "todo",
+      "to": "done",
+      "actor": "Claude Code",
+      "note": "正式 Skill 单一来源 + 由 tools/list 生成的工具参考；skill:build 静态校验（无虚构工具 / 作用域 / 链接 / 凭据）并生成四包与校验和；skill:install 同名保护（差异 + 退出 3 + 备份到 skills 目录外）"
+    },
+    {
+      "at": "2026-10-02T12:44:38.415Z",
+      "id": "M6-CODEX",
+      "from": "todo",
+      "to": "done",
+      "actor": "Claude Code",
+      "note": "协议级模拟（D32）：按 Codex 的配置格式解析发布包、官方 MCP SDK 客户端走同一传输；契约 §7 的 11 项中 8 项模拟通过，3 项依赖模型判断留待人工"
+    },
+    {
+      "at": "2026-10-02T12:44:38.478Z",
+      "id": "M6-CLAUDE",
+      "from": "todo",
+      "to": "done",
+      "actor": "Claude Code",
+      "note": "协议级模拟（D32）：按 Claude Code 的配置格式解析发布包、官方 MCP SDK 客户端走同一传输；契约 §7 的 11 项中 8 项模拟通过，3 项依赖模型判断留待人工"
+    },
+    {
+      "at": "2026-10-02T12:44:38.545Z",
+      "id": "M6-DSH",
+      "from": "todo",
+      "to": "done",
+      "actor": "Claude Code",
+      "note": "协议级模拟（D32）：按 dsh 的配置格式解析发布包、官方 MCP SDK 客户端走同一传输；契约 §7 的 11 项中 8 项模拟通过，3 项依赖模型判断留待人工"
+    },
+    {
+      "at": "2026-10-02T12:44:38.618Z",
+      "id": "M6-QODER",
+      "from": "todo",
+      "to": "done",
+      "actor": "Claude Code",
+      "note": "协议级模拟（D32）：按 Qoder 的配置格式解析发布包、官方 MCP SDK 客户端走同一传输；契约 §7 的 11 项中 8 项模拟通过，3 项依赖模型判断留待人工"
     }
   ]
 }

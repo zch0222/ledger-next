@@ -20,7 +20,9 @@ export async function POST(request: Request) {
   const guard = guardMcpRequest(request, { appUrl, allowedHosts: process.env.MCP_ALLOWED_HOSTS, allowedOrigins: process.env.MCP_ALLOWED_ORIGINS });
   if ('response' in guard) return guard.response;
   const apiBase = `${appUrl.replace(/\/$/, '')}/api/v1`;
-  const rest = restClient(apiBase, guard.token, inProcess);
+  // The caller's address (from the reverse proxy) travels with every in-process REST call, for rate limits.
+  const forwarded = request.headers.get('x-forwarded-for');
+  const rest = restClient(apiBase, guard.token, inProcess, forwarded ? { 'X-Forwarded-For': forwarded } : {});
   // A revoked or expired token is refused at the door, so clients can show "needs authentication".
   const me = await rest('GET', '/me');
   if (!me.ok && me.status === 401) return unauthorized('令牌无效、已过期或已撤销', 'invalid_token');

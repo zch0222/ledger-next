@@ -5,6 +5,7 @@ import { validateIdempotencyKey } from '../../../../../packages/domain/src/idemp
 import { hasIdempotencyRecord, withIdempotency } from '../../../../../packages/domain/src/idempotent';
 import { approvalReason, consumeApproval, createApproval } from '../../../../../packages/domain/src/agents';
 import { DomainError } from '../../../../../packages/domain/src/policy';
+import { clientAddress, enforce, exhausted, hit, LIMITS, MONEY_WRITES, tooMany } from '../../../../../packages/domain/src/rate-limit';
 import { IMPORT_MAX_BYTES } from '../../../../../packages/domain/src/imports';
 import { attachment, body, context, failure, json, upload, writeGuard } from '../http';
 import { handlers } from './handlers';
@@ -14,8 +15,16 @@ import { handlers } from './handlers';
 export async function handle(request: Request, route: { params: Promise<{ segments: string[] }> }) {
   let requestId: string = randomUUID();
   try {
-    const ctx = await context(request.headers);
+    // Failed authentication is counted per client address; a used-up budget is refused before any credential check.
+    const address = clientAddress(request.headers);
+    if (address) { const verdict = await exhausted(LIMITS.authFailure(), address); if (!verdict.allowed) throw tooMany(verdict, '认证失败次数过多'); }
+    const ctx = await context(request.headers).catch(async (error: unknown) => {
+      if (address && error instanceof DomainError && error.status === 401) await hit(LIMITS.authFailure(), address);
+      throw error;
+    });
     requestId = ctx.requestId;
+    const actor = ctx.auth.type === 'token' ? `token:${ctx.auth.tokenId}` : `user:${ctx.userId}`;
+    await enforce(LIMITS.actor(), actor);
     const path = `/${(await route.params).segments.join('/')}`;
     const match = matchOperation(request.method, path);
     if (match.kind === 'none') throw new DomainError(404, 'NOT_FOUND', '资源不存在');
@@ -30,6 +39,8 @@ export async function handle(request: Request, route: { params: Promise<{ segmen
       if (missing.length) throw new DomainError(403, 'INSUFFICIENT_SCOPE', `令牌缺少作用域：${missing.join(', ')}`, { 'WWW-Authenticate': `Bearer error="insufficient_scope", scope="${operation.scopes.join(' ')}"` });
       if (params.ledgerId && !ctx.auth.ledgerIds.includes(params.ledgerId)) throw new DomainError(404, 'NOT_FOUND', '资源不存在');
     }
+    // Money writes have their own budget per actor and ledger, tighter for Agent tokens (no runaway loops).
+    if (MONEY_WRITES.has(operation.id) && params.ledgerId) await enforce(ctx.auth.type === 'token' ? LIMITS.agentMoney() : LIMITS.money(), `${actor}:${params.ledgerId}`, '记账写入过于频繁');
     if (request.method !== 'GET') writeGuard(request, operation.body ? operation.bodyType ?? 'application/json' : null, ctx.auth.type === 'session');
     if (operation.stability !== 'stable') throw new DomainError(501, 'NOT_IMPLEMENTED', `该接口已在契约中发布，计划于 ${operation.milestone} 实现`);
     const query = operation.query ? operation.query.parse(Object.fromEntries(new URL(request.url).searchParams)) : {};
