@@ -53,17 +53,17 @@ for (let run = 0; run < RUNS; run++) {
   for (const [name, path] of Object.entries(aggregations)) (hot[name] ??= []).push(ok(await call(big, 'GET', path), name).ms);
 }
 // 3. Dashboard TTFB (server-rendered, signed in), cold then hot, for the large ledger and random small ones.
-const dashCold: number[] = [], dashHot: number[] = [], bigDashCold: number[] = [], bigDashHot: number[] = [];
+// TTFB (headers) and full HTML (the streamed page including every server-rendered section).
+const dash: Record<string, number[]> = {};
+const page = async (key: string, u: User) => { const r = ok(await call(u, 'GET', `/ledgers/${u.ledgerId}/dashboard`), 'dashboard'); (dash[key] ??= []).push(r.ms); (dash[`${key}Full`] ??= []).push(r.total); };
 for (let run = 0; run < RUNS; run++) {
   await flushReports();
-  bigDashCold.push(ok(await call(big, 'GET', `/ledgers/${big.ledgerId}/dashboard`), 'dashboard').ms);
-  bigDashHot.push(ok(await call(big, 'GET', `/ledgers/${big.ledgerId}/dashboard`), 'dashboard').ms);
+  await page('bigCold', big); await page('bigHot', big);
   const u = pick(seed.users);
-  dashCold.push(ok(await call(u, 'GET', `/ledgers/${u.ledgerId}/dashboard`), 'dashboard').ms);
-  dashHot.push(ok(await call(u, 'GET', `/ledgers/${u.ledgerId}/dashboard`), 'dashboard').ms);
+  await page('smallCold', u); await page('smallHot', u);
 }
 report.aggregation12m = { cold: Object.fromEntries(Object.entries(cold).map(([k, v]) => [k, stats(v)])), hot: Object.fromEntries(Object.entries(hot).map(([k, v]) => [k, stats(v)])) };
-report.dashboardTtfb = { bigCold: stats(bigDashCold), bigHot: stats(bigDashHot), smallCold: stats(dashCold), smallHot: stats(dashHot) };
+report.dashboardTtfb = Object.fromEntries(Object.entries(dash).map(([k, v]) => [k, stats(v)]));
 console.error('cold / hot phase done');
 
 // 4. Mixed closed-loop load.
@@ -74,7 +74,7 @@ const record = (name: string, result: { status: number; ms: number }) => {
   if (result.status >= 400 || result.status === 0) errors[name] = (errors[name] ?? 0) + 1; else (samples[name] ??= []).push(result.ms);
 };
 const ops: Op[] = [
-  { name: 'page.dashboard', weight: 25, run: async u => record('page.dashboard', await call(u, 'GET', `/ledgers/${u.ledgerId}/dashboard`)) },
+  { name: 'page.dashboard', weight: 25, run: async u => { const r = await call(u, 'GET', `/ledgers/${u.ledgerId}/dashboard`); record('page.dashboard', r); if (r.status < 400) (samples['page.dashboard.full'] ??= []).push(r.total); } },
   { name: 'page.transactions', weight: 10, run: async u => record('page.transactions', await call(u, 'GET', `/ledgers/${u.ledgerId}/transactions`)) },
   { name: 'api.transactions', weight: 20, run: async u => record('api.transactions', await call(u, 'GET', `${u.base}/transactions?limit=50`)) },
   { name: 'api.summary', weight: 15, run: async u => record('api.summary', await call(u, 'GET', `${u.base}/reports/summary?dateFrom=${monthStart}&dateTo=${nextMonth}`)) },
@@ -112,8 +112,9 @@ const requests = Object.values(counts).reduce((a, b) => a + b, 0);
 report.mixed = {
   seconds: Math.round(elapsed), requests, throughputPerSecond: Math.round(requests / elapsed),
   readShare: Math.round(100 * (requests - (counts['api.preview'] ?? 0) - (counts['api.create'] ?? 0)) / requests),
-  ops: Object.fromEntries(Object.keys(counts).sort().map(name => [name, { ...stats(samples[name] ?? []), requests: counts[name], errors: errors[name] ?? 0, errorRate: Number(((errors[name] ?? 0) / counts[name] * 100).toFixed(3)) }])),
+  ops: Object.fromEntries(Object.keys(counts).filter(name => name !== 'page.dashboard.full').sort().map(name => [name, { ...stats(samples[name] ?? []), requests: counts[name], errors: errors[name] ?? 0, errorRate: Number(((errors[name] ?? 0) / counts[name] * 100).toFixed(3)) }])),
   exceptions: errors.exception ?? 0,
+  dashboardFull: stats(samples['page.dashboard.full'] ?? []),
 };
 report.fx = { sourceAgeSeconds: stats(fxAge), freshness: fxFreshness };
 console.error(`mixed load done: ${requests} requests in ${elapsed.toFixed(0)} s`);

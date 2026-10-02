@@ -5,9 +5,9 @@ export const BASE = process.env.BASE_URL ?? 'http://localhost:3000';
 export const OUT = process.env.PERF_OUT ?? 'test-results/perf';
 export const PASSWORD = 'Ledger-perf-only-2026!';
 export type Session = { cookie: string; xff: string };
-export type Result = { status: number; ms: number; data: unknown; headers: Headers };
+export type Result = { status: number; ms: number; total: number; data: unknown; headers: Headers };
 
-/** One HTTP call; `ms` is time to response headers (TTFB) for pages, full body time for JSON. */
+/** One HTTP call; `ms` is time to response headers (TTFB) for pages and full body time for JSON; `total` is always the full body time. */
 export async function call(session: Session | null, method: string, path: string, body?: unknown, headers: Record<string, string> = {}): Promise<Result> {
   const started = performance.now();
   const response = await fetch(`${BASE}${path}`, {
@@ -18,7 +18,8 @@ export async function call(session: Session | null, method: string, path: string
   const ttfb = performance.now() - started;
   const type = response.headers.get('content-type') ?? '';
   const data = type.includes('json') ? await response.json().catch(() => null) : await response.text();
-  return { status: response.status, ms: type.includes('json') ? performance.now() - started : ttfb, data, headers: response.headers };
+  const total = performance.now() - started;
+  return { status: response.status, ms: type.includes('json') ? total : ttfb, total, data, headers: response.headers };
 }
 export const data = <T>(result: Result) => (result.data as { data: T }).data;
 export function ok(result: Result, what: string) {

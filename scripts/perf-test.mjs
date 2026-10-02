@@ -38,6 +38,11 @@ try {
     ROUND(SUM_TIMER_WAIT / 1e12, 1) AS total_s, ROUND(SUM_ROWS_EXAMINED / GREATEST(COUNT_STAR, 1)) AS rows_examined
     FROM performance_schema.events_statements_summary_by_digest WHERE SCHEMA_NAME = '${env.MYSQL_DATABASE}' ORDER BY SUM_TIMER_WAIT DESC LIMIT 15`);
   if (run(tsx('tests/perf/vitals.ts')) !== 0) throw new Error('vitals failed');
+  // Backup / restore at this size (M7-OPS RTO scaling): full logical dump, then load it into a scratch schema.
+  const timed = command => { const started = Date.now(); const r = capture([...args, 'exec', '-T', '-e', `MYSQL_PWD=${env.MYSQL_ROOT_PASSWORD}`, 'mysql', 'sh', '-c', command]); if (r.status !== 0) throw new Error(r.stderr); return { seconds: (Date.now() - started) / 1000, out: r.stdout.trim() }; };
+  const dumped = timed(`mysqldump -uroot --single-transaction --routines --triggers --set-gtid-purged=OFF ${env.MYSQL_DATABASE} > /tmp/perf.sql && wc -c < /tmp/perf.sql`);
+  const restored = timed(`mysql -uroot -e 'CREATE DATABASE restore_probe' && mysql -uroot restore_probe < /tmp/perf.sql && mysql -uroot -N -e 'SELECT COUNT(*) FROM restore_probe.transactions'`);
+  writeFileSync(`${out}/backup.json`, `${JSON.stringify({ dumpSeconds: dumped.seconds, dumpBytes: Number(dumped.out), restoreSeconds: restored.seconds, restoredTransactions: Number(restored.out) }, null, 2)}\n`);
   const stats = capture(['stats', '--no-stream', '--format', '{{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}']).stdout.split('\n').filter(l => l.startsWith(project));
   const host = { cpus: capture(['info', '--format', '{{.NCPU}}']).stdout.trim(), memory: capture(['info', '--format', '{{.MemTotal}}']).stdout.trim(), server: capture(['info', '--format', '{{.ServerVersion}}']).stdout.trim(), kernel: capture(['info', '--format', '{{.KernelVersion}}']).stdout.trim() };
   const versions = sql('SELECT VERSION() AS mysql')[0];
