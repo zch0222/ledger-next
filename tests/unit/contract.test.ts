@@ -51,6 +51,8 @@ describe('OpenAPI document', () => {
       'getAccount', 'getTransaction', 'listAccounts', 'listCategories', 'listTags', 'listTransactions', 'updateAccount', 'updateCategory', 'updateTag', 'updateTransaction', 'voidTransaction'],
     'M2-IMPORT': ['createExportJob', 'createImportCommit', 'createImportJob', 'createImportReversal', 'downloadExportFile', 'getExportJob', 'getImportJob', 'listExportJobs', 'listImportJobs'],
     'M3-REPORTS': ['archiveBudget', 'createBudget', 'getAccountBalances', 'getBudgetProgress', 'getCashFlow', 'getCategoryBreakdown', 'getReportSummary', 'listBudgets', 'updateBudget'],
+    'M4-THEME': ['getPreferences', 'updatePreferences'],
+    'M4-SUBS': ['createBillPayment', 'createSubscription', 'createSubscriptionPreview', 'getBillOccurrence', 'getSubscription', 'listBillOccurrences', 'listSubscriptions', 'updateBillOccurrence', 'updateSubscription'],
     'M3-FX': ['createExchangeRateRefreshJob', 'createManualRateRecord', 'getExchangeRateRefreshJob', 'getExchangeRates', 'listManualRateRecords'],
   };
   it('marks exactly the implemented operations stable', () => {

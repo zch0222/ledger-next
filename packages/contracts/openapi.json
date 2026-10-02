@@ -907,13 +907,12 @@
           "Preferences"
         ],
         "summary": "外观偏好",
-        "description": "计划于 M4-THEME 实现；当前返回 501。",
         "security": [
           {
             "session": []
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M4-THEME",
         "responses": {
           "200": {
@@ -940,9 +939,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -954,13 +950,12 @@
           "Preferences"
         ],
         "summary": "修改外观偏好",
-        "description": "计划于 M4-THEME 实现；当前返回 501。",
         "security": [
           {
             "session": []
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M4-THEME",
         "parameters": [
           {
@@ -1022,9 +1017,6 @@
           },
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
-          },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
           },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
@@ -5261,7 +5253,6 @@
           "Subscriptions"
         ],
         "summary": "周期订阅",
-        "description": "计划于 M4-SUBS 实现；当前返回 501。",
         "security": [
           {
             "session": []
@@ -5272,7 +5263,7 @@
             ]
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M4-SUBS",
         "x-ledger-role": "viewer",
         "parameters": [
@@ -5355,9 +5346,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -5369,7 +5357,7 @@
           "Subscriptions"
         ],
         "summary": "提交预览创建订阅",
-        "description": "计划于 M4-SUBS 实现；当前返回 501。\n\n业务冲突码：PREVIEW_STALE。",
+        "description": "业务冲突码：PREVIEW_STALE / PREVIEW_CONSUMED。",
         "security": [
           {
             "session": []
@@ -5380,7 +5368,7 @@
             ]
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M4-SUBS",
         "x-ledger-role": "editor",
         "x-idempotency": "required",
@@ -5460,9 +5448,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -5476,7 +5461,6 @@
           "Subscriptions"
         ],
         "summary": "校验周期并展示未来三次",
-        "description": "计划于 M4-SUBS 实现；当前返回 501。",
         "security": [
           {
             "session": []
@@ -5487,7 +5471,7 @@
             ]
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M4-SUBS",
         "x-ledger-role": "editor",
         "parameters": [
@@ -5551,9 +5535,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -5567,7 +5548,6 @@
           "Subscriptions"
         ],
         "summary": "订阅详情",
-        "description": "计划于 M4-SUBS 实现；当前返回 501。",
         "security": [
           {
             "session": []
@@ -5578,7 +5558,7 @@
             ]
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M4-SUBS",
         "x-ledger-role": "viewer",
         "parameters": [
@@ -5632,9 +5612,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -5646,7 +5623,7 @@
           "Subscriptions"
         ],
         "summary": "修改、暂停、取消（状态字段）",
-        "description": "计划于 M4-SUBS 实现；当前返回 501。",
+        "description": "业务冲突码：SUBSCRIPTION_CANCELLED。",
         "security": [
           {
             "session": []
@@ -5657,7 +5634,7 @@
             ]
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M4-SUBS",
         "x-ledger-role": "editor",
         "parameters": [
@@ -5724,6 +5701,9 @@
           "404": {
             "$ref": "#/components/responses/NotFound"
           },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
           },
@@ -5742,9 +5722,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -5758,7 +5735,6 @@
           "Subscriptions"
         ],
         "summary": "账单列表 / 日历",
-        "description": "计划于 M4-SUBS 实现；当前返回 501。",
         "security": [
           {
             "session": []
@@ -5769,7 +5745,7 @@
             ]
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M4-SUBS",
         "x-ledger-role": "viewer",
         "parameters": [
@@ -5822,7 +5798,8 @@
                 "due",
                 "paid",
                 "skipped",
-                "overdue"
+                "overdue",
+                "cancelled"
               ]
             }
           },
@@ -5883,9 +5860,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -5899,7 +5873,6 @@
           "Subscriptions"
         ],
         "summary": "账单详情",
-        "description": "计划于 M4-SUBS 实现；当前返回 501。",
         "security": [
           {
             "session": []
@@ -5910,7 +5883,7 @@
             ]
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M4-SUBS",
         "x-ledger-role": "viewer",
         "parameters": [
@@ -5964,9 +5937,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -5978,7 +5948,7 @@
           "Subscriptions"
         ],
         "summary": "跳过 / 恢复账单",
-        "description": "计划于 M4-SUBS 实现；当前返回 501。",
+        "description": "业务冲突码：ALREADY_PAID / BILL_CANCELLED / BILL_NOT_SKIPPED。",
         "security": [
           {
             "session": []
@@ -5989,7 +5959,7 @@
             ]
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M4-SUBS",
         "x-ledger-role": "editor",
         "parameters": [
@@ -6056,6 +6026,9 @@
           "404": {
             "$ref": "#/components/responses/NotFound"
           },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
           },
@@ -6074,9 +6047,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -6090,7 +6060,7 @@
           "Subscriptions"
         ],
         "summary": "记录实际支付，唯一关联交易（不是银行扣款）",
-        "description": "计划于 M4-SUBS 实现；当前返回 501。\n\n业务冲突码：ALREADY_PAID。",
+        "description": "业务冲突码：ALREADY_PAID / BILL_NOT_PAYABLE / ALREADY_LINKED / PREVIEW_CONSUMED / PREVIEW_STALE。",
         "security": [
           {
             "session": []
@@ -6101,7 +6071,7 @@
             ]
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M4-SUBS",
         "x-ledger-role": "editor",
         "x-idempotency": "required",
@@ -6183,9 +6153,6 @@
           },
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
-          },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
           },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
@@ -9274,6 +9241,10 @@
             "type": "string",
             "format": "uuid"
           },
+          "name": {
+            "type": "string",
+            "description": "订阅名称"
+          },
           "scheduledDate": {
             "type": "string",
             "format": "date",
@@ -9301,6 +9272,18 @@
               }
             ]
           },
+          "paidAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "description": "RFC 3339 UTC 时间"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "version": {
             "type": "integer",
             "exclusiveMinimum": 0,
@@ -9310,11 +9293,13 @@
         "required": [
           "id",
           "subscriptionId",
+          "name",
           "scheduledDate",
           "scheduleVersion",
           "status",
           "amount",
           "transactionId",
+          "paidAt",
           "version"
         ],
         "additionalProperties": false
@@ -9466,7 +9451,8 @@
           "due",
           "paid",
           "skipped",
-          "overdue"
+          "overdue",
+          "cancelled"
         ]
       },
       "Budget": {
@@ -13399,6 +13385,36 @@
             "type": "string",
             "format": "date-time",
             "description": "RFC 3339 UTC 时间"
+          },
+          "pausedUntil": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date",
+                "description": "业务日期 YYYY-MM-DD，按账本 / 订阅时区解释"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "暂停到该日自动恢复；null 为无限期"
+          },
+          "endsOn": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date",
+                "description": "业务日期 YYYY-MM-DD，按账本 / 订阅时区解释"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "取消后服务结束日"
+          },
+          "monthlyEquivalent": {
+            "description": "预测指标（月均），不计入实际支出",
+            "$ref": "#/components/schemas/Money"
           }
         },
         "required": [
@@ -13415,7 +13431,10 @@
           "note",
           "scheduleVersion",
           "version",
-          "createdAt"
+          "createdAt",
+          "pausedUntil",
+          "endsOn",
+          "monthlyEquivalent"
         ],
         "additionalProperties": false
       },
@@ -13660,6 +13679,24 @@
                 "type": "null"
               }
             ]
+          },
+          "pausedUntil": {
+            "description": "与 status=paused 一起：到该日自动恢复",
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date",
+                "description": "业务日期 YYYY-MM-DD，按账本 / 订阅时区解释"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "endsOn": {
+            "description": "与 status=cancelled 一起：服务结束日，默认今天；之后的账单取消",
+            "type": "string",
+            "format": "date"
           }
         },
         "additionalProperties": false

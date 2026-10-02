@@ -1,9 +1,9 @@
 import { randomUUID } from 'node:crypto';
-import { and, asc, desc, eq, gt, gte, inArray, isNull, like, lt, or, type SQL } from 'drizzle-orm';
+import { and, asc, desc, eq, gt, gte, inArray, isNull, like, lt, or, sql, type SQL } from 'drizzle-orm';
 import type { z } from 'zod';
 import { PreviewSubmit, TransactionPreviewCreate, TransactionQuery } from '../../contracts/src/finance';
 import { database, type Executor, type Tx } from '../../db/src/index';
-import { accountPostings, accounts, categories, fxSnapshots, tags, transactionAmounts, transactionLinks, transactionTags, transactions, writePreviews } from '../../db/src/schema';
+import { accountPostings, accounts, billOccurrences, categories, fxSnapshots, tags, transactionAmounts, transactionLinks, transactionTags, transactions, writePreviews } from '../../db/src/schema';
 import { ledgerAccess } from './access';
 import { audit, emit } from './audit';
 import { localDate } from './dates';
@@ -214,7 +214,8 @@ async function consume(tx: Tx, ctx: AuthContext, ledgerId: string, baseCurrency:
   return { preview, plan: preview.computed as Plan };
 }
 
-async function writeEntry(tx: Tx, ctx: AuthContext, ledgerId: string, entry: Entry, replacesId: string | null, source: 'web' | 'import' = SOURCE) {
+type Source = 'web' | 'import' | 'subscription';
+async function writeEntry(tx: Tx, ctx: AuthContext, ledgerId: string, entry: Entry, replacesId: string | null, source: Source = SOURCE) {
   const id = randomUUID(), now = new Date();
   await tx.insert(transactions).values({
     id, ledgerId, kind: entry.kind, occurredAt: new Date(entry.occurredAt), localDate: entry.localDate, timezone: entry.timezone,
@@ -235,8 +236,8 @@ async function writeEntry(tx: Tx, ctx: AuthContext, ledgerId: string, entry: Ent
   await appendPostings(tx, ledgerId, id, entry.postings);
   return id;
 }
-async function writePlan(tx: Tx, ctx: AuthContext, ledgerId: string, p: Plan, replacesId: string | null, action: string) {
-  const id = await writeEntry(tx, ctx, ledgerId, p.main, replacesId);
+async function writePlan(tx: Tx, ctx: AuthContext, ledgerId: string, p: Plan, replacesId: string | null, action: string, source: Source = SOURCE) {
+  const id = await writeEntry(tx, ctx, ledgerId, p.main, replacesId, source);
   if (p.fee) await tx.insert(transactionLinks).values({ ledgerId, childId: await writeEntry(tx, ctx, ledgerId, p.fee, null), parentId: id, kind: 'fee' });
   await audit(tx, ctx, ledgerId, action, id);
   await emit(tx, ledgerId, action, { transactionId: id, kind: p.main.kind, replacesId });
@@ -246,11 +247,11 @@ async function markConsumed(tx: Tx, previewId: string, transactionId: string) {
   await tx.update(writePreviews).set({ consumedAt: new Date(), consumedBy: transactionId }).where(eq(writePreviews.id, previewId));
 }
 
-export async function createTransaction(ctx: AuthContext, ledgerId: string, body: unknown, db: Executor = database()) {
+export async function createTransaction(ctx: AuthContext, ledgerId: string, body: unknown, db: Executor = database(), options: { source?: Source; kinds?: readonly Entry['kind'][] } = {}) {
   return db.transaction(async tx => {
     const ledger = await ledgerAccess(tx, ctx, ledgerId, 'editor', true);
-    const { preview, plan: p } = await consume(tx, ctx, ledgerId, ledger.baseCurrency, body, ['expense', 'income', 'transfer']);
-    const id = await writePlan(tx, ctx, ledgerId, p, null, 'transaction.created');
+    const { preview, plan: p } = await consume(tx, ctx, ledgerId, ledger.baseCurrency, body, options.kinds ?? ['expense', 'income', 'transfer']);
+    const id = await writePlan(tx, ctx, ledgerId, p, null, 'transaction.created', options.source);
     await markConsumed(tx, preview.id, id);
     return (await present(tx, ledgerId, [id]))[0];
   });
@@ -274,6 +275,8 @@ async function voidRow(tx: Tx, ledgerId: string, row: typeof transactions.$infer
   await reversePostings(tx, ledgerId, row.id);
   const now = new Date();
   await tx.update(transactions).set({ status: 'voided', voidedAt: now, version: row.version + 1, updatedAt: now }).where(and(eq(transactions.ledgerId, ledgerId), eq(transactions.id, row.id)));
+  // A voided payment no longer pays its bill; the occurrence becomes payable again (status re-derived from its date).
+  await tx.update(billOccurrences).set({ status: 'scheduled', transactionId: null, paidAt: null, version: sql`${billOccurrences.version} + 1`, updatedAt: now }).where(and(eq(billOccurrences.ledgerId, ledgerId), eq(billOccurrences.transactionId, row.id)));
   const fee = row.kind === 'transfer' ? await feeOf(tx, ledgerId, row.id) : null;
   if (fee) { const child = await lockTransaction(tx, ledgerId, fee); if (child.status === 'posted') await voidRow(tx, ledgerId, child); }
 }
@@ -303,10 +306,12 @@ export async function correctTransaction(ctx: AuthContext, ledgerId: string, id:
     if (row.kind === 'refund') throw invalid('NOT_CORRECTABLE', '退款请作废后重新登记');
     if (await hasPostedRefunds(tx, ledgerId, id)) throw conflict('HAS_REFUNDS', '该支出已有退款，请先作废退款再更正');
     const { preview, plan: p } = await consume(tx, ctx, ledgerId, ledger.baseCurrency, body, [row.kind]);
+    const [bill] = await tx.select({ id: billOccurrences.id }).from(billOccurrences).where(and(eq(billOccurrences.ledgerId, ledgerId), eq(billOccurrences.transactionId, row.id))).for('update');
     await voidRow(tx, ledgerId, row);
     const next = await writePlan(tx, ctx, ledgerId, p, row.id, 'transaction.corrected');
-    // A corrected transfer fee stays attached to its transfer.
+    // A corrected transfer fee stays attached to its transfer; a corrected bill payment keeps paying its bill.
     await tx.update(transactionLinks).set({ childId: next }).where(and(eq(transactionLinks.ledgerId, ledgerId), eq(transactionLinks.childId, row.id)));
+    if (bill) await tx.update(billOccurrences).set({ status: 'paid', transactionId: next, paidAt: new Date(), version: sql`${billOccurrences.version} + 1`, updatedAt: new Date() }).where(and(eq(billOccurrences.ledgerId, ledgerId), eq(billOccurrences.id, bill.id)));
     await markConsumed(tx, preview.id, next);
     return (await present(tx, ledgerId, [next]))[0];
   });
@@ -390,11 +395,21 @@ async function present(db: Executor | Tx, ledgerId: string, ids: string[]) {
   return ids.map(id => byId.get(id)!);
 }
 
-export async function getTransaction(ctx: AuthContext, ledgerId: string, id: string) {
-  await ledgerAccess(database(), ctx, ledgerId, 'viewer');
-  const [found] = await present(database(), ledgerId, [id]);
+export async function getTransaction(ctx: AuthContext, ledgerId: string, id: string, db: Executor | Tx = database()) {
+  await ledgerAccess(db, ctx, ledgerId, 'viewer');
+  const [found] = await present(db, ledgerId, [id]);
   if (!found) throw new DomainError(404, 'NOT_FOUND', '交易不存在或你没有访问权限');
   return found;
+}
+
+/** Refund history of an expense and what can still be refunded (in its settlement currency). */
+export async function refundsOf(ctx: AuthContext, ledgerId: string, id: string) {
+  await ledgerAccess(database(), ctx, ledgerId, 'viewer');
+  const rows = await database().select({ id: transactions.id, original: transactionAmounts.originalAmount }).from(transactions)
+    .innerJoin(transactionAmounts, and(eq(transactionAmounts.ledgerId, transactions.ledgerId), eq(transactionAmounts.transactionId, transactions.id)))
+    .where(and(eq(transactions.ledgerId, ledgerId), eq(transactions.refundOf, id), eq(transactions.status, 'posted')));
+  const [paid] = await database().select().from(transactionAmounts).where(and(eq(transactionAmounts.ledgerId, ledgerId), eq(transactionAmounts.transactionId, id)));
+  return { refunds: await present(database(), ledgerId, rows.map(r => r.id)), remaining: paid ? formatAmount(sum([paid.settlementAmount]).minus(sum(rows.map(r => r.original))), paid.settlementCurrency) : null };
 }
 
 type Query = z.infer<typeof TransactionQuery>;

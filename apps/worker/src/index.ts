@@ -6,6 +6,7 @@ import { closeRedis } from '../../../packages/db/src/redis';
 import { processHistoryRequests, processRefreshJobs, pruneMinuteBatches, refreshLatest } from '../../../packages/domain/src/fx';
 import { fxConfig } from '../../../packages/domain/src/fx-provider';
 import { pruneIdempotencyRecords } from '../../../packages/domain/src/idempotent';
+import { maintainSubscriptions } from '../../../packages/domain/src/subscriptions';
 import { pruneExpiredPreviews } from '../../../packages/domain/src/transactions';
 import { startQueue } from './queue';
 
@@ -61,11 +62,20 @@ async function fxJobs() {
   } catch (error) { console.error(JSON.stringify({ task: 'fx.jobs', status: 'error', code: errorCode(error) })); }
 }
 
+// Subscriptions: materialize bills through the horizon, store due / overdue, end pauses (M4-SUBS).
+async function subscriptionsTick() {
+  try {
+    const result = await maintainSubscriptions();
+    if (result.created || result.resumed) log({ task: 'subscriptions.maintain', ...result });
+  } catch (error) { console.error(JSON.stringify({ task: 'subscriptions.maintain', status: 'error', code: errorCode(error) })); }
+}
+
 await heartbeat();
 await housekeeping();
+void subscriptionsTick();
 const queue = startQueue(process.env.REDIS_URL!, log);
 void fxLatest();
-const timers = [setInterval(heartbeat, 10000), setInterval(housekeeping, 60 * 60 * 1000), setInterval(fxLatest, FX_POLL_MS), setInterval(fxJobs, 5000)];
+const timers = [setInterval(heartbeat, 10000), setInterval(housekeeping, 60 * 60 * 1000), setInterval(fxLatest, FX_POLL_MS), setInterval(fxJobs, 5000), setInterval(subscriptionsTick, Number(process.env.SUBSCRIPTION_TICK_SECONDS || 600) * 1000)];
 async function stop() {
   if (stopping) return;
   stopping = true;

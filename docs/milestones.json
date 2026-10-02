@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "project": "Ledger Next",
-  "updatedAt": "2026-10-02T08:58:35.541Z",
+  "updatedAt": "2026-10-02T08:59:41.878Z",
   "timezone": "Asia/Hong_Kong",
   "milestones": [
     {
@@ -457,8 +457,8 @@
         "M2-LEDGER"
       ],
       "role": "前端 / 全栈",
-      "owner": "未分配",
-      "status": "todo",
+      "owner": "Claude Code",
+      "status": "in_progress",
       "requiresReview": true,
       "reviewer": "",
       "blockedReason": "",
@@ -471,9 +471,9 @@
         "无需等待图表 JS 可读首屏信息。",
         "记账、更正、退款、账户归档端到端通过。"
       ],
-      "nextAction": "先打通 SSR 账目列表与记账抽屉。",
+      "nextAction": "实现中",
       "evidence": [],
-      "updatedAt": "2026-10-02"
+      "updatedAt": "2026-10-02T08:59:41.805Z"
     },
     {
       "id": "M4-SUBS",
@@ -486,8 +486,8 @@
         "M3-FX"
       ],
       "role": "全栈开发",
-      "owner": "未分配",
-      "status": "todo",
+      "owner": "Claude Code",
+      "status": "in_progress",
       "requiresReview": true,
       "reviewer": "",
       "blockedReason": "",
@@ -500,9 +500,9 @@
         "到期不自动成为已支付，已付记录唯一。",
         "周期编辑取消未来旧版本任务且保留历史。"
       ],
-      "nextAction": "先验证周期日期算法再连接订阅 UI。",
+      "nextAction": "实现中",
       "evidence": [],
-      "updatedAt": "2026-10-02"
+      "updatedAt": "2026-10-02T08:59:41.878Z"
     },
     {
       "id": "M4-DASH",
@@ -545,8 +545,8 @@
         "M1-API"
       ],
       "role": "前端 / 全栈",
-      "owner": "未分配",
-      "status": "todo",
+      "owner": "Claude Code",
+      "status": "in_progress",
       "requiresReview": true,
       "reviewer": "",
       "blockedReason": "",
@@ -561,9 +561,9 @@
         "全部预设与极端自定义色在两种模式下关键对比度 ≥4.5:1；非法颜色或未知预设返回 422 且不落库。",
         "偏好跨设备同步、刷新保持；保存失败时仅本设备生效并提示；收支 / 警告 / 错误与图表数据色不随主题色变化。"
       ],
-      "nextAction": "先落地令牌与生成器单测，再接偏好 API 与 SSR 注入。",
+      "nextAction": "实现中",
       "evidence": [],
-      "updatedAt": "2026-10-01T17:53:59.302Z"
+      "updatedAt": "2026-10-02T08:59:41.750Z"
     },
     {
       "id": "M4-RESP",
@@ -1368,6 +1368,30 @@
       "to": "done",
       "actor": "Claude Code",
       "note": "summary / cash-flow / 分类 / 净资产 / 预算进度与预算 CRUD；数据版本缓存；Docker E2E 通过"
+    },
+    {
+      "at": "2026-10-02T08:59:41.750Z",
+      "id": "M4-THEME",
+      "from": "todo",
+      "to": "in_progress",
+      "actor": "Claude Code",
+      "note": "开始实施（按 v0.3 原型）"
+    },
+    {
+      "at": "2026-10-02T08:59:41.805Z",
+      "id": "M4-CORE",
+      "from": "todo",
+      "to": "in_progress",
+      "actor": "Claude Code",
+      "note": "开始实施（按 v0.3 原型）"
+    },
+    {
+      "at": "2026-10-02T08:59:41.878Z",
+      "id": "M4-SUBS",
+      "from": "todo",
+      "to": "in_progress",
+      "actor": "Claude Code",
+      "note": "开始实施（按 v0.3 原型）"
     }
   ]
 }

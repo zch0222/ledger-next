@@ -10,7 +10,9 @@ export const Subscription = resource('Subscription', z.object({
   id: uuid, name: z.string(), amount: Money, accountId: uuid.nullable(), categoryId: uuid.nullable(),
   cycle: Cycle, anchorDate: LocalDate, timezone: z.string(), status: SubscriptionStatus,
   nextDueDate: LocalDate.nullable(), note: z.string().nullable(), scheduleVersion: version, version, createdAt: Timestamp,
-}), '到期只生成账单，确认支付才产生交易');
+  pausedUntil: LocalDate.nullable().meta({ description: '暂停到该日自动恢复；null 为无限期' }), endsOn: LocalDate.nullable().meta({ description: '取消后服务结束日' }),
+  monthlyEquivalent: Money.meta({ description: '预测指标（月均），不计入实际支出' }),
+}), '到期只生成账单，确认支付才产生交易；修改金额 / 周期 / 账户会增加 scheduleVersion 并取消未付的旧计划');
 const subscriptionFields = { name: z.string().trim().min(1).max(80), amount: Money, accountId: uuid.optional(), categoryId: uuid.optional(), cycle: Cycle, anchorDate: LocalDate, timezone: Timezone, note: z.string().max(500).optional() };
 export const SubscriptionPreviewCreate = input('SubscriptionPreviewCreate', z.object(subscriptionFields).strict());
 export const SubscriptionPreview = resource('SubscriptionPreview', z.object({
@@ -20,13 +22,14 @@ export const SubscriptionPreview = resource('SubscriptionPreview', z.object({
 export const SubscriptionUpdate = input('SubscriptionUpdate', z.object({
   name: subscriptionFields.name.optional(), amount: Money.optional(), accountId: uuid.nullable().optional(), categoryId: uuid.nullable().optional(),
   cycle: Cycle.optional(), anchorDate: LocalDate.optional(), status: SubscriptionStatus.optional(), note: z.string().max(500).nullable().optional(),
+  pausedUntil: LocalDate.nullable().optional().meta({ description: '与 status=paused 一起：到该日自动恢复' }), endsOn: LocalDate.optional().meta({ description: '与 status=cancelled 一起：服务结束日，默认今天；之后的账单取消' }),
 }).strict(), '修改周期会增加 scheduleVersion 并取消未发送的旧提醒；取消只阻止未来 occurrence');
 export const SubscriptionQuery = z.object({ status: SubscriptionStatus.optional(), ...pageQuery }).strict();
 
-export const BillStatus = output('BillStatus', z.enum(['scheduled', 'due', 'paid', 'skipped', 'overdue']));
+export const BillStatus = output('BillStatus', z.enum(['scheduled', 'due', 'paid', 'skipped', 'overdue', 'cancelled']), 'due = 当天到期；overdue = 已过到期日未付；cancelled = 订阅暂停 / 取消 / 改期后作废的旧计划');
 export const BillOccurrence = resource('BillOccurrence', z.object({
-  id: uuid, subscriptionId: uuid, scheduledDate: LocalDate, scheduleVersion: version, status: BillStatus,
-  amount: Money, transactionId: uuid.nullable(), version,
+  id: uuid, subscriptionId: uuid, name: z.string().meta({ description: '订阅名称' }), scheduledDate: LocalDate, scheduleVersion: version, status: BillStatus,
+  amount: Money, transactionId: uuid.nullable(), paidAt: Timestamp.nullable(), version,
 }));
 export const BillOccurrenceQuery = z.object({ dateFrom: LocalDate, dateTo: LocalDate, subscriptionId: uuid.optional(), status: BillStatus.optional(), ...pageQuery }).strict();
 export const BillOccurrenceUpdate = input('BillOccurrenceUpdate', z.object({ status: z.enum(['skipped', 'scheduled']) }).strict(), '跳过或恢复；已支付不能改回');

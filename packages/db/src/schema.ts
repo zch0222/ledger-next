@@ -198,3 +198,31 @@ export const ledgerDataVersions = mysqlTable('ledger_data_versions', {
   ledgerId: varchar('ledger_id', { length: 36 }).primaryKey(), version: bigint('version', { mode: 'number' }).notNull(), updatedAt: updatedAt(),
 });
 
+// M4-THEME (migration 0008).
+export const userPreferences = mysqlTable('user_preferences', {
+  userId: varchar('user_id', { length: 36 }).primaryKey().references(() => user.id, { onDelete: 'cascade' }),
+  themeMode: mysqlEnum('theme_mode', ['system', 'light', 'dark']).notNull(), accentType: mysqlEnum('accent_type', ['preset', 'custom']).notNull(),
+  accentValue: varchar('accent_value', { length: 16 }).notNull(), paletteVersion: int('palette_version').notNull(), version: int('version').notNull(), updatedAt: updatedAt(),
+});
+
+// M4-SUBS (migration 0009).
+export const subscriptions = mysqlTable('subscriptions', {
+  id: id(), ledgerId: ledgerId(), name: varchar('name', { length: 80 }).notNull(), amount: money('amount').notNull(), currency: varchar('currency', { length: 3 }).notNull(),
+  accountId: varchar('account_id', { length: 36 }), categoryId: varchar('category_id', { length: 36 }),
+  cycleUnit: mysqlEnum('cycle_unit', ['day', 'week', 'month', 'year']).notNull(), cycleCount: int('cycle_count').notNull(), anchorDate: date('anchor_date', { mode: 'string' }).notNull(),
+  timezone: varchar('timezone', { length: 64 }).notNull(), status: mysqlEnum('status', ['active', 'paused', 'cancelled']).notNull(),
+  pausedUntil: date('paused_until', { mode: 'string' }), endsOn: date('ends_on', { mode: 'string' }), note: varchar('note', { length: 500 }),
+  scheduleVersion: int('schedule_version').notNull().default(1), version: int('version').notNull().default(1), createdBy: varchar('created_by', { length: 36 }).notNull().references(() => user.id),
+  createdAt: createdAt(), updatedAt: updatedAt(),
+}, t => [uniqueIndex('subscription_ledger_uq').on(t.ledgerId, t.id), index('subscription_ledger_status_idx').on(t.ledgerId, t.status, t.createdAt)]);
+export const billOccurrences = mysqlTable('bill_occurrences', {
+  id: id(), ledgerId: varchar('ledger_id', { length: 36 }).notNull(), subscriptionId: varchar('subscription_id', { length: 36 }).notNull(), scheduleVersion: int('schedule_version').notNull(),
+  scheduledDate: date('scheduled_date', { mode: 'string' }).notNull(), status: mysqlEnum('status', ['scheduled', 'due', 'overdue', 'paid', 'skipped', 'cancelled']).notNull(),
+  amount: money('amount').notNull(), currency: varchar('currency', { length: 3 }).notNull(), transactionId: varchar('transaction_id', { length: 36 }), paidAt: datetime('paid_at', { mode: 'date', fsp: 3 }),
+  version: int('version').notNull().default(1), createdAt: createdAt(), updatedAt: updatedAt(),
+}, t => [uniqueIndex('bill_occurrence_schedule_uq').on(t.subscriptionId, t.scheduleVersion, t.scheduledDate), index('bill_occurrence_ledger_date_idx').on(t.ledgerId, t.scheduledDate)]);
+export const subscriptionPreviews = mysqlTable('subscription_previews', {
+  id: id(), ledgerId: ledgerId(), actorId: varchar('actor_id', { length: 36 }).notNull().references(() => user.id, { onDelete: 'cascade' }),
+  normalizedInput: json('normalized_input').notNull(), expiresAt: datetime('expires_at', { mode: 'date', fsp: 3 }).notNull(),
+  consumedAt: datetime('consumed_at', { mode: 'date', fsp: 3 }), consumedBy: varchar('consumed_by', { length: 36 }), createdAt: createdAt(),
+});

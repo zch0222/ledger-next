@@ -4,10 +4,10 @@ import type { z } from 'zod';
 import { AccountBalancesQuery, BudgetCreate, BudgetProgressQuery, BudgetUpdate, CashFlowQuery, CategoryBreakdownQuery, ReportQuery } from '../../contracts/src/planning';
 import { database, type Executor, type Tx } from '../../db/src/index';
 import { cacheGet, cacheSet, redis } from '../../db/src/redis';
-import { accountPostings, accounts, budgets, categories, ledgerDataVersions, transactionAmounts, transactions } from '../../db/src/schema';
+import { accountPostings, accounts, billOccurrences, budgets, categories, ledgerDataVersions, transactionAmounts, transactions } from '../../db/src/schema';
 import { ledgerAccess } from './access';
 import { audit, emit } from './audit';
-import { localDate, zonedInstant } from './dates';
+import { addDays, localDate, zonedInstant } from './dates';
 import { bucketOf, buckets, periodOf } from './report-periods';
 
 export { bucketOf, buckets, periodOf };
@@ -95,7 +95,6 @@ async function categoryScope(db: Db, ledgerId: string, categoryId?: string) {
   const children = await db.select({ id: categories.id }).from(categories).where(and(eq(categories.ledgerId, ledgerId), eq(categories.parentId, categoryId)));
   return [categoryId, ...children.map(c => c.id)];
 }
-const zero = (currency: string) => formatAmount('0', currency);
 
 export async function reportSummary(ctx: AuthContext, ledgerId: string, query: unknown, now = new Date()) {
   const q = ReportQuery.parse(query);
@@ -118,11 +117,18 @@ export async function reportSummary(ctx: AuthContext, ledgerId: string, query: u
   });
 }
 
-/** Bills due within the next 7 days of the ledger's today; filled in once subscriptions exist (M4-SUBS). */
-let upcomingBillsProvider: ((db: Db, ledgerId: string, ledger: Ledger, currency: string, now: Date) => Promise<{ count: number; amount: string }>) | null = null;
-export function registerUpcomingBills(provider: typeof upcomingBillsProvider) { upcomingBillsProvider = provider; }
+/** Unpaid bills of the next 7 days from the ledger's today, valued at current reference rates (forecast, not spending). */
 async function upcomingBills(db: Db, ledgerId: string, ledger: Ledger, currency: string, now: Date) {
-  return upcomingBillsProvider ? upcomingBillsProvider(db, ledgerId, ledger, currency, now) : { count: 0, amount: zero(currency) };
+  const today = localDate(now, ledger.timezone), until = addDays(today, 7);
+  const rows = await db.select({ amount: billOccurrences.amount, currency: billOccurrences.currency }).from(billOccurrences)
+    .where(and(eq(billOccurrences.ledgerId, ledgerId), inArray(billOccurrences.status, ['scheduled', 'due', 'overdue']), gte(billOccurrences.scheduledDate, today), lt(billOccurrences.scheduledDate, until)));
+  let total = sum([]);
+  for (const row of rows) {
+    if (row.currency === currency) { total = total.plus(row.amount); continue; }
+    const q = await quote(db, row.currency, currency, now, now);
+    if (q.value) total = total.plus(convert(sum([row.amount]).toFixed(), row.currency, q.value, currency));
+  }
+  return { count: rows.length, amount: formatAmount(total, currency) };
 }
 
 export async function cashFlow(ctx: AuthContext, ledgerId: string, query: unknown, now = new Date()) {

@@ -10,7 +10,7 @@ export function CreateLedger({ additional = false }: { additional?: boolean }) {
     try {
       const payload = JSON.stringify(Object.fromEntries(new FormData(event.currentTarget)));
       const data = await api<{ id: string }>('/api/v1/ledgers', { method: 'POST', headers: { 'Idempotency-Key': submission.key(payload) }, body: payload });
-      submission.done(); router.push(`/?ledger=${data.id}`); router.refresh();
+      submission.done(); router.push(`/ledgers/${data.id}/accounts?new=first`); router.refresh();
     } catch (e) { setError(e instanceof Error ? e.message : '创建失败'); setBusy(false); }
   }
   return <section className="panel setup-card"><div className="kicker">YOUR MONEY, CLEARLY.</div><h1>{additional ? '新建账本' : '从一本新账本开始'}</h1><p className="sub">为日常开销和重要计划，留一个清楚的位置。</p>

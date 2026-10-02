@@ -11,6 +11,8 @@ import { correctTransaction, createPreview, createRefund, createTransaction, get
 import { createImportJob, getImportJob, listImportJobs, requestImportCommit, requestImportReversal } from '../../../../../packages/domain/src/imports';
 import { createExportJob, downloadExport, getExportJob, listExportJobs } from '../../../../../packages/domain/src/exports';
 import { accountBalances, archiveBudget, budgetProgress, cashFlow, categoryBreakdown, createBudget, listBudgets, presentBudget, reportSummary, updateBudget } from '../../../../../packages/domain/src/reports';
+import { appearanceCookie, getPreferences, present as presentPreferences, updatePreferences } from '../../../../../packages/domain/src/preferences';
+import { createBillPayment, createSubscription, createSubscriptionPreview, getBillOccurrence, getSubscription, listBillOccurrences, listSubscriptions, updateBillOccurrence, updateSubscription } from '../../../../../packages/domain/src/subscriptions';
 import { createManualRateRecord, createRefreshJob, getExchangeRates, getRefreshJob, listManualRateRecords } from '../../../../../packages/domain/src/fx';
 
 export type ApiContext = AuthContext & { user: { name: string; email: string } };
@@ -172,5 +174,26 @@ export const handlers: Record<StableOperationId, Handler> = {
     return { status: 202, data: job, headers: { Location: `/api/v1/exchange-rate-refresh-jobs/${job.id}` } };
   },
   async getExchangeRateRefreshJob({ ctx, params }) { return { status: 200, data: await getRefreshJob({ ...ctx, email: ctx.user.email }, params.jobId) }; },
+  listSubscriptions: input => pagedBy(input, { fetch: keyset => listSubscriptions(input.ctx, input.params.ledgerId, input.query, keyset), position: row => row.position, schema: createdPosition, present: rows => rows.map(({ position, ...rest }) => { void position; return rest; }) }),
+  async createSubscriptionPreview({ ctx, params, body }) { return { status: 201, data: await createSubscriptionPreview(ctx, params.ledgerId, body) }; },
+  async createSubscription({ ctx, params, body }, db) {
+    const subscription = await createSubscription(ctx, params.ledgerId, body, db);
+    return { status: 201, data: subscription, headers: { ...location(params.ledgerId, 'subscriptions', subscription.id), ...etag(subscription.version) } };
+  },
+  async getSubscription({ ctx, params }) { const subscription = await getSubscription(ctx, params.ledgerId, params.subscriptionId); return { status: 200, data: subscription, headers: etag(subscription.version) }; },
+  async updateSubscription({ ctx, params, body, request }) { const subscription = await updateSubscription(ctx, params.ledgerId, params.subscriptionId, body, ifMatch(request)); return { status: 200, data: subscription, headers: etag(subscription.version) }; },
+  listBillOccurrences: input => pagedBy(input, { fetch: keyset => listBillOccurrences(input.ctx, input.params.ledgerId, input.query, keyset), position: row => row.position, schema: z.tuple([z.iso.date(), z.uuid()]), present: rows => rows.map(({ position, ...rest }) => { void position; return rest; }) }),
+  async getBillOccurrence({ ctx, params }) { const bill = await getBillOccurrence(ctx, params.ledgerId, params.occurrenceId); return { status: 200, data: bill, headers: etag(bill.version) }; },
+  async updateBillOccurrence({ ctx, params, body, request }) { const bill = await updateBillOccurrence(ctx, params.ledgerId, params.occurrenceId, body, ifMatch(request)); return { status: 200, data: bill, headers: etag(bill.version) }; },
+  async createBillPayment({ ctx, params, body }, db) { return { status: 201, data: await createBillPayment(ctx, params.ledgerId, params.occurrenceId, body, db) }; },
+  async getPreferences({ ctx }) {
+    const prefs = await getPreferences(ctx.userId);
+    return { status: 200, data: presentPreferences(prefs.appearance, prefs.version), headers: etag(prefs.version) };
+  },
+  async updatePreferences({ ctx, body, request }) {
+    const prefs = await updatePreferences(ctx.userId, body, ifMatch(request));
+    const secure = new URL(process.env.APP_URL!).protocol === 'https:';
+    return { status: 200, data: presentPreferences(prefs.appearance, prefs.version), headers: { ...etag(prefs.version), 'Set-Cookie': appearanceCookie(prefs.appearance, secure) } };
+  },
   listAuditEvents: input => paged(input, keyset => listAuditEvents(input.ctx, input.params.ledgerId, { action: input.query.action as string | undefined, ...keyset }), event => ({ ...event, createdAt: event.createdAt.toISOString() })),
 };

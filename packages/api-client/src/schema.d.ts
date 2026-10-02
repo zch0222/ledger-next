@@ -240,10 +240,7 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * 账单列表 / 日历
-         * @description 计划于 M4-SUBS 实现；当前返回 501。
-         */
+        /** 账单列表 / 日历 */
         get: operations["listBillOccurrences"];
         put?: never;
         post?: never;
@@ -260,10 +257,7 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * 账单详情
-         * @description 计划于 M4-SUBS 实现；当前返回 501。
-         */
+        /** 账单详情 */
         get: operations["getBillOccurrence"];
         put?: never;
         post?: never;
@@ -272,7 +266,7 @@ export type paths = {
         head?: never;
         /**
          * 跳过 / 恢复账单
-         * @description 计划于 M4-SUBS 实现；当前返回 501。
+         * @description 业务冲突码：ALREADY_PAID / BILL_CANCELLED / BILL_NOT_SKIPPED。
          */
         patch: operations["updateBillOccurrence"];
         trace?: never;
@@ -288,9 +282,7 @@ export type paths = {
         put?: never;
         /**
          * 记录实际支付，唯一关联交易（不是银行扣款）
-         * @description 计划于 M4-SUBS 实现；当前返回 501。
-         *
-         *     业务冲突码：ALREADY_PAID。
+         * @description 业务冲突码：ALREADY_PAID / BILL_NOT_PAYABLE / ALREADY_LINKED / PREVIEW_CONSUMED / PREVIEW_STALE。
          */
         post: operations["createBillPayment"];
         delete?: never;
@@ -832,10 +824,7 @@ export type paths = {
         };
         get?: never;
         put?: never;
-        /**
-         * 校验周期并展示未来三次
-         * @description 计划于 M4-SUBS 实现；当前返回 501。
-         */
+        /** 校验周期并展示未来三次 */
         post: operations["createSubscriptionPreview"];
         delete?: never;
         options?: never;
@@ -850,17 +839,12 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * 周期订阅
-         * @description 计划于 M4-SUBS 实现；当前返回 501。
-         */
+        /** 周期订阅 */
         get: operations["listSubscriptions"];
         put?: never;
         /**
          * 提交预览创建订阅
-         * @description 计划于 M4-SUBS 实现；当前返回 501。
-         *
-         *     业务冲突码：PREVIEW_STALE。
+         * @description 业务冲突码：PREVIEW_STALE / PREVIEW_CONSUMED。
          */
         post: operations["createSubscription"];
         delete?: never;
@@ -876,10 +860,7 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * 订阅详情
-         * @description 计划于 M4-SUBS 实现；当前返回 501。
-         */
+        /** 订阅详情 */
         get: operations["getSubscription"];
         put?: never;
         post?: never;
@@ -888,7 +869,7 @@ export type paths = {
         head?: never;
         /**
          * 修改、暂停、取消（状态字段）
-         * @description 计划于 M4-SUBS 实现；当前返回 501。
+         * @description 业务冲突码：SUBSCRIPTION_CANCELLED。
          */
         patch: operations["updateSubscription"];
         trace?: never;
@@ -1045,20 +1026,14 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * 外观偏好
-         * @description 计划于 M4-THEME 实现；当前返回 501。
-         */
+        /** 外观偏好 */
         get: operations["getPreferences"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
-        /**
-         * 修改外观偏好
-         * @description 计划于 M4-THEME 实现；当前返回 501。
-         */
+        /** 修改外观偏好 */
         patch: operations["updatePreferences"];
         trace?: never;
     };
@@ -1370,6 +1345,9 @@ export type components = {
             amount: components["schemas"]["Money"];
             /** Format: uuid */
             id: string;
+            /** @description 订阅名称 */
+            name: string;
+            paidAt: string | null;
             /**
              * Format: date
              * @description 业务日期 YYYY-MM-DD，按账本 / 订阅时区解释
@@ -1416,7 +1394,7 @@ export type components = {
             meta: components["schemas"]["Meta"];
         };
         /** @enum {string} */
-        BillStatus: "scheduled" | "due" | "paid" | "skipped" | "overdue";
+        BillStatus: "scheduled" | "due" | "paid" | "skipped" | "overdue" | "cancelled";
         Budget: {
             alertThresholds: number[];
             amount: components["schemas"]["Money"];
@@ -2384,11 +2362,17 @@ export type components = {
              */
             createdAt: string;
             cycle: components["schemas"]["Cycle"];
+            /** @description 取消后服务结束日 */
+            endsOn: string | null;
             /** Format: uuid */
             id: string;
+            /** @description 预测指标（月均），不计入实际支出 */
+            monthlyEquivalent: components["schemas"]["Money"];
             name: string;
             nextDueDate: string | null;
             note: string | null;
+            /** @description 暂停到该日自动恢复；null 为无限期 */
+            pausedUntil: string | null;
             scheduleVersion: number;
             status: components["schemas"]["SubscriptionStatus"];
             timezone: string;
@@ -2457,8 +2441,15 @@ export type components = {
             anchorDate?: string;
             categoryId?: string | null;
             cycle?: components["schemas"]["Cycle"];
+            /**
+             * Format: date
+             * @description 与 status=cancelled 一起：服务结束日，默认今天；之后的账单取消
+             */
+            endsOn?: string;
             name?: string;
             note?: string | null;
+            /** @description 与 status=paused 一起：到该日自动恢复 */
+            pausedUntil?: string | null;
             status?: components["schemas"]["SubscriptionStatus"];
         };
         Tag: {
@@ -3547,7 +3538,7 @@ export interface operations {
                 dateTo: string;
                 /** @description 每页条数，默认 50，最多 100 */
                 limit?: number;
-                status?: "scheduled" | "due" | "paid" | "skipped" | "overdue";
+                status?: "scheduled" | "due" | "paid" | "skipped" | "overdue" | "cancelled";
                 subscriptionId?: string;
             };
             header?: never;
@@ -3574,7 +3565,6 @@ export interface operations {
             404: components["responses"]["NotFound"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -3605,7 +3595,6 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -3643,13 +3632,13 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
             412: components["responses"]["PreconditionFailed"];
             413: components["responses"]["PayloadTooLarge"];
             415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             428: components["responses"]["PreconditionRequired"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -3692,7 +3681,6 @@ export interface operations {
             415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -5183,7 +5171,6 @@ export interface operations {
             415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -5220,7 +5207,6 @@ export interface operations {
             404: components["responses"]["NotFound"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -5264,7 +5250,6 @@ export interface operations {
             415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -5295,7 +5280,6 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -5333,13 +5317,13 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
             412: components["responses"]["PreconditionFailed"];
             413: components["responses"]["PayloadTooLarge"];
             415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             428: components["responses"]["PreconditionRequired"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -5830,7 +5814,6 @@ export interface operations {
             };
             401: components["responses"]["Unauthorized"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -5870,7 +5853,6 @@ export interface operations {
             422: components["responses"]["ValidationFailed"];
             428: components["responses"]["PreconditionRequired"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
