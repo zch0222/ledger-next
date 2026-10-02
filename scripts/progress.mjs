@@ -131,7 +131,8 @@ function options(values) {
 try {
   validate();
   if (command === 'validate') {
-    if (fs.existsSync(reportPath) && fs.readFileSync(reportPath, 'utf8') !== render()) throw new Error('生成文档已过期，请运行 render');
+    // Compare with LF line endings: Windows checkouts (core.autocrlf) turn the generated file into CRLF.
+    if (fs.existsSync(reportPath) && fs.readFileSync(reportPath, 'utf8').replace(/\r\n/g, '\n') !== render()) throw new Error('生成文档已过期，请运行 render');
     console.log('有效：' + data.tasks.length + ' 个任务；依赖无环；门禁、证据和生成文档一致。');
   } else if (command === 'render') {
     writeAtomic(reportPath, render());
