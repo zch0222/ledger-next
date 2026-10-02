@@ -89,3 +89,9 @@ a.chip-filter{text-decoration:none;color:var(--ink);background:var(--panel);bord
 .inbox-link .badge{position:absolute;top:-6px;right:-6px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--danger);color:#fff;font-size:11px;line-height:18px;text-align:center}
 @media(max-width:767px),(pointer:coarse){a.chip-filter{min-height:44px;padding:5px 12px}.inbox-link{min-width:44px;min-height:44px}}
 @media(max-width:767px){.channel-cards{grid-template-columns:1fr}}
+/* P10 Agent 接入 */
+.copy-block{position:relative;margin:12px 0}.copy-block .code{margin:0;padding-right:84px}.copy-block button{position:absolute;top:10px;right:10px;min-height:34px;padding:5px 12px}.steps{margin:14px 0;padding-left:20px;color:var(--muted)}.steps li{margin:4px 0}
+.scope-set{display:flex;flex-wrap:wrap;gap:6px 18px}.scope-set legend{width:100%}.check{display:flex;align-items:center;gap:8px;min-height:36px;font-size:13px}.check input{width:18px;height:18px;min-height:0;accent-color:var(--accent)}
+.token-once{align-items:flex-start}.token-once .copy-block{margin:10px 0}.approvals li{align-items:flex-start}.approvals li.highlight{background:var(--soft);border-radius:12px;padding:12px;outline:2px solid var(--accent)}.approval-text{flex:1;min-width:220px}.approval-text p{margin:4px 0 0;overflow-wrap:anywhere}
+@media(max-width:767px),(pointer:coarse){.check{min-height:44px}.check input{width:22px;height:22px}.copy-block button{min-height:44px}}
+.tool-table code{overflow-wrap:anywhere;word-break:break-word}.tool-table td{vertical-align:top}.tool-table .pill{margin-left:6px}

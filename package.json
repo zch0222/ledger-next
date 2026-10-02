@@ -24,7 +24,9 @@
     "test:contract": "tsx packages/contracts/src/cli.ts check",
     "db:rollback": "tsx packages/db/src/rollback.ts",
     "test:api": "playwright test --project=api",
-    "channels:rewrap": "tsx scripts/rewrap-channel-keys.ts"
+    "channels:rewrap": "tsx scripts/rewrap-channel-keys.ts",
+    "mcp:build": "node scripts/build-mcp.mjs",
+    "mcp:stdio": "node --import tsx apps/mcp/src/stdio.ts"
   },
   "dependencies": {
     "@better-auth/drizzle-adapter": "1.7.7",

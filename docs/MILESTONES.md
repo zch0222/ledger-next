@@ -2,13 +2,13 @@
 
 > 自动生成：请更新 milestones.json 或运行 scripts/progress.mjs；不要直接修改本文件。
 
-数据版本：1 · 最近更新：2026-10-02T11:34:11.386Z
+数据版本：1 · 最近更新：2026-10-02T12:14:43.030Z
 
 完成率按原始估算人日加权，只有 done 计入；in_review 不计完成。文档完成不代表业务开发完成。
 
-**全部工作：56.5%（32.5/57.5 人日） · 业务开发：53.3% · G0：完成**
+**全部工作：75.7%（43.5/57.5 人日） · 业务开发：73.8% · G0：完成**
 
-其中 12 项为实现者自评估完成（用户授权跳过逐项人工审查），统一列入文末“最终人工审查清单”；G1 发布签署仍需真实评审人。
+其中 19 项为实现者自评估完成（用户授权跳过逐项人工审查），统一列入文末“最终人工审查清单”；G1 发布签署仍需真实评审人。
 
 | 里程碑 | 状态分布 | 完成人日 / 估算人日 | 完成率 |
 | --- | --- | --- | --- |
@@ -17,13 +17,14 @@
 | M2 记账核心与数据 | 完成 3 | 7 / 7 | 100.0% |
 | M3 多币种汇率与报表 | 完成 2 | 4.5 / 4.5 | 100.0% |
 | M4 现代响应式产品 UI | 完成 5 | 11.5 / 11.5 | 100.0% |
-| M5 提醒与全部通道 | 待开始 6，待验收 1 | 0 / 11 | 0.0% |
-| M6 MCP、Skill 与四 Agent | 待开始 6 | 0 / 6.5 | 0.0% |
+| M5 提醒与全部通道 | 完成 7 | 11 / 11 | 100.0% |
+| M6 MCP、Skill 与四 Agent | 待开始 5，进行中 1 | 0 / 6.5 | 0.0% |
 | M7 质量、运维与发布 | 待开始 5 | 0 / 7.5 | 0.0% |
 
 ## 下一步
 
-- **M5-ENGINE** 提醒调度、Outbox 与可靠投递（待验收；后端）：Docker 全量回归（commit c6003e5 起）进行中：集成 75 通过、混沌演练通过、API 24 通过；浏览器用例完成后自评估核销
+- **M6-SERVER** MCP HTTP / stdio 服务与令牌（进行中；全栈 / Agent 集成）：Docker E2E 全量验证后自评估核销；随后 M6-SKILL 正式包与生成器
+- **M7-PERF** SSR、REST 与队列性能验收（待开始；性能 / 全栈）：先建立可复现脚本再测量，不能用单次本地秒开替代。
 
 ## 任务总览
 
@@ -46,14 +47,14 @@
 | M4-DASH | 总览、分析与预算可视化 | 完成 | Claude Code / 前端 | M3-REPORTS, M4-SUBS | 2 |
 | M4-THEME | 外观：主题色与深浅模式 | 完成 | Claude Code / 前端 / 全栈 | M1-API | 1.5 |
 | M4-RESP | 全页面移动端与无障碍验收 | 完成 | Claude Code / 前端 / QA | M4-CORE, M4-DASH, M4-THEME | 2 |
-| M5-ENGINE | 提醒调度、Outbox 与可靠投递 | 待验收 | Claude Code / 后端 | M4-SUBS | 2.5 |
-| M5-TG | Telegram 通道 | 待开始 | Claude Code / 集成开发 | M5-ENGINE | 1 |
-| M5-FEISHU | 飞书通道 | 待开始 | Claude Code / 集成开发 | M5-ENGINE | 1 |
-| M5-WECOM | 企业微信机器人与应用消息 | 待开始 | Claude Code / 集成开发 | M5-ENGINE | 1.5 |
-| M5-WX | 个人微信通道 | 待开始 | Claude Code / 集成开发 | M5-ENGINE | 1.5 |
-| M5-OTHER | 站内、邮件与 Webhook | 待开始 | Claude Code / 集成开发 | M5-ENGINE | 1.5 |
-| M5-CHAOS | 提醒跨通道故障与恢复验收 | 待开始 | Claude Code / QA / 后端 | M5-TG, M5-FEISHU, M5-WECOM, M5-WX, M5-OTHER | 2 |
-| M6-SERVER | MCP HTTP / stdio 服务与令牌 | 待开始 | Claude Code / 全栈 / Agent 集成 | M1-API, M3-REPORTS, M4-SUBS, M5-ENGINE | 2.5 |
+| M5-ENGINE | 提醒调度、Outbox 与可靠投递 | 完成 | Claude Code / 后端 | M4-SUBS | 2.5 |
+| M5-TG | Telegram 通道 | 完成 | Claude Code / 集成开发 | M5-ENGINE | 1 |
+| M5-FEISHU | 飞书通道 | 完成 | Claude Code / 集成开发 | M5-ENGINE | 1 |
+| M5-WECOM | 企业微信机器人与应用消息 | 完成 | Claude Code / 集成开发 | M5-ENGINE | 1.5 |
+| M5-WX | 个人微信通道 | 完成 | Claude Code / 集成开发 | M5-ENGINE | 1.5 |
+| M5-OTHER | 站内、邮件与 Webhook | 完成 | Claude Code / 集成开发 | M5-ENGINE | 1.5 |
+| M5-CHAOS | 提醒跨通道故障与恢复验收 | 完成 | Claude Code / QA / 后端 | M5-TG, M5-FEISHU, M5-WECOM, M5-WX, M5-OTHER | 2 |
+| M6-SERVER | MCP HTTP / stdio 服务与令牌 | 进行中 | Claude Code / 全栈 / Agent 集成 | M1-API, M3-REPORTS, M4-SUBS, M5-ENGINE | 2.5 |
 | M6-SKILL | 正式 Skill 与配置包 | 待开始 | 未分配 / Agent 集成 | M6-SERVER | 1 |
 | M6-CODEX | Codex 联调 | 待开始 | 未分配 / Agent 集成 / QA | M6-SKILL | 0.5 |
 | M6-CLAUDE | Claude Code 联调 | 待开始 | 未分配 / Agent 集成 / QA | M6-SKILL | 0.5 |
@@ -538,10 +539,11 @@
 
 ### M5-ENGINE · 提醒调度、Outbox 与可靠投递
 
-- 状态：待验收；负责人：Claude Code；建议角色：后端
+- 状态：完成；负责人：Claude Code；建议角色：后端
 - 依赖：M4-SUBS；未完成依赖：无
-- 估算：2.5 人日；更新：2026-10-02T11:34:10.936Z
-- 下一动作：Docker 全量回归（commit c6003e5 起）进行中：集成 75 通过、混沌演练通过、API 24 通过；浏览器用例完成后自评估核销
+- 估算：2.5 人日；更新：2026-10-02T12:04:32.773Z
+- 下一动作：已完成（自评估），待最终人工审查
+- 评审人：Claude Code 自评估（用户授权，见 docs/reviews/AUTONOMOUS_DELIVERY.md）（自评估，待最终人工审查）
 
 **执行步骤**
 
@@ -551,20 +553,26 @@
 
 **验收标准**
 
-- [ ] worker/Redis 重启可恢复，不重复入账。
-- [ ] 已付/取消/规则版本变化使旧提醒失效。
+- [x] worker/Redis 重启可恢复，不重复入账。
+- [x] 已付/取消/规则版本变化使旧提醒失效。
 
 **证据**
 
 - [docs/evidence/M5-ENGINE/README.md](../docs/evidence/M5-ENGINE/README.md)
 - [packages/db/migrations/0010_notifications.sql](../packages/db/migrations/0010_notifications.sql)
 
+**待最终人工审查**
+
+- [ ] 生产 Redis / MySQL 规格下的长时间调度延迟观测
+- [ ] LEDGER_ENCRYPTION_KEYS 轮换（pnpm channels:rewrap）在预生产演练
+
 ### M5-TG · Telegram 通道
 
-- 状态：待开始；负责人：Claude Code；建议角色：集成开发
-- 依赖：M5-ENGINE；未完成依赖：M5-ENGINE
-- 估算：1 人日；更新：2026-10-02T11:34:11.005Z
-- 下一动作：实现与 mock 收件证据已完成（docs/evidence/M5-TG）；待 M5-ENGINE 核销后自评估，真实接收列入最终人工审查
+- 状态：完成；负责人：Claude Code；建议角色：集成开发
+- 依赖：M5-ENGINE；未完成依赖：无
+- 估算：1 人日；更新：2026-10-02T12:04:32.822Z
+- 下一动作：已完成（自评估），真实 Telegram 接收待人工
+- 评审人：Claude Code 自评估（用户授权，见 docs/reviews/AUTONOMOUS_DELIVERY.md）（自评估，待最终人工审查）
 
 **执行步骤**
 
@@ -574,19 +582,24 @@
 
 **验收标准**
 
-- [ ] Telegram有独立接收证据，不用其他渠道结果替代。
-- [ ] 密钥不回显，平台受理不误报用户已读。
+- [x] Telegram有独立接收证据，不用其他渠道结果替代。
+- [x] 密钥不回显，平台受理不误报用户已读。
 
 **证据**
 
-尚无完成证据。
+- [docs/evidence/M5-TG/README.md](../docs/evidence/M5-TG/README.md)
+
+**待最终人工审查**
+
+- [ ] 用真实 Bot 向真实 chat 发送测试消息并截图（mock 不能替代真实接收证据）
 
 ### M5-FEISHU · 飞书通道
 
-- 状态：待开始；负责人：Claude Code；建议角色：集成开发
-- 依赖：M5-ENGINE；未完成依赖：M5-ENGINE
-- 估算：1 人日；更新：2026-10-02T11:34:11.070Z
-- 下一动作：实现与 mock 收件证据已完成（docs/evidence/M5-FEISHU）；待 M5-ENGINE 核销后自评估，真实接收列入最终人工审查
+- 状态：完成；负责人：Claude Code；建议角色：集成开发
+- 依赖：M5-ENGINE；未完成依赖：无
+- 估算：1 人日；更新：2026-10-02T12:04:32.876Z
+- 下一动作：已完成（自评估），真实飞书群接收待人工
+- 评审人：Claude Code 自评估（用户授权，见 docs/reviews/AUTONOMOUS_DELIVERY.md）（自评估，待最终人工审查）
 
 **执行步骤**
 
@@ -596,19 +609,24 @@
 
 **验收标准**
 
-- [ ] 飞书有独立接收证据，不用其他渠道结果替代。
-- [ ] 密钥不回显，平台受理不误报用户已读。
+- [x] 飞书有独立接收证据，不用其他渠道结果替代。
+- [x] 密钥不回显，平台受理不误报用户已读。
 
 **证据**
 
-尚无完成证据。
+- [docs/evidence/M5-FEISHU/README.md](../docs/evidence/M5-FEISHU/README.md)
+
+**待最终人工审查**
+
+- [ ] 真实飞书群机器人接收截图（含签名校验开启）
 
 ### M5-WECOM · 企业微信机器人与应用消息
 
-- 状态：待开始；负责人：Claude Code；建议角色：集成开发
-- 依赖：M5-ENGINE；未完成依赖：M5-ENGINE
-- 估算：1.5 人日；更新：2026-10-02T11:34:11.131Z
-- 下一动作：实现与 mock 收件证据已完成（docs/evidence/M5-WECOM）；待 M5-ENGINE 核销后自评估，真实接收列入最终人工审查
+- 状态：完成；负责人：Claude Code；建议角色：集成开发
+- 依赖：M5-ENGINE；未完成依赖：无
+- 估算：1.5 人日；更新：2026-10-02T12:04:32.946Z
+- 下一动作：已完成（自评估），真实企业微信接收待人工
+- 评审人：Claude Code 自评估（用户授权，见 docs/reviews/AUTONOMOUS_DELIVERY.md）（自评估，待最终人工审查）
 
 **执行步骤**
 
@@ -618,19 +636,24 @@
 
 **验收标准**
 
-- [ ] 企业微信有独立接收证据，不用其他渠道结果替代。
-- [ ] 密钥不回显，平台受理不误报用户已读。
+- [x] 企业微信有独立接收证据，不用其他渠道结果替代。
+- [x] 密钥不回显，平台受理不误报用户已读。
 
 **证据**
 
-尚无完成证据。
+- [docs/evidence/M5-WECOM/README.md](../docs/evidence/M5-WECOM/README.md)
+
+**待最终人工审查**
+
+- [ ] 真实企业微信群机器人与应用消息接收截图（可信 IP 配置）
 
 ### M5-WX · 个人微信通道
 
-- 状态：待开始；负责人：Claude Code；建议角色：集成开发
-- 依赖：M5-ENGINE；未完成依赖：M5-ENGINE
-- 估算：1.5 人日；更新：2026-10-02T11:34:11.185Z
-- 下一动作：实现与 mock 收件证据已完成（docs/evidence/M5-WX）；待 M5-ENGINE 核销后自评估，真实接收列入最终人工审查
+- 状态：完成；负责人：Claude Code；建议角色：集成开发
+- 依赖：M5-ENGINE；未完成依赖：无
+- 估算：1.5 人日；更新：2026-10-02T12:04:33.004Z
+- 下一动作：已完成（自评估），真实个人微信接收待人工
+- 评审人：Claude Code 自评估（用户授权，见 docs/reviews/AUTONOMOUS_DELIVERY.md）（自评估，待最终人工审查）
 
 **执行步骤**
 
@@ -640,19 +663,24 @@
 
 **验收标准**
 
-- [ ] 个人微信有独立接收证据，不用其他渠道结果替代。
-- [ ] 密钥不回显，平台受理不误报用户已读。
+- [x] 个人微信有独立接收证据，不用其他渠道结果替代。
+- [x] 密钥不回显，平台受理不误报用户已读。
 
 **证据**
 
-尚无完成证据。
+- [docs/evidence/M5-WX/README.md](../docs/evidence/M5-WX/README.md)
+
+**待最终人工审查**
+
+- [ ] 真实 pushplus 公众号推送到个人微信的接收截图，确认隐私默认值
 
 ### M5-OTHER · 站内、邮件与 Webhook
 
-- 状态：待开始；负责人：Claude Code；建议角色：集成开发
-- 依赖：M5-ENGINE；未完成依赖：M5-ENGINE
-- 估算：1.5 人日；更新：2026-10-02T11:34:11.258Z
-- 下一动作：实现与 mock 收件证据已完成（docs/evidence/M5-OTHER）；待 M5-ENGINE 核销后自评估，真实接收列入最终人工审查
+- 状态：完成；负责人：Claude Code；建议角色：集成开发
+- 依赖：M5-ENGINE；未完成依赖：无
+- 估算：1.5 人日；更新：2026-10-02T12:04:33.055Z
+- 下一动作：已完成（自评估），真实邮件与 Webhook 接收待人工
+- 评审人：Claude Code 自评估（用户授权，见 docs/reviews/AUTONOMOUS_DELIVERY.md）（自评估，待最终人工审查）
 
 **执行步骤**
 
@@ -662,19 +690,25 @@
 
 **验收标准**
 
-- [ ] 其他有独立接收证据，不用其他渠道结果替代。
-- [ ] 密钥不回显，平台受理不误报用户已读。
+- [x] 其他有独立接收证据，不用其他渠道结果替代。
+- [x] 密钥不回显，平台受理不误报用户已读。
 
 **证据**
 
-尚无完成证据。
+- [docs/evidence/M5-OTHER/README.md](../docs/evidence/M5-OTHER/README.md)
+
+**待最终人工审查**
+
+- [ ] 真实 SMTP 服务（SPF/DKIM）投递到常用邮箱并确认不进垃圾箱
+- [ ] 真实外部 Webhook 接收端验签
 
 ### M5-CHAOS · 提醒跨通道故障与恢复验收
 
-- 状态：待开始；负责人：Claude Code；建议角色：QA / 后端
-- 依赖：M5-TG, M5-FEISHU, M5-WECOM, M5-WX, M5-OTHER；未完成依赖：M5-TG, M5-FEISHU, M5-WECOM, M5-WX, M5-OTHER
-- 估算：2 人日；更新：2026-10-02T11:34:11.323Z
-- 下一动作：实现与 mock 收件证据已完成（docs/evidence/M5-CHAOS）；待 M5-ENGINE 核销后自评估，真实接收列入最终人工审查
+- 状态：完成；负责人：Claude Code；建议角色：QA / 后端
+- 依赖：M5-TG, M5-FEISHU, M5-WECOM, M5-WX, M5-OTHER；未完成依赖：无
+- 估算：2 人日；更新：2026-10-02T12:04:33.109Z
+- 下一动作：已完成（自评估），待最终人工审查
+- 评审人：Claude Code 自评估（用户授权，见 docs/reviews/AUTONOMOUS_DELIVERY.md）（自评估，待最终人工审查）
 
 **执行步骤**
 
@@ -684,19 +718,23 @@
 
 **验收标准**
 
-- [ ] 每种故障有预期状态与恢复证据。
-- [ ] 实测调度延迟符合预算，重复风险明确可见。
+- [x] 每种故障有预期状态与恢复证据。
+- [x] 实测调度延迟符合预算，重复风险明确可见。
 
 **证据**
 
-尚无完成证据。
+- [docs/evidence/M5-CHAOS/README.md](../docs/evidence/M5-CHAOS/README.md)
+
+**待最终人工审查**
+
+- [ ] 在预生产环境重复混沌演练并记录调度延迟分布
 
 ### M6-SERVER · MCP HTTP / stdio 服务与令牌
 
-- 状态：待开始；负责人：Claude Code；建议角色：全栈 / Agent 集成
-- 依赖：M1-API, M3-REPORTS, M4-SUBS, M5-ENGINE；未完成依赖：M5-ENGINE
-- 估算：2.5 人日；更新：2026-10-02T11:34:11.386Z
-- 下一动作：开发中（前置 M5-ENGINE 待核销）：PAT（只存哈希、作用域与账本限制、立即撤销）、审批（绑定方法 / 路径 / 请求体哈希，网页端批准后 X-Approval-Id 消费）、operation 查询与路由已实现（迁移 0011）；下一步 MCP 工具（HTTP /mcp + stdio）、P10 页面与测试
+- 状态：进行中；负责人：Claude Code；建议角色：全栈 / Agent 集成
+- 依赖：M1-API, M3-REPORTS, M4-SUBS, M5-ENGINE；未完成依赖：无
+- 估算：2.5 人日；更新：2026-10-02T12:14:43.030Z
+- 下一动作：Docker E2E 全量验证后自评估核销；随后 M6-SKILL 正式包与生成器
 
 **执行步骤**
 
@@ -826,7 +864,7 @@
 ### M7-SEC · 权限、密钥与数据安全验收
 
 - 状态：待开始；负责人：未分配；建议角色：QA / 技术负责人
-- 依赖：M4-RESP, M5-CHAOS, M6-CODEX, M6-CLAUDE, M6-DSH, M6-QODER；未完成依赖：M5-CHAOS, M6-CODEX, M6-CLAUDE, M6-DSH, M6-QODER
+- 依赖：M4-RESP, M5-CHAOS, M6-CODEX, M6-CLAUDE, M6-DSH, M6-QODER；未完成依赖：M6-CODEX, M6-CLAUDE, M6-DSH, M6-QODER
 - 估算：1.5 人日；更新：2026-10-02
 - 下一动作：按安全验收矩阵执行并附报告。
 
@@ -848,7 +886,7 @@
 ### M7-PERF · SSR、REST 与队列性能验收
 
 - 状态：待开始；负责人：未分配；建议角色：性能 / 全栈
-- 依赖：M4-RESP, M5-CHAOS；未完成依赖：M5-CHAOS
+- 依赖：M4-RESP, M5-CHAOS；未完成依赖：无
 - 估算：2 人日；更新：2026-10-01T17:27:06.037Z
 - 下一动作：先建立可复现脚本再测量，不能用单次本地秒开替代。
 
@@ -953,6 +991,13 @@
 | M4-DASH | 总览、分析与预算可视化 | docs/evidence/M4-DASH/README.md | 图表动效观感与低端手机流畅度 |
 | M4-THEME | 外观：主题色与深浅模式 | docs/evidence/M4-THEME/README.md；packages/db/migrations/0008_preferences.sql | 真机（iOS / Android）深浅切换与 theme-color 观感；主题色预设 / 自定义色视觉品味 |
 | M4-RESP | 全页面移动端与无障碍验收 | docs/evidence/M4-RESP/README.md | iOS Safari / Android Chrome 软键盘与 safe-area；浏览器真实 200% 缩放观感 |
+| M5-ENGINE | 提醒调度、Outbox 与可靠投递 | docs/evidence/M5-ENGINE/README.md；packages/db/migrations/0010_notifications.sql | 生产 Redis / MySQL 规格下的长时间调度延迟观测；LEDGER_ENCRYPTION_KEYS 轮换（pnpm channels:rewrap）在预生产演练 |
+| M5-TG | Telegram 通道 | docs/evidence/M5-TG/README.md | 用真实 Bot 向真实 chat 发送测试消息并截图（mock 不能替代真实接收证据） |
+| M5-FEISHU | 飞书通道 | docs/evidence/M5-FEISHU/README.md | 真实飞书群机器人接收截图（含签名校验开启） |
+| M5-WECOM | 企业微信机器人与应用消息 | docs/evidence/M5-WECOM/README.md | 真实企业微信群机器人与应用消息接收截图（可信 IP 配置） |
+| M5-WX | 个人微信通道 | docs/evidence/M5-WX/README.md | 真实 pushplus 公众号推送到个人微信的接收截图，确认隐私默认值 |
+| M5-OTHER | 站内、邮件与 Webhook | docs/evidence/M5-OTHER/README.md | 真实 SMTP 服务（SPF/DKIM）投递到常用邮箱并确认不进垃圾箱；真实外部 Webhook 接收端验签 |
+| M5-CHAOS | 提醒跨通道故障与恢复验收 | docs/evidence/M5-CHAOS/README.md | 在预生产环境重复混沌演练并记录调度延迟分布 |
 
 ## 变更历史
 
@@ -1005,3 +1050,11 @@
 | 2026-10-02T11:34:11.258Z | M5-OTHER | todo → todo | Claude Code | 适配器与 E2E 已写，证据文档已建 |
 | 2026-10-02T11:34:11.323Z | M5-CHAOS | todo → todo | Claude Code | 适配器与 E2E 已写，证据文档已建 |
 | 2026-10-02T11:34:11.386Z | M6-SERVER | todo → todo | Claude Code | M6-SERVER 进行中的工作随 WIP 提交 |
+| 2026-10-02T12:04:32.773Z | M5-ENGINE | in_review → done | Claude Code | Docker E2E（7c69245）：集成 79 通过，含提醒规划 / 去重 / 失效；混沌演练 SIGKILL worker + 重启 Redis：在途 unknown 不重发、停机期间到期仅发一次、过期不发 |
+| 2026-10-02T12:04:32.822Z | M5-TG | todo → done | Claude Code | 协议级 mock：sendMessage 请求格式、429 retry_after、5xx 死信、401/403 凭据错误暂停；密钥脱敏（••••末四位）、accepted 不报已读；notify.api.ts / notify.spec.ts 通过 |
+| 2026-10-02T12:04:32.876Z | M5-FEISHU | todo → done | Claude Code | 协议级 mock：自定义机器人 webhook + 签名（timestamp+secret HMAC-SHA256）、code≠0 判失败、限流重试；notify.api.ts 全渠道用例通过 |
+| 2026-10-02T12:04:32.946Z | M5-WECOM | todo → done | Claude Code | 协议级 mock：群机器人 webhook 与应用消息（gettoken 缓存、42001 过期刷新、errcode 映射）；notify.api.ts 全渠道用例通过 |
+| 2026-10-02T12:04:33.004Z | M5-WX | todo → done | Claude Code | pushplus 协议级 mock：默认不含金额与备注（includeDetails 显式开启）、code 映射、受理≠已读；notify.api.ts 通过 |
+| 2026-10-02T12:04:33.055Z | M5-OTHER | todo → done | Claude Code | 站内通知兜底 + 未读角标；SMTP mock 收件 + 6 位验证码确认；Webhook HMAC 签名、SSRF（私网 / DNS 重绑定）拒绝、允许列表；notify.api.ts / notify.spec.ts / notifications.test.ts 通过 |
+| 2026-10-02T12:04:33.109Z | M5-CHAOS | todo → done | Claude Code | Docker 演练 tests/chaos/notify-restart.ts PASS；notify.api.ts 故障矩阵：429 等待、5xx 死信不影响健康渠道、丢失应答保持 unknown、凭据错误暂停；人工重放与 7 日统计 |
+| 2026-10-02T12:14:43.030Z | M6-SERVER | todo → in_progress | Claude Code | MCP 服务实现：15 个工具 + 2 个资源（只经 REST、使用调用者令牌）；/mcp 无状态 Streamable HTTP（Host / Origin / Bearer / 大小检查）与 stdio 打包；P10 Agent 接入页（令牌只显示一次、审批、客户端配置） |

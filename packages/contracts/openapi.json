@@ -6630,10 +6630,15 @@
         "tags": [
           "Channels"
         ],
-        "summary": "我的通知渠道",
+        "summary": "我的通知渠道（令牌需 reminders:read，供 Agent 选择提醒渠道）",
         "security": [
           {
             "session": []
+          },
+          {
+            "pat": [
+              "reminders:read"
+            ]
           }
         ],
         "x-stability": "stable",
@@ -6664,7 +6669,7 @@
         ],
         "responses": {
           "200": {
-            "description": "我的通知渠道",
+            "description": "我的通知渠道（令牌需 reminders:read，供 Agent 选择提醒渠道）",
             "headers": {
               "X-Request-Id": {
                 "$ref": "#/components/headers/X-Request-Id"
@@ -6683,6 +6688,9 @@
           },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"

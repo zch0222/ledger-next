@@ -56,3 +56,26 @@
 | M4-RESP | 缩放不重播入场、不裁剪金额、减少动画等价 | 通过 | responsive 用例末段 |
 
 留给人工审查：见各任务 finalChecks（真机、屏幕阅读器、视觉品味、D22 取舍）。
+
+## 2026-10-02 · M5-ENGINE、M5-TG、M5-FEISHU、M5-WECOM、M5-WX、M5-OTHER、M5-CHAOS
+
+命令与结果（commit `7c69245`）：
+
+- `pnpm lint`、`pnpm typecheck`、`pnpm contract:check`：通过。
+- `pnpm test:unit`：16 文件 166 测试通过（含 `notify-pure.test.ts`：信封加密、SSRF 判定、提醒时间与免打扰、FX 阈值滞回）。
+- `LEDGER_BUILD_CA=/root/.ccr/ca-bundle.crt pnpm test:e2e`：迁移 0001–0011 → 回滚 0011（空表）→ 重放 → 重启持久化 PASS → MySQL 集成 79 passed → 有数据回滚被拒绝 → 混沌演练 PASS → Playwright 59 passed → web 143 / worker 0 优雅停机。
+
+上一轮 Docker 运行发现并已修复：纯 HTTP 来源下 `crypto.randomUUID` 不可用（改为 `getRandomValues`）；预览请求乱序时旧输入的结果覆盖新输入（加入过期守卫并补回归用例）；水合前选好的 CSV 文件被忽略。
+
+第三方服务全部为本地协议级 mock（`apps/mock-services`），没有连接真实 Telegram、飞书、企业微信、pushplus、SMTP 或外部 Webhook。
+
+| 任务 | 验收标准 | 结论 | 证据 |
+| --- | --- | --- | --- |
+| M5-ENGINE | worker / Redis 重启可恢复，不重复入账 | 通过 | `tests/chaos/notify-restart.ts`（SIGKILL worker + 重启 Redis + 15 s 停机）；`notifications.test.ts` 去重键与认领 |
+| M5-ENGINE | 已付 / 取消 / 规则版本变化使旧提醒失效 | 通过 | `notifications.test.ts`（stillValid、规则改版、订阅支付 / 跳过 / 取消） |
+| M5-TG ~ M5-OTHER | 各渠道独立接收证据 | 部分（mock） | `notify.api.ts`「every channel type…」：每种渠道的请求到达各自 mock 收件箱；真实接收列入 finalChecks |
+| M5-TG ~ M5-OTHER | 密钥不回显，受理不误报已读 | 通过 | `notify.spec.ts` channels（页面不含明文、只显示末四位）；状态文案“平台已受理 / 受理不代表已读” |
+| M5-CHAOS | 每种故障有预期状态与恢复证据 | 通过 | `notify.api.ts` faults：429 等待、5xx 死信且健康渠道不重发、丢失应答为 unknown、凭据错误暂停；人工重放 |
+| M5-CHAOS | 调度延迟符合预算，重复风险可见 | 通过（测试规模） | `notification-stats` 7 日统计与调度延迟；unknown 状态在投递记录中显式标注 |
+
+留给人工审查：各渠道真实接收截图、SMTP 送达率、预生产混沌演练与长时延迟分布（见各任务 finalChecks）。

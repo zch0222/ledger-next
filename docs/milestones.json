@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "project": "Ledger Next",
-  "updatedAt": "2026-10-02T11:34:11.386Z",
+  "updatedAt": "2026-10-02T12:14:43.030Z",
   "timezone": "Asia/Hong_Kong",
   "milestones": [
     {
@@ -644,9 +644,9 @@
       ],
       "role": "后端",
       "owner": "Claude Code",
-      "status": "in_review",
+      "status": "done",
       "requiresReview": true,
-      "reviewer": "",
+      "reviewer": "Claude Code 自评估（用户授权，见 docs/reviews/AUTONOMOUS_DELIVERY.md）",
       "blockedReason": "",
       "steps": [
         "实现规则、持久化 job、outbox、稳定去重键。",
@@ -657,12 +657,17 @@
         "worker/Redis 重启可恢复，不重复入账。",
         "已付/取消/规则版本变化使旧提醒失效。"
       ],
-      "nextAction": "Docker 全量回归（commit c6003e5 起）进行中：集成 75 通过、混沌演练通过、API 24 通过；浏览器用例完成后自评估核销",
+      "nextAction": "已完成（自评估），待最终人工审查",
       "evidence": [
         "docs/evidence/M5-ENGINE/README.md",
         "packages/db/migrations/0010_notifications.sql"
       ],
-      "updatedAt": "2026-10-02T11:34:10.936Z"
+      "updatedAt": "2026-10-02T12:04:32.773Z",
+      "reviewMode": "self",
+      "finalChecks": [
+        "生产 Redis / MySQL 规格下的长时间调度延迟观测",
+        "LEDGER_ENCRYPTION_KEYS 轮换（pnpm channels:rewrap）在预生产演练"
+      ]
     },
     {
       "id": "M5-TG",
@@ -675,9 +680,9 @@
       ],
       "role": "集成开发",
       "owner": "Claude Code",
-      "status": "todo",
+      "status": "done",
       "requiresReview": true,
-      "reviewer": "",
+      "reviewer": "Claude Code 自评估（用户授权，见 docs/reviews/AUTONOMOUS_DELIVERY.md）",
       "blockedReason": "",
       "steps": [
         "落实 Bot token/chat_id 与真实聊天接收。",
@@ -688,9 +693,15 @@
         "Telegram有独立接收证据，不用其他渠道结果替代。",
         "密钥不回显，平台受理不误报用户已读。"
       ],
-      "nextAction": "实现与 mock 收件证据已完成（docs/evidence/M5-TG）；待 M5-ENGINE 核销后自评估，真实接收列入最终人工审查",
-      "evidence": [],
-      "updatedAt": "2026-10-02T11:34:11.005Z"
+      "nextAction": "已完成（自评估），真实 Telegram 接收待人工",
+      "evidence": [
+        "docs/evidence/M5-TG/README.md"
+      ],
+      "updatedAt": "2026-10-02T12:04:32.822Z",
+      "reviewMode": "self",
+      "finalChecks": [
+        "用真实 Bot 向真实 chat 发送测试消息并截图（mock 不能替代真实接收证据）"
+      ]
     },
     {
       "id": "M5-FEISHU",
@@ -703,9 +714,9 @@
       ],
       "role": "集成开发",
       "owner": "Claude Code",
-      "status": "todo",
+      "status": "done",
       "requiresReview": true,
-      "reviewer": "",
+      "reviewer": "Claude Code 自评估（用户授权，见 docs/reviews/AUTONOMOUS_DELIVERY.md）",
       "blockedReason": "",
       "steps": [
         "落实 复核官方签名/限流并使用真实测试群。",
@@ -716,9 +727,15 @@
         "飞书有独立接收证据，不用其他渠道结果替代。",
         "密钥不回显，平台受理不误报用户已读。"
       ],
-      "nextAction": "实现与 mock 收件证据已完成（docs/evidence/M5-FEISHU）；待 M5-ENGINE 核销后自评估，真实接收列入最终人工审查",
-      "evidence": [],
-      "updatedAt": "2026-10-02T11:34:11.070Z"
+      "nextAction": "已完成（自评估），真实飞书群接收待人工",
+      "evidence": [
+        "docs/evidence/M5-FEISHU/README.md"
+      ],
+      "updatedAt": "2026-10-02T12:04:32.876Z",
+      "reviewMode": "self",
+      "finalChecks": [
+        "真实飞书群机器人接收截图（含签名校验开启）"
+      ]
     },
     {
       "id": "M5-WECOM",
@@ -731,9 +748,9 @@
       ],
       "role": "集成开发",
       "owner": "Claude Code",
-      "status": "todo",
+      "status": "done",
       "requiresReview": true,
-      "reviewer": "",
+      "reviewer": "Claude Code 自评估（用户授权，见 docs/reviews/AUTONOMOUS_DELIVERY.md）",
       "blockedReason": "",
       "steps": [
         "落实 分别确认群机器人和应用消息权限/凭据。",
@@ -744,9 +761,15 @@
         "企业微信有独立接收证据，不用其他渠道结果替代。",
         "密钥不回显，平台受理不误报用户已读。"
       ],
-      "nextAction": "实现与 mock 收件证据已完成（docs/evidence/M5-WECOM）；待 M5-ENGINE 核销后自评估，真实接收列入最终人工审查",
-      "evidence": [],
-      "updatedAt": "2026-10-02T11:34:11.131Z"
+      "nextAction": "已完成（自评估），真实企业微信接收待人工",
+      "evidence": [
+        "docs/evidence/M5-WECOM/README.md"
+      ],
+      "updatedAt": "2026-10-02T12:04:32.946Z",
+      "reviewMode": "self",
+      "finalChecks": [
+        "真实企业微信群机器人与应用消息接收截图（可信 IP 配置）"
+      ]
     },
     {
       "id": "M5-WX",
@@ -759,9 +782,9 @@
       ],
       "role": "集成开发",
       "owner": "Claude Code",
-      "status": "todo",
+      "status": "done",
       "requiresReview": true,
-      "reviewer": "",
+      "reviewer": "Claude Code 自评估（用户授权，见 docs/reviews/AUTONOMOUS_DELIVERY.md）",
       "blockedReason": "",
       "steps": [
         "落实 配置 pushplus wechat，用户绑定并核验额度/激活限制。",
@@ -772,9 +795,15 @@
         "个人微信有独立接收证据，不用其他渠道结果替代。",
         "密钥不回显，平台受理不误报用户已读。"
       ],
-      "nextAction": "实现与 mock 收件证据已完成（docs/evidence/M5-WX）；待 M5-ENGINE 核销后自评估，真实接收列入最终人工审查",
-      "evidence": [],
-      "updatedAt": "2026-10-02T11:34:11.185Z"
+      "nextAction": "已完成（自评估），真实个人微信接收待人工",
+      "evidence": [
+        "docs/evidence/M5-WX/README.md"
+      ],
+      "updatedAt": "2026-10-02T12:04:33.004Z",
+      "reviewMode": "self",
+      "finalChecks": [
+        "真实 pushplus 公众号推送到个人微信的接收截图，确认隐私默认值"
+      ]
     },
     {
       "id": "M5-OTHER",
@@ -787,9 +816,9 @@
       ],
       "role": "集成开发",
       "owner": "Claude Code",
-      "status": "todo",
+      "status": "done",
       "requiresReview": true,
-      "reviewer": "",
+      "reviewer": "Claude Code 自评估（用户授权，见 docs/reviews/AUTONOMOUS_DELIVERY.md）",
       "blockedReason": "",
       "steps": [
         "落实 实现站内兜底、SMTP、签名 Webhook 和 SSRF 校验。",
@@ -800,9 +829,16 @@
         "其他有独立接收证据，不用其他渠道结果替代。",
         "密钥不回显，平台受理不误报用户已读。"
       ],
-      "nextAction": "实现与 mock 收件证据已完成（docs/evidence/M5-OTHER）；待 M5-ENGINE 核销后自评估，真实接收列入最终人工审查",
-      "evidence": [],
-      "updatedAt": "2026-10-02T11:34:11.258Z"
+      "nextAction": "已完成（自评估），真实邮件与 Webhook 接收待人工",
+      "evidence": [
+        "docs/evidence/M5-OTHER/README.md"
+      ],
+      "updatedAt": "2026-10-02T12:04:33.055Z",
+      "reviewMode": "self",
+      "finalChecks": [
+        "真实 SMTP 服务（SPF/DKIM）投递到常用邮箱并确认不进垃圾箱",
+        "真实外部 Webhook 接收端验签"
+      ]
     },
     {
       "id": "M5-CHAOS",
@@ -819,9 +855,9 @@
       ],
       "role": "QA / 后端",
       "owner": "Claude Code",
-      "status": "todo",
+      "status": "done",
       "requiresReview": true,
-      "reviewer": "",
+      "reviewer": "Claude Code 自评估（用户授权，见 docs/reviews/AUTONOMOUS_DELIVERY.md）",
       "blockedReason": "",
       "steps": [
         "模拟 429、5xx、响应丢失、重启和到期后暂停。",
@@ -832,9 +868,15 @@
         "每种故障有预期状态与恢复证据。",
         "实测调度延迟符合预算，重复风险明确可见。"
       ],
-      "nextAction": "实现与 mock 收件证据已完成（docs/evidence/M5-CHAOS）；待 M5-ENGINE 核销后自评估，真实接收列入最终人工审查",
-      "evidence": [],
-      "updatedAt": "2026-10-02T11:34:11.323Z"
+      "nextAction": "已完成（自评估），待最终人工审查",
+      "evidence": [
+        "docs/evidence/M5-CHAOS/README.md"
+      ],
+      "updatedAt": "2026-10-02T12:04:33.109Z",
+      "reviewMode": "self",
+      "finalChecks": [
+        "在预生产环境重复混沌演练并记录调度延迟分布"
+      ]
     },
     {
       "id": "M6-SERVER",
@@ -850,7 +892,7 @@
       ],
       "role": "全栈 / Agent 集成",
       "owner": "Claude Code",
-      "status": "todo",
+      "status": "in_progress",
       "requiresReview": true,
       "reviewer": "",
       "blockedReason": "",
@@ -863,9 +905,9 @@
         "MCP 不直连数据库、不另写资金逻辑。",
         "只读令牌不可写，撤销立即生效，幂等跨入口一致。"
       ],
-      "nextAction": "开发中（前置 M5-ENGINE 待核销）：PAT（只存哈希、作用域与账本限制、立即撤销）、审批（绑定方法 / 路径 / 请求体哈希，网页端批准后 X-Approval-Id 消费）、operation 查询与路由已实现（迁移 0011）；下一步 MCP 工具（HTTP /mcp + stdio）、P10 页面与测试",
+      "nextAction": "Docker E2E 全量验证后自评估核销；随后 M6-SKILL 正式包与生成器",
       "evidence": [],
-      "updatedAt": "2026-10-02T11:34:11.386Z"
+      "updatedAt": "2026-10-02T12:14:43.030Z"
     },
     {
       "id": "M6-SKILL",
@@ -1535,6 +1577,70 @@
       "to": "todo",
       "actor": "Claude Code",
       "note": "M6-SERVER 进行中的工作随 WIP 提交"
+    },
+    {
+      "at": "2026-10-02T12:04:32.773Z",
+      "id": "M5-ENGINE",
+      "from": "in_review",
+      "to": "done",
+      "actor": "Claude Code",
+      "note": "Docker E2E（7c69245）：集成 79 通过，含提醒规划 / 去重 / 失效；混沌演练 SIGKILL worker + 重启 Redis：在途 unknown 不重发、停机期间到期仅发一次、过期不发"
+    },
+    {
+      "at": "2026-10-02T12:04:32.822Z",
+      "id": "M5-TG",
+      "from": "todo",
+      "to": "done",
+      "actor": "Claude Code",
+      "note": "协议级 mock：sendMessage 请求格式、429 retry_after、5xx 死信、401/403 凭据错误暂停；密钥脱敏（••••末四位）、accepted 不报已读；notify.api.ts / notify.spec.ts 通过"
+    },
+    {
+      "at": "2026-10-02T12:04:32.876Z",
+      "id": "M5-FEISHU",
+      "from": "todo",
+      "to": "done",
+      "actor": "Claude Code",
+      "note": "协议级 mock：自定义机器人 webhook + 签名（timestamp+secret HMAC-SHA256）、code≠0 判失败、限流重试；notify.api.ts 全渠道用例通过"
+    },
+    {
+      "at": "2026-10-02T12:04:32.946Z",
+      "id": "M5-WECOM",
+      "from": "todo",
+      "to": "done",
+      "actor": "Claude Code",
+      "note": "协议级 mock：群机器人 webhook 与应用消息（gettoken 缓存、42001 过期刷新、errcode 映射）；notify.api.ts 全渠道用例通过"
+    },
+    {
+      "at": "2026-10-02T12:04:33.004Z",
+      "id": "M5-WX",
+      "from": "todo",
+      "to": "done",
+      "actor": "Claude Code",
+      "note": "pushplus 协议级 mock：默认不含金额与备注（includeDetails 显式开启）、code 映射、受理≠已读；notify.api.ts 通过"
+    },
+    {
+      "at": "2026-10-02T12:04:33.055Z",
+      "id": "M5-OTHER",
+      "from": "todo",
+      "to": "done",
+      "actor": "Claude Code",
+      "note": "站内通知兜底 + 未读角标；SMTP mock 收件 + 6 位验证码确认；Webhook HMAC 签名、SSRF（私网 / DNS 重绑定）拒绝、允许列表；notify.api.ts / notify.spec.ts / notifications.test.ts 通过"
+    },
+    {
+      "at": "2026-10-02T12:04:33.109Z",
+      "id": "M5-CHAOS",
+      "from": "todo",
+      "to": "done",
+      "actor": "Claude Code",
+      "note": "Docker 演练 tests/chaos/notify-restart.ts PASS；notify.api.ts 故障矩阵：429 等待、5xx 死信不影响健康渠道、丢失应答保持 unknown、凭据错误暂停；人工重放与 7 日统计"
+    },
+    {
+      "at": "2026-10-02T12:14:43.030Z",
+      "id": "M6-SERVER",
+      "from": "todo",
+      "to": "in_progress",
+      "actor": "Claude Code",
+      "note": "MCP 服务实现：15 个工具 + 2 个资源（只经 REST、使用调用者令牌）；/mcp 无状态 Streamable HTTP（Host / Origin / Bearer / 大小检查）与 stdio 打包；P10 Agent 接入页（令牌只显示一次、审批、客户端配置）"
     }
   ]
 }

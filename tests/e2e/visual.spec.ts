@@ -187,6 +187,9 @@ test('responsive and accessible: every page × widths × modes, touch targets, r
   await b.client.post(`/api/v1/notification-channels/${tg.id}/test-deliveries`, { data: {}, headers: { 'Idempotency-Key': crypto.randomUUID() } });
   const rp = (await (await b.client.post(`${b.base}/reminder-previews`, { data: { eventType: 'weekly_summary', localTime: '09:00', timezone: 'Asia/Hong_Kong', quietHours: { start: '22:00', end: '08:00' }, channelIds: [tg.id] } })).json()).data;
   await b.client.post(`${b.base}/reminder-rules`, { data: { previewId: rp.previewId }, headers: { 'Idempotency-Key': crypto.randomUUID() } });
+  // Populated P10: a write token and a pending approval.
+  await b.client.post('/api/v1/api-tokens', { data: { name: 'Claude Code（笔记本）', scopes: ['ledgers:read', 'transactions:read', 'transactions:write', 'approvals:write'], ledgerIds: [b.ledger.id], expiresInDays: 30 } });
+  await b.client.post(`${b.base}/approval-requests`, { data: { method: 'DELETE', path: `${b.base}/transactions/${b.dinner.id}`, body: null, summary: '作废一笔重复记录', reason: '作废需要网页端批准' } });
   const l = `/ledgers/${b.ledger.id}`;
   const pages = ['/dashboard', '/transactions', `/transactions?tx=${b.dinner.id}`, '/subscriptions', '/subscriptions?view=list', '/subscriptions?view=calendar', '/analytics', '/accounts', '/reminders', '/reminders?tab=deliveries', '/reminders?tab=inbox', '/agents',
     '/settings', '/settings/currencies', '/settings/data', '/settings/channels', '/settings/appearance', '/more'].map(p => l + p).concat(['/onboarding']);

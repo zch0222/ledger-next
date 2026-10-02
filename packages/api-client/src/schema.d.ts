@@ -1028,7 +1028,7 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /** 我的通知渠道 */
+        /** 我的通知渠道（令牌需 reminders:read，供 Agent 选择提醒渠道） */
         get: operations["listNotificationChannels"];
         put?: never;
         /** 配置渠道（凭据加密保存） */
@@ -6037,7 +6037,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description 我的通知渠道 */
+            /** @description 我的通知渠道（令牌需 reminders:read，供 Agent 选择提醒渠道） */
             200: {
                 headers: {
                     "X-Request-Id": components["headers"]["X-Request-Id"];
@@ -6049,6 +6049,7 @@ export interface operations {
             };
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
             503: components["responses"]["ServiceUnavailable"];

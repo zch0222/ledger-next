@@ -84,7 +84,7 @@ describe('approvals', () => {
     const small = await createPreview(owner, ledger, { kind: 'expense', accountId: cash, settlement: { amount: '99.00', currency: 'CNY' }, occurredAt: new Date().toISOString(), timezone: 'Asia/Hong_Kong' });
     const large = await createPreview(owner, ledger, { kind: 'expense', accountId: cash, settlement: { amount: '12000.00', currency: 'CNY' }, occurredAt: new Date().toISOString(), timezone: 'Asia/Hong_Kong' });
     expect(await approvalReason('createTransaction', ledger, { previewId: small.previewId })).toBeNull();
-    expect(await approvalReason('createTransaction', ledger, { previewId: large.previewId })).toMatch(/10000 CNY/);
+    expect(await approvalReason('createTransaction', ledger, { previewId: large.previewId })).toBe('支出 12000.00 CNY：单笔金额达到 10000 CNY，由 Agent 发起时需要网页端批准');
   });
 });
 

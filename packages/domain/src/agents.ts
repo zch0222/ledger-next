@@ -152,6 +152,7 @@ export async function consumeApproval(ctx: AuthContext, ledgerId: string, id: st
 /** High-impact writes by a token need a Web approval: destructive operations, and money above the threshold. */
 const ALWAYS = new Set(['voidTransaction', 'createImportReversal', 'archiveAccount', 'createMembership', 'updateMembership', 'deleteMembership']);
 const MONEY = new Set(['createTransaction', 'updateTransaction', 'createRefund', 'createBillPayment']);
+const KIND_LABEL: Record<string, string> = { expense: '支出', income: '收入', transfer: '转账', refund: '退款' };
 export async function approvalReason(operationId: string, ledgerId: string | undefined, body: unknown) {
   if (ALWAYS.has(operationId)) return '作废、撤销导入、归档账户与成员变更由 Agent 发起时需要网页端批准';
   if (!MONEY.has(operationId) || !ledgerId) return null;
@@ -160,9 +161,13 @@ export async function approvalReason(operationId: string, ledgerId: string | und
   const [preview] = await database().select().from(writePreviews).where(and(eq(writePreviews.id, previewId), eq(writePreviews.ledgerId, ledgerId)));
   if (!preview) return null; // the use case itself reports the missing preview
   const [ledger] = await database().select({ base: ledgers.baseCurrency }).from(ledgers).where(eq(ledgers.id, ledgerId));
-  const amount = (preview.computed as { main?: { base?: { amount?: string } } })?.main?.base?.amount;
+  const main = (preview.computed as { main?: { kind?: string; settlement?: { amount: string; currency: string }; base?: { amount?: string } } })?.main;
+  const amount = main?.base?.amount;
   const limit = process.env.AGENT_APPROVAL_AMOUNT ?? '10000';
-  return amount && sum([amount]).abs().greaterThanOrEqualTo(limit) ? `单笔金额达到 ${limit} ${ledger.base}，由 Agent 发起时需要网页端批准` : null;
+  if (!amount || !sum([amount]).abs().greaterThanOrEqualTo(limit)) return null;
+  // The approver sees what the money is, not only that a threshold was crossed.
+  const what = main?.settlement ? `${KIND_LABEL[main.kind ?? ''] ?? '金额'} ${main.settlement.amount} ${main.settlement.currency}${main.settlement.currency === ledger.base ? '' : `（折合 ${amount} ${ledger.base}）`}：` : '';
+  return `${what}单笔金额达到 ${limit} ${ledger.base}，由 Agent 发起时需要网页端批准`;
 }
 
 // ---------- operations ----------
