@@ -20,11 +20,12 @@ export function NewSubscription({ today }: { today: string }) {
     ? { name: form.name.trim(), amount: { amount: form.amount, currency: form.currency }, cycle: { unit: form.unit, count: Number(form.count) }, anchorDate: form.anchorDate, timezone: ui.ledger.timezone, ...(form.accountId ? { accountId: form.accountId } : {}), ...(form.categoryId ? { categoryId: form.categoryId } : {}), ...(form.note ? { note: form.note } : {}) } : null, [form, ui.ledger.timezone]);
   useEffect(() => {
     if (!open || !body) return;
+    let current = true; // drop responses for an input that has since changed
     const timer = setTimeout(async () => {
-      try { setPreview(await api<Preview>(`/api/v1/ledgers/${ui.ledger.id}/subscription-previews`, { method: 'POST', body: JSON.stringify(body) })); setError(null); }
-      catch (e) { setPreview(null); setError(e instanceof ApiError ? e : null); }
+      try { const next = await api<Preview>(`/api/v1/ledgers/${ui.ledger.id}/subscription-previews`, { method: 'POST', body: JSON.stringify(body) }); if (current) { setPreview(next); setError(null); } }
+      catch (e) { if (current) { setPreview(null); setError(e instanceof ApiError ? e : null); } }
     }, 350);
-    return () => clearTimeout(timer);
+    return () => { current = false; clearTimeout(timer); };
   }, [body, open, ui.ledger.id]);
   const set = (patch: Partial<typeof form>) => { setForm(f => ({ ...f, ...patch })); setPreview(null); };
   async function save(e: React.FormEvent) {

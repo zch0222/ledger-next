@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { parseCsv } from '../../../../../packages/domain/src/csv';
 import { ApiError, api, intent } from '../../lib/client';
@@ -17,6 +17,12 @@ export function ImportWizard({ jobs: initialJobs }: { jobs: ImportJob[] }) {
   const [file, setFile] = useState<File | null>(null), [header, setHeader] = useState<string[]>([]), [mapping, setMapping] = useState<Record<string, string>>({});
   const [dateFormat, setDateFormat] = useState('YYYY-MM-DD'), [defaultKind, setDefaultKind] = useState(''), [job, setJob] = useState<ImportJob | null>(null);
   const [error, setError] = useState(''), [busy, setBusy] = useState(false), [submission] = useState(intent), [confirmRevert, setConfirmRevert] = useState<string | null>(null);
+  const fileInput = useRef<HTMLInputElement>(null);
+  // A file picked before the page finished loading has no change event to wait for: read it on mount.
+  useEffect(() => {
+    const picked = fileInput.current?.files?.[0];
+    if (picked) void choose(picked);
+  }, []);
   async function choose(next: File | null) {
     setFile(next); setJob(null); setError(''); setHeader([]);
     if (!next) return;
@@ -66,7 +72,7 @@ export function ImportWizard({ jobs: initialJobs }: { jobs: ImportJob[] }) {
   const jobs = job ? [job, ...initialJobs.filter(j => j.id !== job.id)] : initialJobs;
   return <section className="panel"><h2>CSV 导入</h2><p className="sub">支持收入 / 支出；转账与退款请在应用内登记。重复的行不会重复入账，入账后可整批撤销。</p>
     {ui.canWrite ? <div className="import-steps">
-      <div className="field"><label htmlFor="import-file">1. 选择 UTF-8 CSV（≤5 MB、≤10,000 行）</label><input id="import-file" type="file" accept=".csv,text/csv" onChange={e => void choose(e.target.files?.[0] ?? null)} /></div>
+      <div className="field"><label htmlFor="import-file">1. 选择 UTF-8 CSV（≤5 MB、≤10,000 行）</label><input ref={fileInput} id="import-file" type="file" accept=".csv,text/csv" onChange={e => void choose(e.target.files?.[0] ?? null)} /></div>
       {header.length > 0 && <fieldset><legend>2. 列映射（按表头）</legend><div className="formgrid four">{FIELDS.map(([field, label, required]) => <div className="field" key={field}><label htmlFor={`map-${field}`}>{label}{required ? ' *' : ''}</label><select id={`map-${field}`} value={mapping[field] ?? ''} onChange={e => setMapping(m => ({ ...m, [field]: e.target.value }))}><option value="">{required ? '请选择' : '不导入'}</option>{header.map(h => <option key={h} value={h}>{h}</option>)}</select></div>)}</div>
         <div className="formgrid"><div className="field"><label htmlFor="map-date-format">日期格式</label><select id="map-date-format" value={dateFormat} onChange={e => setDateFormat(e.target.value)}>{['YYYY-MM-DD', 'YYYY/MM/DD', 'DD/MM/YYYY', 'MM/DD/YYYY'].map(f => <option key={f}>{f}</option>)}</select></div>
           {!mapping.kind && <div className="field"><label htmlFor="map-default-kind">没有类型列时</label><select id="map-default-kind" value={defaultKind} onChange={e => setDefaultKind(e.target.value)}><option value="">负数为支出，正数为收入</option><option value="expense">全部为支出（金额为正）</option><option value="income">全部为收入</option></select></div>}</div>

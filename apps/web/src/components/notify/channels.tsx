@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ApiError, api, intent } from '../../lib/client';
+import { ApiError, api, intent, randomKey } from '../../lib/client';
 import { CHANNEL_STATUS, CHANNEL_TYPES, DELIVERY_STATUS, type ChannelTypeId, type ChannelView } from '../../lib/notify-labels';
 
 type Field = { key: string; label: string; secret?: boolean; placeholder?: string; optional?: boolean; type?: 'checkbox' | 'email' | 'url' };
@@ -43,7 +43,7 @@ function ChannelRow({ channel: c }: { channel: ChannelView }) {
   async function runTest() {
     setBusy(true); setError(''); setTest({ state: 'queued', text: '已排队，正在发送测试消息…' });
     try {
-      const created = await api<{ id: string }>(`${base}/test-deliveries`, { method: 'POST', headers: { 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({}) });
+      const created = await api<{ id: string }>(`${base}/test-deliveries`, { method: 'POST', headers: { 'Idempotency-Key': randomKey() }, body: JSON.stringify({}) });
       for (let i = 0; i < 40; i++) {
         const d = await api<{ status: string; lastError: string | null; reason: string | null }>(`${base}/test-deliveries/${created.id}`);
         if (!['queued', 'sending'].includes(d.status)) {

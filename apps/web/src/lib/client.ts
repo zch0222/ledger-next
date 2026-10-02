@@ -20,13 +20,16 @@ export async function api<T>(url: string, options: RequestInit = {}): Promise<T>
   return (value.data ?? value) as T;
 }
 
+/** Random hex key; getRandomValues also works on plain-HTTP origins, where crypto.randomUUID is unavailable. */
+export const randomKey = () => Array.from(crypto.getRandomValues(new Uint8Array(16)), b => b.toString(16).padStart(2, '0')).join('');
+
 // One Idempotency-Key per user intent: resubmitting the same payload (e.g. after a lost response) reuses the key,
 // so the server replays the first result instead of creating a duplicate. getRandomValues also works on plain-HTTP origins.
 export function intent() {
   let current: { key: string; payload: string } | null = null;
   return {
     key(payload: string) {
-      if (current?.payload !== payload) current = { key: Array.from(crypto.getRandomValues(new Uint8Array(16)), b => b.toString(16).padStart(2, '0')).join(''), payload };
+      if (current?.payload !== payload) current = { key: randomKey(), payload };
       return current.key;
     },
     done() { current = null; },

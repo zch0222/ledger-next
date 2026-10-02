@@ -33,11 +33,12 @@ export function RuleForm({ rule, channels, subscriptions, budgets, onClose }: { 
   } : null, [form, dated, ui.ledger.timezone]);
   useEffect(() => {
     if (!body || rule) return;
+    let current = true; // drop responses for an input that has since changed
     const timer = setTimeout(async () => {
-      try { setPreview(await api<Preview>(`/api/v1/ledgers/${ui.ledger.id}/reminder-previews`, { method: 'POST', body: JSON.stringify(body) })); }
-      catch (e) { setPreview(null); setError(e instanceof ApiError ? e : null); }
+      try { const next = await api<Preview>(`/api/v1/ledgers/${ui.ledger.id}/reminder-previews`, { method: 'POST', body: JSON.stringify(body) }); if (current) setPreview(next); }
+      catch (e) { if (current) { setPreview(null); setError(e instanceof ApiError ? e : null); } }
     }, 350);
-    return () => clearTimeout(timer);
+    return () => { current = false; clearTimeout(timer); };
   }, [body, rule, ui.ledger.id]);
   const close = () => { dialog.current?.close(); onClose(); };
   async function save(event: React.FormEvent) {

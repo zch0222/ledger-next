@@ -74,15 +74,17 @@ export function EntryDrawer({ init, onClose }: { init: EntryInit; onClose: () =>
   }, [form, account, target, ledger.timezone, isRefund, isTransfer, crossRefund, original]);
 
   // Live preview, debounced: amounts, rate and balance effect are computed by the server, never guessed here.
+  // A response for an older input is dropped: only the preview of what is on screen can be submitted.
   useEffect(() => {
     if (!body) return;
+    let current = true;
     const timer = setTimeout(async () => {
       setPreviewing(true);
-      try { setPreview(await api<PreviewView>(`/api/v1/ledgers/${ledger.id}/transaction-previews`, { method: 'POST', body: JSON.stringify(body) })); setError(null); }
-      catch (e) { setPreview(null); setError(e instanceof ApiError ? e : new ApiError('预览失败', 0, undefined)); }
-      finally { setPreviewing(false); }
+      try { const next = await api<PreviewView>(`/api/v1/ledgers/${ledger.id}/transaction-previews`, { method: 'POST', body: JSON.stringify(body) }); if (current) { setPreview(next); setError(null); } }
+      catch (e) { if (current) { setPreview(null); setError(e instanceof ApiError ? e : new ApiError('预览失败', 0, undefined)); } }
+      finally { if (current) setPreviewing(false); }
     }, 350);
-    return () => clearTimeout(timer);
+    return () => { current = false; clearTimeout(timer); };
   }, [body, ledger.id]);
 
   function close(force = false) {

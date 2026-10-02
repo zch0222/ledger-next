@@ -271,3 +271,25 @@ test('subscriptions: due is not paid until confirmed, one payment per bill, edit
   await expect(card).toContainText('已取消');
   await b.client.dispose();
 });
+
+test('a slow preview answer for an older input is never what gets saved', async ({ page, context }, info) => {
+  const b = await book('stale-preview'); await signIn(context, b);
+  await page.goto(`/ledgers/${b.ledger.id}/transactions`);
+  // The first preview answer is held back until after the amount has changed again.
+  let first = true;
+  await page.route('**/transaction-previews', async route => {
+    if (first) { first = false; await new Promise(r => setTimeout(r, 1500)); }
+    await route.continue();
+  });
+  await openEntry(page, info);
+  const entry = page.getByRole('dialog', { name: '记一笔' });
+  await entry.getByLabel(/结算金额/).fill('10');
+  await page.waitForTimeout(600); // the debounced request for 10 is now in flight
+  await entry.getByLabel(/结算金额/).fill('20');
+  await expect(entry.getByText('现金 −¥20.00')).toBeVisible();
+  await page.waitForTimeout(1500); // the late answer for 10 arrives and must be ignored
+  await expect(entry.getByText('现金 −¥20.00')).toBeVisible();
+  await submit(page, '记一笔', '保存');
+  expect((await balances(b))['现金']).toBe('980.00');
+  await b.client.dispose();
+});
