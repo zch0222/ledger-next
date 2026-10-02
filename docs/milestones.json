@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "project": "Ledger Next",
-  "updatedAt": "2026-10-02T07:19:37.792Z",
+  "updatedAt": "2026-10-02T07:35:57.611Z",
   "timezone": "Asia/Hong_Kong",
   "milestones": [
     {
@@ -274,7 +274,7 @@
         "M1-API"
       ],
       "role": "后端 / 数据",
-      "owner": "未分配",
+      "owner": "Claude Code",
       "status": "todo",
       "requiresReview": true,
       "reviewer": "",
@@ -288,9 +288,12 @@
         "JPY/三位小数/大额/0.1+0.2 不产生精度错误。",
         "跨账本外键拒绝，迁移可应用并有恢复方案。"
       ],
-      "nextAction": "先写金额不变量测试，再落 schema。",
-      "evidence": [],
-      "updatedAt": "2026-10-02"
+      "nextAction": "实现与本机 Docker 验证已完成；前置 M1-API 签署后转为待验收",
+      "evidence": [
+        "docs/evidence/M2-MODEL/README.md",
+        "packages/db/migrations/0003_ledger_core.sql"
+      ],
+      "updatedAt": "2026-10-02T07:35:57.611Z"
     },
     {
       "id": "M2-LEDGER",
@@ -1230,6 +1233,14 @@
       "to": "in_review",
       "actor": "Claude Code",
       "note": "前置 M1-BASE 已完成，实现与 Docker 验证证据提交评审"
+    },
+    {
+      "at": "2026-10-02T07:35:57.611Z",
+      "id": "M2-MODEL",
+      "from": "todo",
+      "to": "todo",
+      "actor": "Claude Code",
+      "note": "账务核心迁移 0003（复合外键 / CHECK / 回滚脚本）、decimal 金额模块、appendPostings 与余额核对；单元 124、MySQL 集成 13、Playwright 16 通过；按门禁规则前置未 done 前不改状态"
     }
   ]
 }

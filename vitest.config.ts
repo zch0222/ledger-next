@@ -5,7 +5,8 @@ export default defineConfig({ test: {
     // Pure modules only; database, auth and HTTP paths are verified by the Docker E2E suite, not by mocks.
     provider: 'v8', reporter: ['text', 'json-summary', 'html'],
     include: [
-      'packages/domain/src/policy.ts', 'packages/domain/src/cursor.ts', 'packages/domain/src/idempotency.ts',
+      'packages/domain/src/policy.ts', 'packages/domain/src/cursor.ts', 'packages/domain/src/idempotency.ts', 'packages/domain/src/money.ts',
+      'packages/db/src/migrate-files.ts',
       'packages/contracts/src/*.ts', 'packages/ui/src/theme.mjs',
     ],
     exclude: ['packages/contracts/src/cli.ts'],

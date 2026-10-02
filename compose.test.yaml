@@ -12,6 +12,8 @@ services:
     build: { context: ., target: tests }
     environment:
       BASE_URL: http://web:3000
+      # Isolated test database for the MySQL integration suite.
+      DATABASE_URL: mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql:3306/${MYSQL_DATABASE}
       APP_ORIGIN: http://web:3000
       CI: "1"
       PERSISTENCE_EMAIL: ${PERSISTENCE_EMAIL:-}

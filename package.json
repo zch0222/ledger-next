@@ -13,7 +13,7 @@
     "lint": "eslint apps packages tests",
     "typecheck": "tsc --noEmit",
     "test:unit": "vitest run --coverage",
-    "test:integration": "playwright test --project=api",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
     "test:e2e": "node scripts/docker-test.mjs",
     "test:e2e:runner": "playwright test",
     "db:migrate": "tsx packages/db/src/migrate.ts",
@@ -21,7 +21,9 @@
     "progress": "node scripts/progress.mjs status",
     "contract:generate": "tsx packages/contracts/src/cli.ts generate",
     "contract:check": "tsx packages/contracts/src/cli.ts check",
-    "test:contract": "tsx packages/contracts/src/cli.ts check"
+    "test:contract": "tsx packages/contracts/src/cli.ts check",
+    "db:rollback": "tsx packages/db/src/rollback.ts",
+    "test:api": "playwright test --project=api"
   },
   "dependencies": {
     "@better-auth/drizzle-adapter": "1.7.7",

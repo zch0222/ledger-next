@@ -1,6 +1,6 @@
-import { createHash } from 'node:crypto';
 import { readdir, readFile } from 'node:fs/promises';
 import { databasePool } from './index';
+import { checksum, statements } from './migrate-files';
 import type { RowDataPacket } from 'mysql2';
 
 const pool = databasePool();
@@ -12,14 +12,15 @@ try {
   const folder = new URL('../migrations/', import.meta.url);
   for (const file of (await readdir(folder)).filter(f => f.endsWith('.sql')).sort()) {
     const sql = await readFile(new URL(file, folder), 'utf8');
-    const hash = createHash('sha256').update(sql).digest('hex');
+    const hash = checksum(sql);
     const [previous] = await connection.execute<RowDataPacket[]>('SELECT checksum FROM schema_migrations WHERE name = ?', [file]);
     if (previous.length) {
       if (previous[0].checksum !== hash) throw new Error(`Applied migration changed: ${file}`);
       continue;
     }
-    // MySQL DDL implicitly commits. Initial CREATEs are restart-safe; future ALTERs need explicit recovery instructions.
-    for (const statement of sql.split('--> statement-breakpoint').filter(s => s.trim())) await connection.query(statement);
+    // MySQL DDL implicitly commits. CREATE IF NOT EXISTS migrations are restart-safe; ALTERs need explicit recovery
+    // instructions; from 0003 on, migrations ship a migrations/down recovery script (see rollback.ts).
+    for (const statement of statements(sql)) await connection.query(statement);
     await connection.execute('INSERT INTO schema_migrations VALUES (?, ?, UTC_TIMESTAMP(3))', [file, hash]);
     console.log(`Applied ${file}`);
   }

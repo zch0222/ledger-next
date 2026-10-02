@@ -2,7 +2,7 @@
 
 > 自动生成：请更新 milestones.json 或运行 scripts/progress.mjs；不要直接修改本文件。
 
-数据版本：1 · 最近更新：2026-10-02T07:19:37.792Z
+数据版本：1 · 最近更新：2026-10-02T07:35:57.611Z
 
 完成率按原始估算人日加权，只有 done 计入；in_review 不计完成。文档完成不代表业务开发完成。
 
@@ -34,7 +34,7 @@
 | M1-BASE | 工程骨架与版本锁定 | 完成 | Codex、Claude Code / 全栈开发 | G0 | 1.5 |
 | M1-AUTH | 身份、账本与权限 | 待验收 | Codex、Claude Code / 全栈开发 | M1-BASE | 2 |
 | M1-API | OpenAPI、错误模型与 REST SDK | 待开始 | Claude Code / 全栈开发 | M1-AUTH | 2 |
-| M2-MODEL | 账务 schema 与金额运算 | 待开始 | 未分配 / 后端 / 数据 | M1-API | 2 |
+| M2-MODEL | 账务 schema 与金额运算 | 待开始 | Claude Code / 后端 / 数据 | M1-API | 2 |
 | M2-LEDGER | 收支、转账、退款与更正 | 待开始 | 未分配 / 全栈开发 | M2-MODEL | 3 |
 | M2-IMPORT | CSV 导入导出与可撤销批次 | 待开始 | 未分配 / 全栈开发 | M2-LEDGER | 2 |
 | M3-FX | 分钟汇率、历史补录和降级 | 待开始 | 未分配 / 后端 / 集成 | M2-MODEL | 2.5 |
@@ -242,10 +242,10 @@
 
 ### M2-MODEL · 账务 schema 与金额运算
 
-- 状态：待开始；负责人：未分配；建议角色：后端 / 数据
+- 状态：待开始；负责人：Claude Code；建议角色：后端 / 数据
 - 依赖：M1-API；未完成依赖：M1-API
-- 估算：2 人日；更新：2026-10-02
-- 下一动作：先写金额不变量测试，再落 schema。
+- 估算：2 人日；更新：2026-10-02T07:35:57.611Z
+- 下一动作：实现与本机 Docker 验证已完成；前置 M1-API 签署后转为待验收
 
 **执行步骤**
 
@@ -260,7 +260,8 @@
 
 **证据**
 
-尚无完成证据。
+- [docs/evidence/M2-MODEL/README.md](../docs/evidence/M2-MODEL/README.md)
+- [packages/db/migrations/0003_ledger_core.sql](../packages/db/migrations/0003_ledger_core.sql)
 
 ### M2-LEDGER · 收支、转账、退款与更正
 
@@ -887,3 +888,4 @@
 | 2026-10-01T19:33:00.491Z | M1-BASE | in_review → in_review | Claude Code | 测试容器改为直接运行 Playwright；含 M1-API 的最终 Docker E2E 16/16 通过 |
 | 2026-10-02T07:19:37.634Z | M1-BASE | in_review → done | Claude Code | 用户在会话中明确验收 M1-BASE；本机 Docker E2E 16/16 与干净检出启动为依据，远程 CI 尚未运行 |
 | 2026-10-02T07:19:37.792Z | M1-AUTH | todo → in_review | Claude Code | 前置 M1-BASE 已完成，实现与 Docker 验证证据提交评审 |
+| 2026-10-02T07:35:57.611Z | M2-MODEL | todo → todo | Claude Code | 账务核心迁移 0003（复合外键 / CHECK / 回滚脚本）、decimal 金额模块、appendPostings 与余额核对；单元 124、MySQL 集成 13、Playwright 16 通过；按门禁规则前置未 done 前不改状态 |

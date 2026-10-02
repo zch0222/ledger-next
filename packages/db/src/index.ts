@@ -14,3 +14,5 @@ export function database() { return (connection ??= create()).db; }
 /** The pool-level database or a transaction; domain writes accept either so callers can compose transactions. */
 export type Executor = Omit<ReturnType<typeof database>, '$client'>;
 export function databasePool() { return (connection ??= create()).pool; }
+/** A transaction handle; functions that take row locks require one. */
+export type Tx = Parameters<Parameters<Executor['transaction']>[0]>[0];

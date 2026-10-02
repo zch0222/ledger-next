@@ -8,9 +8,15 @@ export function input<T extends z.ZodType>(id: string, schema: T, description?: 
 export function output<T extends z.ZodType>(id: string, schema: T, description?: string) { responses.add(schema, { id, description }); return schema; }
 export function shared<T extends z.ZodType>(id: string, schema: T, description?: string) { input(id, schema, description); return output(id, schema, description); }
 
-export const CURRENCIES = { CNY: 2, USD: 2, HKD: 2, EUR: 2, JPY: 0 } as const;
+// ISO 4217 minor units; mirrors the seed in migration 0003. KWD (3 decimals) is defined for precision coverage but not enabled.
+export const CURRENCY_TABLE = {
+  CNY: { minorUnits: 2, enabled: true }, USD: { minorUnits: 2, enabled: true }, HKD: { minorUnits: 2, enabled: true },
+  EUR: { minorUnits: 2, enabled: true }, JPY: { minorUnits: 0, enabled: true }, KWD: { minorUnits: 3, enabled: false },
+} as const;
+export type CurrencyCode = keyof typeof CURRENCY_TABLE;
+export const ENABLED_CURRENCIES = ['CNY', 'USD', 'HKD', 'EUR', 'JPY'] as const satisfies readonly CurrencyCode[];
 export const uuid = z.uuid();
-export const Currency = shared('Currency', z.enum(Object.keys(CURRENCIES) as [keyof typeof CURRENCIES, ...(keyof typeof CURRENCIES)[]]), 'ISO 4217 大写币种；首发启用 CNY/USD/HKD/EUR/JPY');
+export const Currency = shared('Currency', z.enum(ENABLED_CURRENCIES), 'ISO 4217 大写币种；首发启用 CNY/USD/HKD/EUR/JPY');
 export const Decimal = shared('Decimal', z.string().regex(/^-?(0|[1-9]\d{0,17})(\.\d{1,6})?$/), '十进制字符串金额；服务端按币种 minor units 拒绝多余精度，不截断');
 export const Rate = shared('Rate', z.string().regex(/^(0|[1-9]\d{0,19})(\.\d{1,18})?$/), '十进制字符串汇率，最多 18 位小数');
 export const Money = shared('Money', z.object({ amount: Decimal, currency: Currency }).strict());
