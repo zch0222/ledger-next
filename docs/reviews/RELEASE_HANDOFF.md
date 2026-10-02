@@ -23,9 +23,9 @@
 | --- | --- | --- |
 | 静态检查 | `pnpm lint`、`pnpm typecheck`、`pnpm contract:check` | 通过 |
 | 单元 | `pnpm test:unit` | 186 passed；纯模块覆盖率语句 97.97 %、分支 94.63 % |
-| 完整回归 | `pnpm test:e2e`（Docker） | 迁移回滚演练、持久化、集成 82、混沌演练、Playwright 74、日志脱敏扫描、优雅停机，全部通过 |
+| 完整回归 | `pnpm test:e2e`（Docker） | 迁移回滚演练、持久化、集成 83、混沌演练、Playwright 74、日志脱敏扫描、优雅停机，全部通过 |
 | 恢复演练 | `pnpm test:ops` | 备份恢复 RTO 25.1 s、备库恢复 RTO 25.8 s（0 丢失），对账一致 |
-| 性能 | `pnpm test:perf` → `scripts/perf-report.mjs` | 见 [M7-PERF/RESULTS.md](../evidence/M7-PERF/RESULTS.md) |
+| 性能 | `pnpm test:perf` → `scripts/perf-report.mjs` | 1,000 用户 + 10 万笔、0 错误：100 并发用户模型全部达标（总览 TTFB p95 68 ms、REST ≤76 ms）；Web Vitals、聚合、提醒、汇率达标；无思考压力场景（161 次/秒）p95 未达标——见 [RESULTS.md](../evidence/M7-PERF/RESULTS.md) |
 | 依赖 | `pnpm audit --prod` | 0 项 |
 
 每个任务的逐项结论在 [SELF_REVIEW.md](../evidence/SELF_REVIEW.md) 与 `docs/evidence/{任务}/README.md`。
@@ -43,7 +43,7 @@
 - 生产主机、域名、HTTPS、监控与异地备份尚未建立（M7-OPS 人工项）。
 - 远程 MCP OAuth 未实现：远程只支持个人访问令牌（契约 §4.1）。
 - 仅有每日全量备份时 RPO 按 ≤24 小时对外说明；需要 ≤15 分钟时部署第二台主机上的备库（D35）。
-- 性能为单机实验室数据（D36），未达标项见 RESULTS.md 与 M7-PERF 记录。
+- 性能为单机实验室数据（D36）；无思考时间的 100 在途请求压力场景未达标（整机 CPU 饱和），需确认“100 并发”口径并在 MySQL / web 分机环境复测。
 
 ## 5. 签署
 

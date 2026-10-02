@@ -59,13 +59,14 @@
 
 ## 运行记录
 
-2026-10-02，`LEDGER_BUILD_CA=/root/.ccr/ca-bundle.crt pnpm test:e2e`（commit `c4694e4` 的工作树）：
+2026-10-02，`LEDGER_BUILD_CA=/root/.ccr/ca-bundle.crt pnpm test:e2e`（最近一次：web 以 4 进程 cluster 运行的版本）：
 
 - 迁移 0001–0011 → 回滚最新迁移（空表）→ 重放 → 重启 MySQL / Redis / web / worker 后账号与账本保留（PASS）。
-- MySQL 集成：10 个文件 82 passed。
+- MySQL 集成：10 个文件 83 passed。
 - 有数据时回滚被拒绝；提醒混沌演练 PASS（在途 unknown 不重发、停机期间到期只发一次、过期不发）。
 - Playwright：74 passed（api 37、desktop 19、mobile 18，含 P00–P13 全部页面的响应式与 axe 矩阵），0 failed、0 flaky。
-- 日志脱敏扫描 PASS；web 143 / worker 0 优雅停机。
+- 日志脱敏扫描 PASS；web（cluster 主进程）0 / worker 0 优雅停机。
+- 此前一次运行在香港时间 22:39 执行时，提醒 UI 用例因表单默认免打扰（22:00–08:00）把预算提醒顺延到次日而失败（产品行为正确、用例依赖时刻）；用例已显式关闭免打扰，复跑全部通过。
 - 单元：`pnpm test:unit` 18 文件 186 passed，纯模块覆盖率语句 97.97 %、分支 94.63 %、函数 95.95 %、行 98.67 %。
 
 ## 留给人工审查

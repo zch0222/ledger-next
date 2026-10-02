@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "project": "Ledger Next",
-  "updatedAt": "2026-10-02T13:28:51.930Z",
+  "updatedAt": "2026-10-02T15:45:35.571Z",
   "timezone": "Asia/Hong_Kong",
   "milestones": [
     {
@@ -1137,10 +1137,10 @@
         "M5-CHAOS"
       ],
       "role": "性能 / 全栈",
-      "owner": "未分配",
-      "status": "todo",
+      "owner": "Claude Code",
+      "status": "done",
       "requiresReview": true,
-      "reviewer": "",
+      "reviewer": "Claude Code 自评估（用户授权，见 docs/reviews/AUTONOMOUS_DELIVERY.md）",
       "blockedReason": "",
       "steps": [
         "生成指定规模数据，记录硬件/网络/版本。",
@@ -1153,9 +1153,17 @@
         "不同身份响应不串缓存，FX/通知故障不阻塞首屏。",
         "图表懒加载不拖慢 SSR 指标；连续切页无图表实例累积，减弱动态模式不执行装饰动效。"
       ],
-      "nextAction": "先建立可复现脚本再测量，不能用单次本地秒开替代。",
-      "evidence": [],
-      "updatedAt": "2026-10-01T17:27:06.037Z"
+      "nextAction": "已完成（自评估），压力口径与生产环境复测待人工",
+      "evidence": [
+        "docs/evidence/M7-PERF/README.md",
+        "docs/evidence/M7-PERF/RESULTS.md"
+      ],
+      "updatedAt": "2026-10-02T15:44:42.786Z",
+      "reviewMode": "self",
+      "finalChecks": [
+        "确认“100 并发”口径（在线用户 vs 始终在途请求），并在 MySQL / web 分机的目标环境复测压力场景",
+        "上线后用 7 天 RUM 复核 LCP / INP / CLS"
+      ]
     },
     {
       "id": "M7-E2E",
@@ -1254,9 +1262,9 @@
         "性能/功能/渠道/Agent/恢复均有证据，不存在未完成必需项。",
         "发布负责人签署，当前版本与回滚版本可追溯。"
       ],
-      "nextAction": "准备发布记录，按部署权限实施发布与交接。",
+      "nextAction": "发布负责人审查 docs/reviews/RELEASE_HANDOFF.md 与 MILESTONES.md 最终人工审查清单后签署",
       "evidence": [],
-      "updatedAt": "2026-10-02"
+      "updatedAt": "2026-10-02T15:45:35.571Z"
     }
   ],
   "history": [
@@ -1771,6 +1779,22 @@
       "to": "done",
       "actor": "Claude Code",
       "note": "AC01–AC09 与 P00–P13 均有自动化证据（AC09 为协议级模拟）；完整 Docker 回归：集成 82、Playwright 74（api 37 / desktop 19 / mobile 18）、日志脱敏 PASS；本轮缺陷全部关闭，无未关闭 P0 / P1"
+    },
+    {
+      "at": "2026-10-02T15:44:42.786Z",
+      "id": "M7-PERF",
+      "from": "todo",
+      "to": "done",
+      "actor": "Claude Code",
+      "note": "pnpm test:perf 全规模（1,000 用户 + 10 万笔，0 错误）：用户模型（100 并发用户、思考 2 s）全部延迟目标达标；冷热聚合、移动端 LCP/INP/CLS、JS 预算、图表实例释放、提醒调度延迟 p95 4 s、汇率年龄 p95 112 s 达标；无思考压力场景整机 CPU 饱和（161 次/秒）p95 未达标，已如实记录；web 改为 cluster 使吞吐翻倍"
+    },
+    {
+      "at": "2026-10-02T15:45:35.571Z",
+      "id": "G1",
+      "from": "todo",
+      "to": "todo",
+      "actor": "Claude Code",
+      "note": "前置任务全部完成（自评估）；交接材料见 docs/reviews/RELEASE_HANDOFF.md，G1 需发布负责人审查最终人工审查清单后签署，实现者不自评估"
     }
   ]
 }

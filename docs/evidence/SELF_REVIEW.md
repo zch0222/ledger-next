@@ -124,3 +124,18 @@
 | M7-E2E | 无 mock 代替真实必要渠道联调 | **未满足（按授权以 mock 代替）** | D21：真实渠道与客户端联调全部列入最终人工审查，不宣称已实测 |
 
 留给人工审查：生产部署与真实渠道、真机浏览器、渗透测试、G1 签署。
+
+## 2026-10-02 · M7-PERF
+
+命令：`LEDGER_BUILD_CA=/root/.ccr/ca-bundle.crt pnpm test:perf`，`node scripts/perf-report.mjs`（结果：[M7-PERF/RESULTS.md](M7-PERF/RESULTS.md)）。同一提交的完整回归 `pnpm test:e2e`：集成 83、Playwright 74、日志扫描 PASS、web（cluster）0 / worker 0。
+
+首轮全规模运行发现单个 Node web 进程在 100 个在途请求下把一个核跑满（总览 TTFB p95≈2.9 s，MySQL 空闲）；改为 Node cluster 并把认证限流移到 Redis（D37）后，同一压力场景吞吐 80 → 161 次/秒，TTFB p95 2.96 → 1.42 s。期间还修正了一个依赖时刻的 UI 用例（香港 22:00 后默认免打扰顺延提醒）。
+
+| 验收标准 | 结论 | 证据 |
+| --- | --- | --- |
+| 提交 p50 / p95 / p99、错误率和目标对比 | 通过 | RESULTS.md：全部请求 0 错误；用户模型与单独测量全部达标 |
+| 未达项已解决或真实记录为未通过 | 通过（记录为未通过） | 无思考时间、100 个请求始终在途的压力场景在共享 4 核上 CPU 饱和，p95 超目标；原因、已做改进与达标条件写在 M7-PERF README |
+| 不同身份响应不串缓存；FX / 通知故障不阻塞首屏 | 通过 | `security.api.ts`（no-store、缓存键含授权后的账本）；`fx.api.ts`（供应商超时时页面 3 s 内返回） |
+| 图表懒加载不拖慢 SSR；切页无实例累积；减少动态不执行动效 | 通过 | 首屏 JS 160 KB，ECharts 196 KB 在 load 之后；20 次切页每页 2 个实例；减少动态时动画 false |
+
+留给人工审查：确认“100 并发”的口径并在目标环境（MySQL / web 分机）复测；上线后 7 天 RUM。
