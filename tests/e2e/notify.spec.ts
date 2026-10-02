@@ -62,6 +62,8 @@ test('reminders: create with a live preview, see deliveries, retry a dead letter
   await form.getByLabel('提醒什么').selectOption({ label: '预算阈值' });
   await form.getByLabel('预算').selectOption({ label: '零食' });
   await form.getByLabel(/我的 TG/).check();
+  // Quiet hours (default 22:00–08:00) would defer the alert when the suite runs late in the evening.
+  await form.getByLabel('免打扰时段顺延').uncheck();
   await expect(form.getByText('事件触发，无固定时间。')).toBeVisible();
   await form.getByRole('button', { name: '保存提醒' }).click();
   await expect(form).toBeHidden();

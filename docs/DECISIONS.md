@@ -41,6 +41,7 @@
 | D34 | 设计建议 | API 分层限流放在 Redis 固定一分钟窗口：每会话 / 令牌 600，认证失败按反向代理给出的来源地址 30，资金写入按“主体 + 账本”会话 120 / 令牌 30；Redis 不可用时放行 | 满足 §8“按 actor / ledger / IP 分层、金额写入另设速率、429 + Retry-After”；放行是有意的：资金仍由幂等与审批保护，账本可用性不依赖缓存。来源地址只信任 `X-Forwarded-For` 第一项，部署必须由反向代理覆盖该头 | M7-SEC |
 | D35 | 设计建议 | 备份策略：每日 `mysqldump --single-transaction` 全量（RPO 按 ≤24 h 对外说明）；具备第二台主机时加 MySQL 流复制备库以达到低 RPO；恢复后必须清空 Redis | 官方 MySQL 镜像不含 `mysqlbinlog`，不在本轮宣称 binlog 时间点恢复；报表缓存键含账本数据版本，恢复后版本号可能与旧时间线重合，不清空会读到错误缓存 | M7-OPS |
 | D36 | 设计建议 | 性能“冷缓存”指清空 Redis 报表缓存后的首次请求（MySQL 保持热）；Web Vitals 为实验室数据（Pixel 7、slow 4G、CPU ×4，各 20 次）；压测机、浏览器与服务同机 | 与 §7.3 的口径差异在报告中写明；上线后以 7 天 RUM 复核 | M7-PERF |
+| D37 | 设计建议 | web 镜像以 Node cluster 运行 `WEB_CONCURRENCY` 个 Next 进程（默认 CPU 数、最多 4），Better Auth 认证限流改用 Redis 共享存储 | 首轮压测中单个 Node 进程把一个核跑满（总览 TTFB p95≈2.9 s）而 MySQL 很空闲；进程内不保存请求状态（会话、缓存、限流、任务均在 MySQL / Redis），多进程无需粘性会话 | M7-PERF |
 
 ## 范围调整规则
 

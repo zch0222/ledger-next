@@ -30,6 +30,7 @@
 | `AGENT_APPROVAL_AMOUNT` | Agent 单笔写入需网页批准的门槛（基准币，默认 10000） |
 | `API_RATE_LIMIT` / `API_WRITE_RATE_LIMIT` / `AGENT_WRITE_RATE_LIMIT` / `API_AUTH_FAILURE_LIMIT` | 每分钟限额：每个会话或令牌 600；资金写入每账本 120（会话）/ 30（令牌）；每个来源地址认证失败 30 |
 | `MCP_ALLOWED_HOSTS` / `MCP_ALLOWED_ORIGINS` | 可选：反向代理改写 Host 或浏览器内 MCP 客户端时追加 |
+| `WEB_CONCURRENCY` | web 进程数（Node cluster 共享端口），默认 CPU 数且最多 4；MySQL / worker 同机时可设为 CPU 数 − 1 |
 
 3. 反向代理（Caddy / Nginx）终止 HTTPS，转发到 `127.0.0.1:${WEB_PORT}`：
    - 必须设置 `X-Forwarded-For`（限流按第一个地址计数）并保留 `Host`；
