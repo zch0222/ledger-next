@@ -24,6 +24,7 @@ export async function expectContract(response: APIResponse, operationId: string,
   const [type, media] = Object.entries(resolved.content ?? {})[0] ?? [];
   if (!media) { expect(await response.text()).toBe(''); return undefined; }
   expect(response.headers()['content-type']).toContain(type);
+  if (!type.includes('json')) return await response.text(); // file downloads: the contract only declares a string body
   const body = await response.json();
   const validate = ajv.compile(toContractRef(media.schema) as object);
   expect(validate(body), `${operationId} ${response.status()} body violates contract: ${ajv.errorsText(validate.errors)}\n${JSON.stringify(body)}`).toBe(true);

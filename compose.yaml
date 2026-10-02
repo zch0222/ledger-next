@@ -4,6 +4,17 @@ x-app-env: &app-env
   REDIS_URL: redis://redis:6379
   APP_URL: ${APP_URL:-http://localhost:3000}
   BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?Set BETTER_AUTH_SECRET in .env}
+  # Third-party endpoints stay empty unless configured; compose.mock.yaml points them at local mocks.
+  FX_PROVIDER_URL: ${FX_PROVIDER_URL:-}
+  FX_PROVIDER_KEY: ${FX_PROVIDER_KEY:-}
+  LEDGER_ADMIN_EMAILS: ${LEDGER_ADMIN_EMAILS:-}
+  # Notification channels (M5): credentials are sealed with these master keys ("id:base64(32 bytes)", first encrypts).
+  LEDGER_ENCRYPTION_KEYS: ${LEDGER_ENCRYPTION_KEYS:?Set LEDGER_ENCRYPTION_KEYS in .env}
+  SMTP_URL: ${SMTP_URL:-}
+  SMTP_FROM: ${SMTP_FROM:-Ledger Next <no-reply@localhost>}
+  # Private-network webhook receivers need an explicit allowlist (host or host:port); empty means public HTTPS only.
+  WEBHOOK_ALLOWLIST: ${WEBHOOK_ALLOWLIST:-}
+  CHANNEL_ENDPOINT_OVERRIDES: ${CHANNEL_ENDPOINT_OVERRIDES:-}
 services:
   mysql:
     image: mysql:8.4@sha256:6ea90827b1100f8f2ae306a539f86d2c264a26ed435a2a9f75551dd5c3aeb242 # 8.4.11 LTS, multi-platform index
@@ -46,7 +57,7 @@ services:
       migrate: { condition: service_completed_successfully }
       redis: { condition: service_healthy }
     healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
       interval: 5s
       timeout: 5s
       retries: 20

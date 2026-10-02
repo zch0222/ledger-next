@@ -4,7 +4,7 @@ import { AccountCreate, AccountUpdate } from '../../contracts/src/finance';
 import { database, type Executor, type Tx } from '../../db/src/index';
 import { accounts } from '../../db/src/schema';
 import { ledgerAccess } from './access';
-import { audit } from './audit';
+import { audit, emit } from './audit';
 import type { AuthContext, Keyset } from './identity';
 import { formatAmount, parseAmount, toColumn } from './money';
 import { DomainError, requireVersion } from './policy';
@@ -39,6 +39,7 @@ export async function createAccount(ctx: AuthContext, ledgerId: string, input: u
     const now = new Date(), id = randomUUID();
     await tx.insert(accounts).values({ id, ledgerId, name: data.name, type: data.type, currency: data.currency, openingBalance: toColumn(opening), balance: toColumn(opening), note: data.note ?? null, createdAt: now, updatedAt: now });
     await audit(tx, ctx, ledgerId, 'account.created', id);
+    await emit(tx, ledgerId, 'account.created', { accountId: id });
     return presentAccount((await lockAccount(tx, ledgerId, id))!);
   });
 }
@@ -56,6 +57,7 @@ export async function updateAccount(ctx: AuthContext, ledgerId: string, accountI
     const changes = { ...(data.name !== undefined ? { name: data.name } : {}), ...(data.note !== undefined ? { note: data.note } : {}), version: row.version + 1, updatedAt: new Date() };
     await tx.update(accounts).set(changes).where(and(eq(accounts.ledgerId, ledgerId), eq(accounts.id, accountId)));
     await audit(tx, ctx, ledgerId, 'account.updated', accountId);
+    await emit(tx, ledgerId, 'account.updated', { accountId: accountId });
     return presentAccount({ ...row, ...changes });
   });
 }
@@ -71,6 +73,7 @@ export async function archiveAccount(ctx: AuthContext, ledgerId: string, account
     const changes = { archivedAt: new Date(), version: row.version + 1, updatedAt: new Date() };
     await tx.update(accounts).set(changes).where(and(eq(accounts.ledgerId, ledgerId), eq(accounts.id, accountId)));
     await audit(tx, ctx, ledgerId, 'account.archived', accountId);
+    await emit(tx, ledgerId, 'account.archived', { accountId: accountId });
     return presentAccount({ ...row, ...changes });
   });
 }

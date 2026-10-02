@@ -1,6 +1,8 @@
 export type Role = 'owner' | 'editor' | 'viewer';
+export type FieldError = { path: string; message: string; code?: string };
 export class DomainError extends Error {
-  constructor(public status: number, public code: string, message: string, public headers: Record<string, string> = {}) { super(message); }
+  /** `extra` adds documented problem+json members (e.g. the approval to wait for). */
+  constructor(public status: number, public code: string, message: string, public headers: Record<string, string> = {}, public errors?: FieldError[], public extra?: Record<string, unknown>) { super(message); }
 }
 export function requireRole(role: Role | undefined, required: Role = 'viewer') {
   if (!role) throw new DomainError(404, 'NOT_FOUND', '账本不存在或你没有访问权限');

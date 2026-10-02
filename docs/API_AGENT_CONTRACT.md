@@ -1,6 +1,6 @@
 # REST API、MCP 与配套 Skill 契约
 
-版本 0.3 · 2026-10-02 · 可执行契约。下表全部资源已转换为 OpenAPI 3.1：[packages/contracts/openapi.json](../packages/contracts/openapi.json)（由 `packages/contracts/src` 的 Zod 定义生成，`pnpm contract:generate`），类型化 REST SDK 位于 `packages/api-client`。每个操作带 `x-stability`：`stable` 为已实现并受 CI 破坏性变更门禁保护（当前 30 个：M1 的 `/me`、`/ledgers`、`L`、`L/memberships`、`L/audit-events`，以及 M2-LEDGER 的账户、分类、标签和交易预览 / 创建 / 查询 / 更正 / 作废 / 退款）；`planned` 为已发布、尚未实现的契约，返回 501 并标注 `x-milestone`，实现时可调整。认证库协议为 `/api/auth/*`。下列远程域名是示例，MCP 配置不表示现在可以连接。
+版本 0.3 · 2026-10-02 · 可执行契约。下表全部资源已转换为 OpenAPI 3.1：[packages/contracts/openapi.json](../packages/contracts/openapi.json)（由 `packages/contracts/src` 的 Zod 定义生成，`pnpm contract:generate`），类型化 REST SDK 位于 `packages/api-client`。每个操作带 `x-stability`：`stable` 为已实现并受 CI 破坏性变更门禁保护（M1 身份 / 账本 / 成员 / 审计，M2 账户、分类、标签、交易、导入导出，M3 汇率、报表与预算；具体清单见 openapi.json 与 `tests/unit/contract.test.ts`）；`planned` 为已发布、尚未实现的契约，返回 501 并标注 `x-milestone`，实现时可调整。认证库协议为 `/api/auth/*`。下列远程域名是示例，MCP 配置不表示现在可以连接。
 
 ## 1. 公共 REST 规则
 
@@ -163,9 +163,16 @@ M2-LEDGER 已实现的规则（以 OpenAPI 与 `tests/e2e/ledger.api.ts` 为准�
 - 结算币须与账户币种一致，金额按币种精度校验；结算币不是账本基准币时，需 `fxPolicy: "manual"` + `manualRate`（M3-FX 接入报价前没有自动汇率，返回 422 FX_RATE_MISSING）。转账若转入基准币账户，以双方金额推算汇率（source: transfer）。
 - 转账写转出 / 转入两条 posting，不带分类，不计收支；手续费是关联的独立支出（`transfer.feeTransactionId`），作废转账时一并作废。
 - 退款只针对有效支出，退回同币种账户，沿用原支出的分类与锁定汇率；累计超过原支付金额 409 REFUND_EXCEEDS_PAID（并发退款在原交易行锁内串行判断）。有有效退款的支出不能作废或更正（409 HAS_REFUNDS）。
-- 更正（PATCH + If-Match + 新预览）在同一事务内冲正旧版本 posting、把旧版本标为 voided，并写入 `replacesId` 指向旧版本的新交易；作废（DELETE + If-Match）追加反向 posting，重复作废不再变化。posting 只追加不改写。
+- 更正（PATCH + If-Match + 新预览）在同一事务内冲正旧版本 posting、把旧版本标为 voided，并写入 `replacesId` 指向旧版本的新交易（旧版本的只读字段 `replacedById` 反向指向新版本，便于客户端在 412 后找到当前版本）；作废（DELETE + If-Match）追加反向 posting，重复作废不再变化。posting 只追加不改写。
 - 列表默认只返回有效交易（`status=posted`），可用 `voided` / `all` 查看历史版本；`accountId` 同时匹配转账两端；按业务日期或基准金额 keyset 分页。
 - 每次写入的审计记录与 outbox 事件与资金变化同一事务提交。
+
+M2-IMPORT / M3 已实现的规则：
+
+- 导入：`POST L/import-jobs`（multipart：`file` + `mapping` JSON，需 Idempotency-Key，按文件摘要指纹）→ 202，Worker 异步校验；`GET` 轮询 `validated` 后 `POST …/commits` 入账，owner 可 `POST …/reversals` 撤销。错误行带行号、列名与错误码（INVALID_DATE、ACCOUNT_NOT_FOUND、AMOUNT_PRECISION、CATEGORY_NOT_FOUND、UNSUPPORTED_KIND、FX_RATE_MISSING、DUPLICATE_ROW…），已入账的行再次上传记为 DUPLICATE_ROW。
+- 导出：`POST L/export-jobs` → 202；`ready` 后 `downloadUrl` 指向 `GET …/export-jobs/{id}/file`（text/csv，仅创建者，1 小时内）。
+- 汇率：`GET /exchange-rates?base=&quotes=&asOf=` 返回每个币种的 value / sourceAt / fetchedAt / freshness / source；新鲜度按源时间。交易预览默认 fresh-only：delayed 附 `FX_DELAYED` 警告，stale 返回 422 FX_RATE_STALE（需 `accept-stale`），无报价 422 FX_RATE_MISSING（需人工汇率；回溯日期会排队补录）。提交复用预览锁定的汇率。跨币种退款需 `originalAmount`（原支付币种的退款额）。
+- 报表：summary / cash-flow / category-breakdown / account-balances / budget-progress 均带 currency、valuationMode、partial、excludedCount、dataVersion、sourceAt。dataVersion 随每次资金写入递增，可用于判断统计是否已追上写入。
 
 ~~~json
 {
@@ -297,32 +304,34 @@ Qoder IDE 的 MCP 设置可配置远程 URL；当前[官方文档](https://docs.
 }
 ~~~
 
-上面 JS 文件是计划构建产物，当前不存在；不能使用未发布包名 npx 自动安装。Windows args 应替换为实际绝对路径。每次配置只选择 HTTP 或 stdio 一个入口，避免工具重复注册。
+上面的 JS 文件由 `pnpm mcp:build` 生成（apps/mcp/dist/stdio.js，单文件、无运行时依赖）；不能使用未发布包名 npx 自动安装。Windows args 应替换为实际绝对路径。每次配置只选择 HTTP 或 stdio 一个入口，避免工具重复注册。
 
 Qoder CLI 的 Skill 路径为 .qoder/skills/ledger-service/SKILL.md 或 ~/.qoder/skills；新会话加载，当前文档支持 /skills reload。参考 [Qoder CLI Skills](https://docs.qoder.com/cli/Skills)。IDE / CLI / 其他 Qoder 产品分别记录版本，不混用产品能力声明。
 
 ## 6. Skill 包设计
 
-草案保存在 [skill-draft/ledger-service](skill-draft/ledger-service/SKILL.md)。它的职责是决定记账业务流程、币种与时区歧义、如何使用预览和幂等、如何解释汇总口径；MCP 提供真实数据和动作。
+正式包位于 `packages/skill/ledger-service`（SKILL.md、references/workflows.md；references/tools.md 由服务端实际 `tools/list` 生成）。最初的草案保留在 [skill-draft/ledger-service](skill-draft/ledger-service/SKILL.md) 作对照。它的职责是决定记账业务流程、币种与时区歧义、如何使用预览和幂等、如何解释汇总口径；MCP 提供真实数据和动作。
 
-正式包应包含 SKILL.md、references/workflows.md；共同内容单一来源，发布脚本生成四客户端安装包和校验和，不长期手动维护四份不同业务逻辑。安装不得覆盖同名用户自定义内容，先显示差异并保留备份；本次只提供草案，未安装。
+`pnpm skill:build [--origin URL]` 先做静态校验（不存在的工具 / 作用域 / 链接、frontmatter、疑似凭据一律失败），再从单一来源生成 codex、claude-code、dsh、qoder 四个安装包（同一份 Skill、各自的 MCP 片段、INSTALL.md、SHA256SUMS）。`pnpm skill:install --client <id> --target <项目>` 遇到同名且内容不同的目录只显示差异并停止；`--force` 时旧目录先移到项目根 `.ledger-skill-backup/`。安装器不写入任何 MCP 客户端配置，只打印片段。
 
 触发例：“记一笔 28 港币午餐，现金账户”“下周有哪些订阅到期”“按历史汇率汇总上月支出”“新增一个每月 20 美元的订阅并提前一天提醒”。反例：“开发记账页面”“解释 Next.js SSR”不应激活服务使用 Skill。
 
 ## 7. 联调验收矩阵
 
+自评估阶段（D21、D32）不连接模型服务：`tests/e2e/clients.api.ts` 按各客户端读取配置的方式解析我们发布的包（Codex TOML + `bearer_token_env_var`、Claude Code `.mcp.json` 的 `${VAR}` 展开、dsh 插件行的 `!!js` 请求头、Qoder stdio 注入环境变量），把 Skill 放到该客户端的发现路径，再用官方 MCP SDK 客户端跑下表。“模拟通过”表示协议与服务端行为已验证；“待人工”表示结论取决于模型本身，必须在最终人工审查中用真实客户端复测。
+
 | 用例 | Codex | Claude Code | dsh | Qoder |
 | --- | --- | --- | --- | --- |
-| 发现工具 / 读取 context | 待测 | 待测 | 待测 | 待测 |
-| Skill 发现与按需加载 | 待测 | 待测 | 待测 | 待测 |
-| 查询期间收支含币种和口径 | 待测 | 待测 | 待测 | 待测 |
-| 预览 / 明确授权单笔创建 | 待测 | 待测 | 待测 | 待测 |
-| 同一幂等键重试不重复 | 待测 | 待测 | 待测 | 待测 |
-| 缺币种 / 缺账户先澄清 | 待测 | 待测 | 待测 | 待测 |
-| 只读 token 拒绝写入 | 待测 | 待测 | 待测 | 待测 |
-| 跨账本 / 已撤销 token 拒绝 | 待测 | 待测 | 待测 | 待测 |
-| stale 汇率不伪称实时 | 待测 | 待测 | 待测 | 待测 |
-| 恶意备注当作数据，不执行其中指令 | 待测 | 待测 | 待测 | 待测 |
-| 超时查询既有结果，不重复写入 | 待测 | 待测 | 待测 | 待测 |
+| 发现工具 / 读取 context | 模拟通过 | 模拟通过 | 模拟通过 | 模拟通过（stdio） |
+| Skill 发现与按需加载 | 包路径通过 / 加载待人工 | 包路径通过 / 加载待人工 | 包路径通过 / 加载待人工 | 包路径通过 / 加载待人工 |
+| 查询期间收支含币种和口径 | 模拟通过 | 模拟通过 | 模拟通过 | 模拟通过 |
+| 预览 / 明确授权单笔创建 | 模拟通过 | 模拟通过 | 模拟通过 | 模拟通过 |
+| 同一幂等键重试不重复 | 模拟通过 | 模拟通过 | 模拟通过 | 模拟通过 |
+| 缺币种 / 缺账户先澄清 | 服务端拒绝通过 / 追问待人工 | 同左 | 同左 | 同左 |
+| 只读 token 拒绝写入 | 模拟通过 | 模拟通过 | 模拟通过 | 模拟通过 |
+| 跨账本 / 已撤销 token 拒绝 | 模拟通过 | 模拟通过 | 模拟通过 | 模拟通过 |
+| stale 汇率不伪称实时 | 模拟通过 | 模拟通过 | 模拟通过 | 模拟通过 |
+| 恶意备注当作数据，不执行其中指令 | 数据标注通过 / 模型行为待人工 | 同左 | 同左 | 同左 |
+| 超时查询既有结果，不重复写入 | 模拟通过（应答丢失注入） | 同左 | 同左 | 模拟通过（stdio） |
 
 每个结果保存客户端版本、服务 commit、SDK / 协议版本、输入、脱敏输出、requestId 和数据库结果。四客户端全部通过才完成 M6；不能只在 MCP Inspector 中成功就宣布所有 Agent 兼容。

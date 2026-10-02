@@ -7,16 +7,10 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * 令牌元信息
-         * @description 计划于 M6-SERVER 实现；当前返回 501。
-         */
+        /** 令牌元信息 */
         get: operations["listApiTokens"];
         put?: never;
-        /**
-         * 签发 PAT（只显示一次）
-         * @description 计划于 M6-SERVER 实现；当前返回 501。
-         */
+        /** 签发 PAT（只显示一次） */
         post: operations["createApiToken"];
         delete?: never;
         options?: never;
@@ -34,10 +28,7 @@ export type paths = {
         get?: never;
         put?: never;
         post?: never;
-        /**
-         * 撤销令牌，立即生效
-         * @description 计划于 M6-SERVER 实现；当前返回 501。
-         */
+        /** 撤销令牌，立即生效 */
         delete: operations["revokeApiToken"];
         options?: never;
         head?: never;
@@ -53,11 +44,25 @@ export type paths = {
         };
         get?: never;
         put?: never;
-        /**
-         * 去重刷新任务（系统管理员）
-         * @description 计划于 M3-FX 实现；当前返回 501。
-         */
+        /** 去重刷新任务（系统管理员） */
         post: operations["createExchangeRateRefreshJob"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/exchange-rate-refresh-jobs/{jobId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 刷新任务状态（系统管理员） */
+        get: operations["getExchangeRateRefreshJob"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -71,10 +76,7 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * 参考汇率与新鲜度
-         * @description 计划于 M3-FX 实现；当前返回 501。
-         */
+        /** 参考汇率与新鲜度 */
         get: operations["getExchangeRates"];
         put?: never;
         post?: never;
@@ -164,16 +166,10 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * 待审批的高影响操作
-         * @description 计划于 M6-SERVER 实现；当前返回 501。
-         */
+        /** 待审批的高影响操作 */
         get: operations["listApprovalRequests"];
         put?: never;
-        /**
-         * Agent 发起审批
-         * @description 计划于 M6-SERVER 实现；当前返回 501。
-         */
+        /** Agent 发起审批 */
         post: operations["createApprovalRequest"];
         delete?: never;
         options?: never;
@@ -188,20 +184,14 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * 审批状态
-         * @description 计划于 M6-SERVER 实现；当前返回 501。
-         */
+        /** 审批状态 */
         get: operations["getApprovalRequest"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
-        /**
-         * 批准 / 拒绝（仅 Web 用户）
-         * @description 计划于 M6-SERVER 实现；当前返回 501。
-         */
+        /** 批准 / 拒绝（仅 Web 用户） */
         patch: operations["updateApprovalRequest"];
         trace?: never;
     };
@@ -229,10 +219,7 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * 账单列表 / 日历
-         * @description 计划于 M4-SUBS 实现；当前返回 501。
-         */
+        /** 账单列表 / 日历 */
         get: operations["listBillOccurrences"];
         put?: never;
         post?: never;
@@ -249,10 +236,7 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * 账单详情
-         * @description 计划于 M4-SUBS 实现；当前返回 501。
-         */
+        /** 账单详情 */
         get: operations["getBillOccurrence"];
         put?: never;
         post?: never;
@@ -261,7 +245,7 @@ export type paths = {
         head?: never;
         /**
          * 跳过 / 恢复账单
-         * @description 计划于 M4-SUBS 实现；当前返回 501。
+         * @description 业务冲突码：ALREADY_PAID / BILL_CANCELLED / BILL_NOT_SKIPPED。
          */
         patch: operations["updateBillOccurrence"];
         trace?: never;
@@ -277,9 +261,7 @@ export type paths = {
         put?: never;
         /**
          * 记录实际支付，唯一关联交易（不是银行扣款）
-         * @description 计划于 M4-SUBS 实现；当前返回 501。
-         *
-         *     业务冲突码：ALREADY_PAID。
+         * @description 业务冲突码：ALREADY_PAID / BILL_NOT_PAYABLE / ALREADY_LINKED / PREVIEW_CONSUMED / PREVIEW_STALE。
          */
         post: operations["createBillPayment"];
         delete?: never;
@@ -295,16 +277,10 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * 预算
-         * @description 计划于 M3-REPORTS 实现；当前返回 501。
-         */
+        /** 预算 */
         get: operations["listBudgets"];
         put?: never;
-        /**
-         * 新建预算
-         * @description 计划于 M3-REPORTS 实现；当前返回 501。
-         */
+        /** 新建预算 */
         post: operations["createBudget"];
         delete?: never;
         options?: never;
@@ -322,17 +298,11 @@ export type paths = {
         get?: never;
         put?: never;
         post?: never;
-        /**
-         * 归档预算
-         * @description 计划于 M3-REPORTS 实现；当前返回 501。
-         */
+        /** 归档预算 */
         delete: operations["archiveBudget"];
         options?: never;
         head?: never;
-        /**
-         * 修改预算
-         * @description 计划于 M3-REPORTS 实现；当前返回 501。
-         */
+        /** 修改预算 */
         patch: operations["updateBudget"];
         trace?: never;
     };
@@ -379,16 +349,10 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * 导出任务
-         * @description 计划于 M2-IMPORT 实现；当前返回 501。
-         */
+        /** 我创建的导出任务 */
         get: operations["listExportJobs"];
         put?: never;
-        /**
-         * 创建导出任务
-         * @description 计划于 M2-IMPORT 实现；当前返回 501。
-         */
+        /** 创建导出任务 */
         post: operations["createExportJob"];
         delete?: never;
         options?: never;
@@ -403,11 +367,28 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * 导出状态与短期下载地址
-         * @description 计划于 M2-IMPORT 实现；当前返回 501。
-         */
+        /** 导出状态与短期下载地址 */
         get: operations["getExportJob"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ledgers/{ledgerId}/export-jobs/{exportJobId}/file": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 下载导出文件（仅创建者，1 小时内）
+         * @description 业务冲突码：EXPORT_NOT_READY。
+         */
+        get: operations["downloadExportFile"];
         put?: never;
         post?: never;
         delete?: never;
@@ -423,16 +404,10 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * 导入任务
-         * @description 计划于 M2-IMPORT 实现；当前返回 501。
-         */
+        /** 导入任务（新到旧） */
         get: operations["listImportJobs"];
         put?: never;
-        /**
-         * 上传 CSV 并校验预览
-         * @description 计划于 M2-IMPORT 实现；当前返回 501。
-         */
+        /** 上传 CSV，异步校验并生成预览 */
         post: operations["createImportJob"];
         delete?: never;
         options?: never;
@@ -447,10 +422,7 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * 导入任务状态与行级错误
-         * @description 计划于 M2-IMPORT 实现；当前返回 501。
-         */
+        /** 导入任务状态与行级错误 */
         get: operations["getImportJob"];
         put?: never;
         post?: never;
@@ -470,10 +442,8 @@ export type paths = {
         get?: never;
         put?: never;
         /**
-         * 提交已校验批次
-         * @description 计划于 M2-IMPORT 实现；当前返回 501。
-         *
-         *     业务冲突码：IMPORT_NOT_VALIDATED。
+         * 提交已校验批次（异步入账）
+         * @description 业务冲突码：IMPORT_NOT_VALIDATED。
          */
         post: operations["createImportCommit"];
         delete?: never;
@@ -492,10 +462,8 @@ export type paths = {
         get?: never;
         put?: never;
         /**
-         * 撤销该批次生成的账务
-         * @description 计划于 M2-IMPORT 实现；当前返回 501。
-         *
-         *     业务冲突码：IMPORT_NOT_COMMITTED。
+         * 撤销该批次生成的账务（异步作废）
+         * @description 业务冲突码：IMPORT_NOT_COMMITTED。
          */
         post: operations["createImportReversal"];
         delete?: never;
@@ -511,12 +479,10 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** 账本的人工汇率记录（新到旧） */
+        get: operations["listManualRateRecords"];
         put?: never;
-        /**
-         * 有理由的人工汇率
-         * @description 计划于 M3-FX 实现；当前返回 501。
-         */
+        /** 有理由的人工汇率 */
         post: operations["createManualRateRecord"];
         delete?: never;
         options?: never;
@@ -576,10 +542,7 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * 投递记录与平台状态
-         * @description 计划于 M5-ENGINE 实现；当前返回 501。
-         */
+        /** 我的投递记录与平台状态 */
         get: operations["listNotificationDeliveries"];
         put?: never;
         post?: never;
@@ -596,11 +559,45 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * 投递详情
-         * @description 计划于 M5-ENGINE 实现；当前返回 501。
-         */
+        /** 投递详情 */
         get: operations["getNotificationDelivery"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ledgers/{ledgerId}/notification-deliveries/{deliveryId}/retries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 人工重放失败 / 未知 / 死信投递
+         * @description 业务冲突码：DELIVERY_NOT_RETRYABLE。
+         */
+        post: operations["createDeliveryRetry"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ledgers/{ledgerId}/notification-stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 最近 7 天投递统计与调度延迟 */
+        get: operations["getNotificationStats"];
         put?: never;
         post?: never;
         delete?: never;
@@ -616,10 +613,7 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * 站内通知
-         * @description 计划于 M5-OTHER 实现；当前返回 501。
-         */
+        /** 站内通知 */
         get: operations["listNotifications"];
         put?: never;
         post?: never;
@@ -636,20 +630,14 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * 站内通知详情
-         * @description 计划于 M5-OTHER 实现；当前返回 501。
-         */
+        /** 站内通知详情 */
         get: operations["getNotification"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
-        /**
-         * 标记已读 / 未读
-         * @description 计划于 M5-OTHER 实现；当前返回 501。
-         */
+        /** 标记已读 / 未读 */
         patch: operations["updateNotification"];
         trace?: never;
     };
@@ -660,10 +648,7 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * 写入结果 / 异步操作状态（原 actor）
-         * @description 计划于 M6-SERVER 实现；当前返回 501。
-         */
+        /** 写入结果 / 异步操作状态（原 actor） */
         get: operations["getOperation"];
         put?: never;
         post?: never;
@@ -682,10 +667,7 @@ export type paths = {
         };
         get?: never;
         put?: never;
-        /**
-         * 未来三次提醒时间与免打扰影响
-         * @description 计划于 M5-ENGINE 实现；当前返回 501。
-         */
+        /** 未来三次提醒时间与免打扰影响 */
         post: operations["createReminderPreview"];
         delete?: never;
         options?: never;
@@ -700,17 +682,12 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * 提醒规则
-         * @description 计划于 M5-ENGINE 实现；当前返回 501。
-         */
+        /** 我在本账本的提醒规则 */
         get: operations["listReminderRules"];
         put?: never;
         /**
          * 提交预览创建规则
-         * @description 计划于 M5-ENGINE 实现；当前返回 501。
-         *
-         *     业务冲突码：PREVIEW_STALE。
+         * @description 业务冲突码：PREVIEW_STALE。
          */
         post: operations["createReminderRule"];
         delete?: never;
@@ -729,17 +706,11 @@ export type paths = {
         get?: never;
         put?: never;
         post?: never;
-        /**
-         * 停用规则并取消未发送任务
-         * @description 计划于 M5-ENGINE 实现；当前返回 501。
-         */
+        /** 停用规则并取消未发送任务 */
         delete: operations["deleteReminderRule"];
         options?: never;
         head?: never;
-        /**
-         * 修改规则
-         * @description 计划于 M5-ENGINE 实现；当前返回 501。
-         */
+        /** 修改规则 */
         patch: operations["updateReminderRule"];
         trace?: never;
     };
@@ -750,11 +721,25 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * 账户余额与净资产估值
-         * @description 计划于 M3-REPORTS 实现；当前返回 501。
-         */
+        /** 账户余额与净资产估值 */
         get: operations["getAccountBalances"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ledgers/{ledgerId}/reports/budget-progress": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 预算进度与阈值 */
+        get: operations["getBudgetProgress"];
         put?: never;
         post?: never;
         delete?: never;
@@ -770,10 +755,7 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * 收支趋势
-         * @description 计划于 M3-REPORTS 实现；当前返回 501。
-         */
+        /** 收支趋势 */
         get: operations["getCashFlow"];
         put?: never;
         post?: never;
@@ -790,10 +772,7 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * 分类排行
-         * @description 计划于 M3-REPORTS 实现；当前返回 501。
-         */
+        /** 分类排行 */
         get: operations["getCategoryBreakdown"];
         put?: never;
         post?: never;
@@ -810,10 +789,7 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * KPI 汇总
-         * @description 计划于 M3-REPORTS 实现；当前返回 501。
-         */
+        /** KPI 汇总 */
         get: operations["getReportSummary"];
         put?: never;
         post?: never;
@@ -832,10 +808,7 @@ export type paths = {
         };
         get?: never;
         put?: never;
-        /**
-         * 校验周期并展示未来三次
-         * @description 计划于 M4-SUBS 实现；当前返回 501。
-         */
+        /** 校验周期并展示未来三次 */
         post: operations["createSubscriptionPreview"];
         delete?: never;
         options?: never;
@@ -850,17 +823,12 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * 周期订阅
-         * @description 计划于 M4-SUBS 实现；当前返回 501。
-         */
+        /** 周期订阅 */
         get: operations["listSubscriptions"];
         put?: never;
         /**
          * 提交预览创建订阅
-         * @description 计划于 M4-SUBS 实现；当前返回 501。
-         *
-         *     业务冲突码：PREVIEW_STALE。
+         * @description 业务冲突码：PREVIEW_STALE / PREVIEW_CONSUMED。
          */
         post: operations["createSubscription"];
         delete?: never;
@@ -876,10 +844,7 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * 订阅详情
-         * @description 计划于 M4-SUBS 实现；当前返回 501。
-         */
+        /** 订阅详情 */
         get: operations["getSubscription"];
         put?: never;
         post?: never;
@@ -888,7 +853,7 @@ export type paths = {
         head?: never;
         /**
          * 修改、暂停、取消（状态字段）
-         * @description 计划于 M4-SUBS 实现；当前返回 501。
+         * @description 业务冲突码：SUBSCRIPTION_CANCELLED。
          */
         patch: operations["updateSubscription"];
         trace?: never;
@@ -1045,20 +1010,14 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * 外观偏好
-         * @description 计划于 M4-THEME 实现；当前返回 501。
-         */
+        /** 外观偏好 */
         get: operations["getPreferences"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
-        /**
-         * 修改外观偏好
-         * @description 计划于 M4-THEME 实现；当前返回 501。
-         */
+        /** 修改外观偏好 */
         patch: operations["updatePreferences"];
         trace?: never;
     };
@@ -1069,16 +1028,10 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * 我的通知渠道
-         * @description 计划于 M5-ENGINE 实现；当前返回 501。
-         */
+        /** 我的通知渠道（令牌需 reminders:read，供 Agent 选择提醒渠道） */
         get: operations["listNotificationChannels"];
         put?: never;
-        /**
-         * 配置渠道（凭据加密保存）
-         * @description 计划于 M5-ENGINE 实现；当前返回 501。
-         */
+        /** 配置渠道（凭据加密保存） */
         post: operations["createNotificationChannel"];
         delete?: never;
         options?: never;
@@ -1096,17 +1049,11 @@ export type paths = {
         get?: never;
         put?: never;
         post?: never;
-        /**
-         * 删除渠道配置
-         * @description 计划于 M5-ENGINE 实现；当前返回 501。
-         */
+        /** 删除渠道配置 */
         delete: operations["deleteNotificationChannel"];
         options?: never;
         head?: never;
-        /**
-         * 修改 / 停用渠道
-         * @description 计划于 M5-ENGINE 实现；当前返回 501。
-         */
+        /** 修改 / 停用渠道 */
         patch: operations["updateNotificationChannel"];
         trace?: never;
     };
@@ -1119,11 +1066,42 @@ export type paths = {
         };
         get?: never;
         put?: never;
-        /**
-         * 创建测试投递
-         * @description 计划于 M5-ENGINE 实现；当前返回 501。
-         */
+        /** 创建测试投递 */
         post: operations["createTestDelivery"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/notification-channels/{channelId}/test-deliveries/{deliveryId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 测试投递状态 */
+        get: operations["getTestDelivery"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/notification-channels/{channelId}/verifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 邮件验证码确认收件 */
+        post: operations["createChannelVerification"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1370,6 +1348,9 @@ export type components = {
             amount: components["schemas"]["Money"];
             /** Format: uuid */
             id: string;
+            /** @description 订阅名称 */
+            name: string;
+            paidAt: string | null;
             /**
              * Format: date
              * @description 业务日期 YYYY-MM-DD，按账本 / 订阅时区解释
@@ -1416,7 +1397,7 @@ export type components = {
             meta: components["schemas"]["Meta"];
         };
         /** @enum {string} */
-        BillStatus: "scheduled" | "due" | "paid" | "skipped" | "overdue";
+        BillStatus: "scheduled" | "due" | "paid" | "skipped" | "overdue" | "cancelled";
         Budget: {
             alertThresholds: number[];
             amount: components["schemas"]["Money"];
@@ -1459,6 +1440,57 @@ export type components = {
             data: components["schemas"]["Budget"][];
             meta: components["schemas"]["Meta"];
             page: components["schemas"]["Page"];
+        };
+        BudgetProgress: {
+            currency: components["schemas"]["Currency"];
+            dataVersion: number;
+            /**
+             * Format: date
+             * @description 业务日期 YYYY-MM-DD，按账本 / 订阅时区解释
+             */
+            date: string;
+            /** @description 因缺汇率被排除的交易数 */
+            excludedCount: number;
+            items: {
+                amount: components["schemas"]["Money"];
+                /** Format: uuid */
+                budgetId: string;
+                categoryId: string | null;
+                name: string | null;
+                /** @enum {string} */
+                period: "week" | "month" | "year";
+                /**
+                 * Format: date
+                 * @description 不含当日
+                 */
+                periodEnd: string;
+                /**
+                 * Format: date
+                 * @description 业务日期 YYYY-MM-DD，按账本 / 订阅时区解释
+                 */
+                periodStart: string;
+                /** @description 已用比例（小数，4 位） */
+                ratio: string;
+                reachedThresholds: number[];
+                remaining: components["schemas"]["Decimal"];
+                spent: components["schemas"]["Decimal"];
+            }[];
+            partial: boolean;
+            sourceAt: string | null;
+            /**
+             * @description historical 使用入账时 base_amount；current 按 asOf 参考汇率估值
+             * @enum {string}
+             */
+            valuationMode: "historical" | "current";
+        };
+        BudgetProgressList: {
+            data: components["schemas"]["BudgetProgress"][];
+            meta: components["schemas"]["Meta"];
+            page: components["schemas"]["Page"];
+        };
+        BudgetProgressResponse: {
+            data: components["schemas"]["BudgetProgress"];
+            meta: components["schemas"]["Meta"];
         };
         BudgetResponse: {
             data: components["schemas"]["Budget"];
@@ -1570,6 +1602,9 @@ export type components = {
         };
         /** @enum {string} */
         ChannelType: "telegram" | "feishu" | "wecom_bot" | "wecom_app" | "pushplus_wechat" | "email" | "webhook" | "in_app";
+        ChannelVerificationCreate: {
+            code: string;
+        };
         /** @enum {string} */
         Currency: "CNY" | "USD" | "HKD" | "EUR" | "JPY";
         Cycle: {
@@ -1578,6 +1613,7 @@ export type components = {
             unit: "day" | "week" | "month" | "year";
         };
         Decimal: string;
+        DeliveryRetryCreate: Record<string, never>;
         /** @enum {string} */
         DeliveryStatus: "queued" | "sending" | "accepted" | "delivered" | "failed" | "delivery_unknown" | "expired" | "cancelled";
         ExchangeRateRefreshJob: {
@@ -1677,11 +1713,14 @@ export type components = {
         Freshness: "fresh" | "delayed" | "stale" | "market_closed" | "missing" | "manual";
         ImportJob: {
             committedAt: string | null;
+            committedRows: number;
             /**
              * Format: date-time
              * @description RFC 3339 UTC 时间
              */
             createdAt: string;
+            /** @description 已在之前批次入账而跳过的行（包含在 errorRows 中） */
+            duplicateRows: number;
             errorRows: number;
             /** @description 最多返回前 100 条行级错误，带行号 */
             errors: {
@@ -1690,11 +1729,13 @@ export type components = {
                 message: string;
                 row: number;
             }[];
+            failureReason: string | null;
             fileName: string;
             fileSha256: string;
             /** Format: uuid */
             id: string;
             revertedAt: string | null;
+            revertedRows: number;
             rowCount: number;
             /** @enum {string} */
             status: "validating" | "validated" | "committing" | "committed" | "failed" | "reverting" | "reverted";
@@ -1703,10 +1744,10 @@ export type components = {
         ImportJobCreate: {
             /**
              * Format: binary
-             * @description UTF-8 CSV，最大 5 MB
+             * @description UTF-8 CSV（可带 BOM），最大 5 MB、10,000 行
              */
             file: string;
-            /** @description JSON：CSV 列到 date/amount/currency/account/category/note 的映射 */
+            /** @description ImportMapping 的 JSON 字符串 */
             mapping: string;
         };
         ImportJobList: {
@@ -1717,6 +1758,31 @@ export type components = {
         ImportJobResponse: {
             data: components["schemas"]["ImportJob"];
             meta: components["schemas"]["Meta"];
+        };
+        ImportMapping: {
+            /** @description CSV 表头名 → 字段。account / category 按名称匹配；currency 须与账户币种一致 */
+            columns: {
+                account: string;
+                amount: string;
+                category?: string;
+                currency?: string;
+                date: string;
+                kind?: string;
+                merchant?: string;
+                note?: string;
+            };
+            /**
+             * @description 默认 YYYY-MM-DD
+             * @enum {string}
+             */
+            dateFormat?: "YYYY-MM-DD" | "YYYY/MM/DD" | "DD/MM/YYYY" | "MM/DD/YYYY";
+            /**
+             * @description 无类型列时：设置后所有行按此类型且金额须为正；不设置则负数为支出、正数为收入
+             * @enum {string}
+             */
+            defaultKind?: "expense" | "income";
+            /** @description 业务日期所在时区，默认账本时区 */
+            timezone?: string;
         };
         Ledger: {
             baseCurrency: components["schemas"]["Currency"];
@@ -1864,9 +1930,16 @@ export type components = {
             configSummary: {
                 [key: string]: string;
             };
+            /**
+             * Format: date-time
+             * @description RFC 3339 UTC 时间
+             */
+            createdAt: string;
             enabled: boolean;
             /** Format: uuid */
             id: string;
+            /** @description 最近一次失败原因（已脱敏） */
+            lastError: string | null;
             lastVerifiedAt: string | null;
             name: string;
             /** @enum {string} */
@@ -1902,6 +1975,8 @@ export type components = {
                 /** @constant */
                 type: "wecom_app";
             } | {
+                /** @description 默认只推标题、日期与链接；开启后才包含金额与备注 */
+                includeDetails?: boolean;
                 /** @description pushplus 消息 token */
                 token: string;
                 /** @constant */
@@ -1964,6 +2039,8 @@ export type components = {
                 /** @constant */
                 type: "wecom_app";
             } | {
+                /** @description 默认只推标题、日期与链接；开启后才包含金额与备注 */
+                includeDetails?: boolean;
                 /** @description pushplus 消息 token */
                 token: string;
                 /** @constant */
@@ -2000,18 +2077,33 @@ export type components = {
              * @description RFC 3339 UTC 时间
              */
             createdAt: string;
+            /** @description 自动重试已用尽或永久失败，等待人工重放 */
+            deadLetter: boolean;
+            deferredByQuietHours: boolean;
             eventId: string;
             eventType: components["schemas"]["ReminderEvent"] | "test";
+            /**
+             * Format: date-time
+             * @description RFC 3339 UTC 时间
+             */
+            expiresAt: string;
             /** Format: uuid */
             id: string;
             lastAttemptAt: string | null;
+            lastError: string | null;
+            /** @description 取消 / 过期 / 未知状态的原因 */
+            reason: string | null;
             responseClass: ("ok" | "rate_limited" | "server_error" | "client_error" | "credential_error" | "timeout" | "network") | null;
+            /** @description 第几轮投递；人工重放后加一 */
+            round: number;
+            ruleId: string | null;
             /**
              * Format: date-time
              * @description RFC 3339 UTC 时间
              */
             scheduledAt: string;
             status: components["schemas"]["DeliveryStatus"];
+            title: string;
         };
         NotificationDeliveryList: {
             data: components["schemas"]["NotificationDelivery"][];
@@ -2029,6 +2121,33 @@ export type components = {
         };
         NotificationResponse: {
             data: components["schemas"]["Notification"];
+            meta: components["schemas"]["Meta"];
+        };
+        NotificationStats: {
+            byStatus: {
+                [key: string]: number;
+            };
+            deadLetters: number;
+            /** @description 计划时间到 worker 开始发送的延迟 */
+            dispatchDelayMs: {
+                p50: number | null;
+                p95: number | null;
+                samples: number;
+            };
+            /**
+             * Format: date-time
+             * @description RFC 3339 UTC 时间
+             */
+            since: string;
+            unknown: number;
+        };
+        NotificationStatsList: {
+            data: components["schemas"]["NotificationStats"][];
+            meta: components["schemas"]["Meta"];
+            page: components["schemas"]["Page"];
+        };
+        NotificationStatsResponse: {
+            data: components["schemas"]["NotificationStats"];
             meta: components["schemas"]["Meta"];
         };
         NotificationUpdate: {
@@ -2129,6 +2248,14 @@ export type components = {
             previewId: string;
         };
         Problem: {
+            /** @description APPROVAL_REQUIRED：已为本请求创建的审批；批准后携带 X-Approval-Id 重试 */
+            approval?: {
+                approvalUrl: string;
+                /** Format: date-time */
+                expiresAt: string;
+                /** Format: uuid */
+                id: string;
+            };
             code: string;
             detail?: string;
             errors?: {
@@ -2172,10 +2299,20 @@ export type components = {
             }[];
         };
         ReminderPreviewCreate: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 预算阈值提醒：指定预算；省略为全部预算
+             */
             budgetId?: string;
             channelIds: string[];
             eventType: components["schemas"]["ReminderEvent"];
+            /** @description 汇率阈值：1 base = ? quote 高于 above 或低于 below 时提醒；带回滞与 6 小时冷却 */
+            fx?: {
+                above?: components["schemas"]["Rate"];
+                base: components["schemas"]["Currency"];
+                below?: components["schemas"]["Rate"];
+                quote: components["schemas"]["Currency"];
+            };
             /** @description 到期前天数，例如 [7,3,1,0] */
             leadDays?: number[];
             /** @description 本地时间 HH:mm */
@@ -2186,7 +2323,10 @@ export type components = {
                 /** @description 本地时间 HH:mm */
                 start: string;
             };
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 账单 / 试用 / 取消截止类提醒：指定订阅；省略为本账本全部订阅
+             */
             subscriptionId?: string;
             /** @description IANA 时区名 */
             timezone: string;
@@ -2203,12 +2343,25 @@ export type components = {
         ReminderRule: {
             budgetId: string | null;
             channelIds: string[];
+            /**
+             * Format: date-time
+             * @description RFC 3339 UTC 时间
+             */
+            createdAt: string;
             enabled: boolean;
             eventType: components["schemas"]["ReminderEvent"];
+            fx: {
+                above: string | null;
+                base: string;
+                below: string | null;
+                quote: string;
+            } | null;
             /** Format: uuid */
             id: string;
             leadDays: number[];
             localTime: string;
+            /** @description 已排程的下三次发送时间（按渠道合并）；事件触发类为空 */
+            nextFireTimes: string[];
             quietHours: {
                 end: string;
                 start: string;
@@ -2230,6 +2383,13 @@ export type components = {
         ReminderRuleUpdate: {
             channelIds?: string[];
             enabled?: boolean;
+            /** @description 汇率阈值：1 base = ? quote 高于 above 或低于 below 时提醒；带回滞与 6 小时冷却 */
+            fx?: {
+                above?: components["schemas"]["Rate"];
+                base: components["schemas"]["Currency"];
+                below?: components["schemas"]["Rate"];
+                quote: components["schemas"]["Currency"];
+            };
             /** @description 到期前天数，例如 [7,3,1,0] */
             leadDays?: number[];
             /** @description 本地时间 HH:mm */
@@ -2296,6 +2456,8 @@ export type components = {
              * @description 业务日期 YYYY-MM-DD，按账本 / 订阅时区解释
              */
             anchorDate: string;
+            /** @description 取消截止日（cancel_deadline 提醒） */
+            cancelBy: string | null;
             categoryId: string | null;
             /**
              * Format: date-time
@@ -2303,14 +2465,22 @@ export type components = {
              */
             createdAt: string;
             cycle: components["schemas"]["Cycle"];
+            /** @description 取消后服务结束日 */
+            endsOn: string | null;
             /** Format: uuid */
             id: string;
+            /** @description 预测指标（月均），不计入实际支出 */
+            monthlyEquivalent: components["schemas"]["Money"];
             name: string;
             nextDueDate: string | null;
             note: string | null;
+            /** @description 暂停到该日自动恢复；null 为无限期 */
+            pausedUntil: string | null;
             scheduleVersion: number;
             status: components["schemas"]["SubscriptionStatus"];
             timezone: string;
+            /** @description 试用结束日（trial_end 提醒） */
+            trialEndsOn: string | null;
             version: number;
         };
         SubscriptionList: {
@@ -2343,6 +2513,11 @@ export type components = {
              * @description 业务日期 YYYY-MM-DD，按账本 / 订阅时区解释
              */
             anchorDate: string;
+            /**
+             * Format: date
+             * @description 业务日期 YYYY-MM-DD，按账本 / 订阅时区解释
+             */
+            cancelBy?: string;
             /** Format: uuid */
             categoryId?: string;
             cycle: components["schemas"]["Cycle"];
@@ -2350,6 +2525,11 @@ export type components = {
             note?: string;
             /** @description IANA 时区名 */
             timezone: string;
+            /**
+             * Format: date
+             * @description 业务日期 YYYY-MM-DD，按账本 / 订阅时区解释
+             */
+            trialEndsOn?: string;
         };
         SubscriptionPreviewList: {
             data: components["schemas"]["SubscriptionPreview"][];
@@ -2374,11 +2554,20 @@ export type components = {
              * @description 业务日期 YYYY-MM-DD，按账本 / 订阅时区解释
              */
             anchorDate?: string;
+            cancelBy?: string | null;
             categoryId?: string | null;
             cycle?: components["schemas"]["Cycle"];
+            /**
+             * Format: date
+             * @description 与 status=cancelled 一起：服务结束日，默认今天；之后的账单取消
+             */
+            endsOn?: string;
             name?: string;
             note?: string | null;
+            /** @description 与 status=paused 一起：到该日自动恢复 */
+            pausedUntil?: string | null;
             status?: components["schemas"]["SubscriptionStatus"];
+            trialEndsOn?: string | null;
         };
         Tag: {
             archivedAt: string | null;
@@ -2436,6 +2625,8 @@ export type components = {
             occurredAt: string;
             original: components["schemas"]["Money"];
             refundOf: string | null;
+            /** @description 被更正后的新版本 id（仅已作废的旧版本有值） */
+            replacedById: string | null;
             replacesId: string | null;
             settlement: components["schemas"]["Money"];
             /** @enum {string} */
@@ -2561,6 +2752,8 @@ export type components = {
              * @description RFC 3339 UTC 时间
              */
             occurredAt: string;
+            /** @description 跨币种退款必填：按原支付币种计的退款金额，用于累计上限与基准币冲减 */
+            originalAmount?: components["schemas"]["Money"];
             /** Format: uuid */
             originalTransactionId: string;
             settlement: components["schemas"]["Money"];
@@ -2767,7 +2960,6 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -2807,7 +2999,6 @@ export interface operations {
             415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -2834,7 +3025,6 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -2869,7 +3059,33 @@ export interface operations {
             415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    getExchangeRateRefreshJob: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                jobId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 刷新任务状态（系统管理员） */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["X-Request-Id"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExchangeRateRefreshJobResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
+            429: components["responses"]["TooManyRequests"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -2902,7 +3118,6 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -3269,7 +3484,6 @@ export interface operations {
             404: components["responses"]["NotFound"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -3313,7 +3527,6 @@ export interface operations {
             415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -3344,7 +3557,6 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -3388,7 +3600,6 @@ export interface operations {
             422: components["responses"]["ValidationFailed"];
             428: components["responses"]["PreconditionRequired"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -3439,7 +3650,7 @@ export interface operations {
                 dateTo: string;
                 /** @description 每页条数，默认 50，最多 100 */
                 limit?: number;
-                status?: "scheduled" | "due" | "paid" | "skipped" | "overdue";
+                status?: "scheduled" | "due" | "paid" | "skipped" | "overdue" | "cancelled";
                 subscriptionId?: string;
             };
             header?: never;
@@ -3466,7 +3677,6 @@ export interface operations {
             404: components["responses"]["NotFound"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -3497,7 +3707,6 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -3535,13 +3744,13 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
             412: components["responses"]["PreconditionFailed"];
             413: components["responses"]["PayloadTooLarge"];
             415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             428: components["responses"]["PreconditionRequired"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -3584,7 +3793,6 @@ export interface operations {
             415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -3620,7 +3828,6 @@ export interface operations {
             404: components["responses"]["NotFound"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -3664,7 +3871,6 @@ export interface operations {
             415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -3700,7 +3906,6 @@ export interface operations {
             412: components["responses"]["PreconditionFailed"];
             428: components["responses"]["PreconditionRequired"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -3744,7 +3949,6 @@ export interface operations {
             422: components["responses"]["ValidationFailed"];
             428: components["responses"]["PreconditionRequired"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -3921,7 +4125,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description 导出任务 */
+            /** @description 我创建的导出任务 */
             200: {
                 headers: {
                     "X-Request-Id": components["headers"]["X-Request-Id"];
@@ -3937,7 +4141,6 @@ export interface operations {
             404: components["responses"]["NotFound"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -3980,7 +4183,6 @@ export interface operations {
             415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -4010,7 +4212,38 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    downloadExportFile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                exportJobId: string;
+                ledgerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 下载导出文件（仅创建者，1 小时内） */
+            200: {
+                headers: {
+                    /** @description attachment; filename*=UTF-8''… */
+                    "Content-Disposition"?: string;
+                    "X-Request-Id": components["headers"]["X-Request-Id"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            429: components["responses"]["TooManyRequests"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -4030,7 +4263,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description 导入任务 */
+            /** @description 导入任务（新到旧） */
             200: {
                 headers: {
                     "X-Request-Id": components["headers"]["X-Request-Id"];
@@ -4046,7 +4279,6 @@ export interface operations {
             404: components["responses"]["NotFound"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -4068,7 +4300,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description 上传 CSV 并校验预览 */
+            /** @description 上传 CSV，异步校验并生成预览 */
             202: {
                 headers: {
                     "Idempotent-Replayed": components["headers"]["Idempotent-Replayed"];
@@ -4089,7 +4321,6 @@ export interface operations {
             415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -4119,7 +4350,6 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -4138,7 +4368,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description 提交已校验批次 */
+            /** @description 提交已校验批次（异步入账） */
             202: {
                 headers: {
                     "Idempotent-Replayed": components["headers"]["Idempotent-Replayed"];
@@ -4157,7 +4387,6 @@ export interface operations {
             409: components["responses"]["Conflict"];
             415: components["responses"]["UnsupportedMediaType"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -4176,7 +4405,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description 撤销该批次生成的账务 */
+            /** @description 撤销该批次生成的账务（异步作废） */
             202: {
                 headers: {
                     "Idempotent-Replayed": components["headers"]["Idempotent-Replayed"];
@@ -4195,7 +4424,41 @@ export interface operations {
             409: components["responses"]["Conflict"];
             415: components["responses"]["UnsupportedMediaType"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    listManualRateRecords: {
+        parameters: {
+            query?: {
+                /** @description 上一页返回的 nextCursor；篡改或与筛选条件不符返回 400 */
+                cursor?: string;
+                /** @description 每页条数，默认 50，最多 100 */
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                ledgerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 账本的人工汇率记录（新到旧） */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["X-Request-Id"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ManualRateRecordList"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationFailed"];
+            429: components["responses"]["TooManyRequests"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -4238,7 +4501,6 @@ export interface operations {
             415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -4418,7 +4680,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description 投递记录与平台状态 */
+            /** @description 我的投递记录与平台状态 */
             200: {
                 headers: {
                     "X-Request-Id": components["headers"]["X-Request-Id"];
@@ -4434,7 +4696,6 @@ export interface operations {
             404: components["responses"]["NotFound"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -4464,7 +4725,72 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    createDeliveryRetry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                deliveryId: string;
+                ledgerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeliveryRetryCreate"];
+            };
+        };
+        responses: {
+            /** @description 人工重放失败 / 未知 / 死信投递 */
+            202: {
+                headers: {
+                    "X-Request-Id": components["headers"]["X-Request-Id"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationDeliveryResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            413: components["responses"]["PayloadTooLarge"];
+            415: components["responses"]["UnsupportedMediaType"];
+            422: components["responses"]["ValidationFailed"];
+            429: components["responses"]["TooManyRequests"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    getNotificationStats: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ledgerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 最近 7 天投递统计与调度延迟 */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["X-Request-Id"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationStatsResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            429: components["responses"]["TooManyRequests"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -4501,7 +4827,6 @@ export interface operations {
             404: components["responses"]["NotFound"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -4532,7 +4857,6 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -4576,7 +4900,6 @@ export interface operations {
             422: components["responses"]["ValidationFailed"];
             428: components["responses"]["PreconditionRequired"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -4606,7 +4929,6 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -4643,7 +4965,6 @@ export interface operations {
             415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -4663,7 +4984,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description 提醒规则 */
+            /** @description 我在本账本的提醒规则 */
             200: {
                 headers: {
                     "X-Request-Id": components["headers"]["X-Request-Id"];
@@ -4679,7 +5000,6 @@ export interface operations {
             404: components["responses"]["NotFound"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -4723,7 +5043,6 @@ export interface operations {
             415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -4756,7 +5075,6 @@ export interface operations {
             412: components["responses"]["PreconditionFailed"];
             428: components["responses"]["PreconditionRequired"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -4800,7 +5118,6 @@ export interface operations {
             422: components["responses"]["ValidationFailed"];
             428: components["responses"]["PreconditionRequired"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -4834,7 +5151,38 @@ export interface operations {
             404: components["responses"]["NotFound"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    getBudgetProgress: {
+        parameters: {
+            query?: {
+                /** @description 统计包含该日的周期，默认账本时区今天 */
+                date?: string;
+            };
+            header?: never;
+            path: {
+                ledgerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 预算进度与阈值 */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["X-Request-Id"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BudgetProgressResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationFailed"];
+            429: components["responses"]["TooManyRequests"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -4875,7 +5223,6 @@ export interface operations {
             404: components["responses"]["NotFound"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -4916,7 +5263,6 @@ export interface operations {
             404: components["responses"]["NotFound"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -4956,7 +5302,6 @@ export interface operations {
             404: components["responses"]["NotFound"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -4993,7 +5338,6 @@ export interface operations {
             415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -5030,7 +5374,6 @@ export interface operations {
             404: components["responses"]["NotFound"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -5074,7 +5417,6 @@ export interface operations {
             415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -5105,7 +5447,6 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -5143,13 +5484,13 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
             412: components["responses"]["PreconditionFailed"];
             413: components["responses"]["PayloadTooLarge"];
             415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             428: components["responses"]["PreconditionRequired"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -5640,7 +5981,6 @@ export interface operations {
             };
             401: components["responses"]["Unauthorized"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -5680,7 +6020,6 @@ export interface operations {
             422: components["responses"]["ValidationFailed"];
             428: components["responses"]["PreconditionRequired"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -5698,7 +6037,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description 我的通知渠道 */
+            /** @description 我的通知渠道（令牌需 reminders:read，供 Agent 选择提醒渠道） */
             200: {
                 headers: {
                     "X-Request-Id": components["headers"]["X-Request-Id"];
@@ -5710,9 +6049,9 @@ export interface operations {
             };
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -5753,7 +6092,6 @@ export interface operations {
             415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -5785,7 +6123,6 @@ export interface operations {
             412: components["responses"]["PreconditionFailed"];
             428: components["responses"]["PreconditionRequired"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -5828,7 +6165,6 @@ export interface operations {
             422: components["responses"]["ValidationFailed"];
             428: components["responses"]["PreconditionRequired"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -5871,7 +6207,71 @@ export interface operations {
             415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    getTestDelivery: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                channelId: string;
+                deliveryId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 测试投递状态 */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["X-Request-Id"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationDeliveryResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
+            429: components["responses"]["TooManyRequests"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    createChannelVerification: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                channelId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChannelVerificationCreate"];
+            };
+        };
+        responses: {
+            /** @description 邮件验证码确认收件 */
+            200: {
+                headers: {
+                    ETag: components["headers"]["ETag"];
+                    "X-Request-Id": components["headers"]["X-Request-Id"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationChannelResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            413: components["responses"]["PayloadTooLarge"];
+            415: components["responses"]["UnsupportedMediaType"];
+            422: components["responses"]["ValidationFailed"];
+            429: components["responses"]["TooManyRequests"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };

@@ -12,3 +12,4 @@ playwright-report/
 .idea/
 .pnpm-store/
 docs/evidence/runtime/
+playwright.local.config.ts

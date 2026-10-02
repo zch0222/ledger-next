@@ -23,19 +23,30 @@
     "contract:check": "tsx packages/contracts/src/cli.ts check",
     "test:contract": "tsx packages/contracts/src/cli.ts check",
     "db:rollback": "tsx packages/db/src/rollback.ts",
-    "test:api": "playwright test --project=api"
+    "test:api": "playwright test --project=api",
+    "channels:rewrap": "tsx scripts/rewrap-channel-keys.ts",
+    "mcp:build": "node scripts/build-mcp.mjs",
+    "mcp:stdio": "node --import tsx apps/mcp/src/stdio.ts",
+    "skill:build": "tsx scripts/skill.ts build",
+    "skill:install": "tsx scripts/skill.ts install",
+    "test:perf": "node scripts/perf-test.mjs",
+    "test:ops": "node scripts/ops-drill.mjs"
   },
   "dependencies": {
     "@better-auth/drizzle-adapter": "1.7.7",
+    "@modelcontextprotocol/sdk": "1.31.0",
     "better-auth": "1.7.7",
+    "bullmq": "6.3.11",
     "decimal.js": "10.6.0",
     "drizzle-orm": "0.45.3",
     "ioredis": "5.8.2",
     "mysql2": "3.24.5",
+    "nodemailer": "10.0.13",
     "openapi-fetch": "0.17.0",
     "zod": "4.3.6"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
     "@playwright/test": "1.63.0",
     "@types/node": "24.10.1",
     "@types/react": "19.2.14",

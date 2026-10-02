@@ -2,13 +2,15 @@
 FROM node:24-bookworm-slim@sha256:0e0ff40c39bc087845bfb27465a0df4ea419520094bc35842ff83dd8cbe6f9b6 AS base
 ENV PNPM_HOME=/pnpm
 ENV PATH=$PNPM_HOME:$PATH
-RUN npm install --global pnpm@11.19.0
+# Optional build secret `build_ca`: an extra CA for TLS-intercepting proxies (see compose.build-ca.yaml). Never baked into a layer.
+RUN --mount=type=secret,id=build_ca,required=false sh -c '[ -s /run/secrets/build_ca ] && export NODE_EXTRA_CA_CERTS=/run/secrets/build_ca; npm_config_update_notifier=false npm install --global pnpm@11.19.0'
 WORKDIR /app
 
 FROM base AS dependencies
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/web/package.json ./apps/web/package.json
-RUN --mount=type=cache,id=ledger-pnpm,target=/pnpm/store pnpm install --frozen-lockfile --store-dir /pnpm/store
+RUN --mount=type=cache,id=ledger-pnpm,target=/pnpm/store --mount=type=secret,id=build_ca,required=false \
+    sh -c '[ -s /run/secrets/build_ca ] && export NODE_EXTRA_CA_CERTS=/run/secrets/build_ca; pnpm install --frozen-lockfile --store-dir /pnpm/store'
 
 FROM dependencies AS source
 COPY . .
@@ -22,14 +24,21 @@ WORKDIR /app
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 HOSTNAME=0.0.0.0 PORT=3000
 COPY --from=builder --chown=node:node /app/apps/web/.next/standalone ./
 COPY --from=builder --chown=node:node /app/apps/web/.next/static ./apps/web/.next/static
+COPY --from=builder --chown=node:node /app/apps/web/cluster.mjs ./apps/web/cluster.mjs
 USER node
 EXPOSE 3000
-CMD ["node", "apps/web/server.js"]
+# WEB_CONCURRENCY server processes share the port (default: one per CPU, at most 4).
+CMD ["node", "apps/web/cluster.mjs"]
 
 FROM source AS worker
 USER node
 # Run node directly so SIGTERM reaches the worker and a graceful stop exits 0.
 CMD ["node", "--import", "tsx", "apps/worker/src/index.ts"]
+
+# Local protocol mocks for third-party services (compose.mock.yaml); never part of a production deployment.
+FROM source AS mock-services
+USER node
+CMD ["node", "--import", "tsx", "apps/mock-services/src/index.ts"]
 
 FROM source AS migrate
 USER node

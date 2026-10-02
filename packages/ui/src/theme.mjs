@@ -6,7 +6,7 @@
     light: {panel:'#ffffff', canvas:'#f5f6f8', ink:'#182d32', muted:'#52666d', line:'#dfe7e8', softMix:.11},
     dark: {panel:'#1a2428', canvas:'#11181b', ink:'#ecf4f3', muted:'#a4b6ba', line:'#34474d', softMix:.15}
   };
-  const SEMANTIC = [{name:'错误 / 支出警示色', hex:'#b94545', range:30}, {name:'警告色', hex:'#986018', range:20}];
+  const SEMANTIC = [{name:'错误 / 支出警示色', hex:'#b94545', range:30}, {name:'警告色', hex:'#8d5915', range:20}];
   const PRESETS = [
     {id:'teal', name:'青绿', light:'#07766a', dark:'#52cfb7'},
     {id:'ocean', name:'海蓝', light:'#1f6fb2', dark:'#7db8f0'},

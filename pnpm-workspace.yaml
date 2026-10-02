@@ -3,6 +3,8 @@ packages:
   - packages/*
 allowBuilds:
   esbuild: true
+  # Optional native accelerator for BullMQ's msgpackr; the pure-JS fallback is used.
+  msgpackr-extract: false
   sharp: true
   unrs-resolver: true
 minimumReleaseAgeExclude:

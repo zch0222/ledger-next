@@ -1,10 +1,18 @@
 import { randomUUID } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 import { expect, request } from '@playwright/test';
 import { createLedgerClient, idempotencyKey, ifMatch } from '../../packages/api-client/src/index';
 import { expectContract } from './contract';
 import { clientIp, ledger, origin, test, user } from './helpers';
 
 const json = { 'Content-Type': 'application/json' };
+type Spec = { paths: Record<string, Record<string, { 'x-stability'?: string; operationId: string }>> };
+// Planned operations answer 501; picked from the published contract so the check follows the roadmap.
+const plannedOperations = (() => {
+  const spec = JSON.parse(readFileSync(new URL('../../packages/contracts/openapi.json', import.meta.url), 'utf8')) as Spec;
+  return Object.entries(spec.paths).filter(([path]) => /^\/ledgers\/\{ledgerId\}\/[a-z-]+$/.test(path))
+    .flatMap(([path, ops]) => Object.entries(ops).filter(([, o]) => o['x-stability'] === 'planned').map(([method, o]) => ({ path, method, operationId: o.operationId })));
+})();
 
 test('every stable operation answers within the published contract', async () => {
   const a = await user('contract'), b = await user('contract-member');
@@ -39,9 +47,11 @@ test('error statuses are real, documented and problem+json', async () => {
   await expectContract(await u.client.patch(base, { data: { name: 'n' } }), 'updateLedger', 428);
   await expectContract(await u.client.patch(base, { data: { name: 'n' }, headers: { 'If-Match': '"v9"' } }), 'updateLedger', 412);
   await expectContract(await u.client.patch(base, { data: { name: 'n' }, headers: { 'If-Match': '"v1"', Origin: 'https://evil.example' } }), 'updateLedger', 403);
-  const planned = await expectContract(await u.client.get(`${base}/subscriptions`), 'listSubscriptions', 501);
-  expect(planned).toMatchObject({ code: 'NOT_IMPLEMENTED', status: 501 });
-  await expectContract(await u.client.post(`${base}/subscriptions`, { data: { previewId: randomUUID() }, headers: { 'Idempotency-Key': idempotencyKey() } }), 'createSubscription', 501);
+  for (const op of plannedOperations) {
+    const url = op.path.replace('/ledgers/{ledgerId}', base);
+    const response = op.method === 'get' ? await u.client.get(url) : await u.client.fetch(url, { method: op.method, data: { previewId: randomUUID() }, headers: { 'Idempotency-Key': idempotencyKey() } });
+    expect(await expectContract(response, op.operationId, 501)).toMatchObject({ code: 'NOT_IMPLEMENTED', status: 501 });
+  }
   const unsupported = await u.client.put('/api/v1/ledgers', { data: {} });
   expect(unsupported.status()).toBe(405);
   expect(unsupported.headers().allow).toBe('GET, POST');

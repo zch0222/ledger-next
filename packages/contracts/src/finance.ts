@@ -37,6 +37,7 @@ export const Transaction = resource('Transaction', z.object({
   exchangeRate: AppliedRate.nullable(),
   transfer: z.object({ sourceAccountId: uuid, targetAccountId: uuid, sourceAmount: Money, targetAmount: Money, feeTransactionId: uuid.nullable() }).nullable(),
   refundOf: uuid.nullable(), replacesId: uuid.nullable(),
+  replacedById: uuid.nullable().meta({ description: '被更正后的新版本 id（仅已作废的旧版本有值）' }),
   source: z.enum(['web', 'api', 'agent', 'import', 'subscription']),
   version, createdAt: Timestamp, updatedAt: Timestamp,
 }));
@@ -52,7 +53,7 @@ const when = { occurredAt: Timestamp, timezone: Timezone };
 export const TransactionPreviewCreate = input('TransactionPreviewCreate', z.discriminatedUnion('kind', [
   z.object({ kind: z.enum(['expense', 'income']), accountId: uuid, settlement: Money, original: Money.optional(), categoryId: uuid.optional(), tagIds: z.array(uuid).max(20).optional(), merchant: z.string().max(120).optional(), note: note.optional(), fxPolicy: fxPolicy.default('fresh-only'), manualRate: manualRate.optional(), ...when }).strict(),
   z.object({ kind: z.literal('transfer'), sourceAccountId: uuid, targetAccountId: uuid, sourceAmount: Money, targetAmount: Money, fee: z.object({ amount: Money, categoryId: uuid.optional() }).strict().optional(), note: note.optional(), fxPolicy: fxPolicy.default('fresh-only'), manualRate: manualRate.optional(), ...when }).strict(),
-  z.object({ kind: z.literal('refund'), originalTransactionId: uuid, accountId: uuid, settlement: Money, note: note.optional(), ...when }).strict(),
+  z.object({ kind: z.literal('refund'), originalTransactionId: uuid, accountId: uuid, settlement: Money, originalAmount: Money.optional().meta({ description: '跨币种退款必填：按原支付币种计的退款金额，用于累计上限与基准币冲减' }), note: note.optional(), ...when }).strict(),
 ]), '预览不产生账务副作用；退款预览后提交到 refunds 子资源');
 export const TransactionPreview = resource('TransactionPreview', z.object({
   previewId: uuid, expiresAt: Timestamp, normalizedInputHash: z.string(), kind: TransactionKind,

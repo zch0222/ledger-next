@@ -22,3 +22,21 @@ export async function ledger(api: APIRequestContext, name = '家庭账本') {
   expect(response.status(), await response.text()).toBe(201);
   return (await response.json()).data as { id: string; name: string; version: number };
 }
+/** A signed-up user with one ledger, a CNY cash account and expense categories, plus REST helpers for seeding. */
+export async function book(prefix: string, opening = '1000') {
+  const u = await user(prefix), b = await ledger(u.client), base = `/api/v1/ledgers/${b.id}`;
+  const post = async (path: string, data: unknown, headers: Record<string, string> = {}) => {
+    const response = await u.client.post(`${base}${path}`, { data, headers });
+    expect(response.status(), await response.text()).toBeLessThan(300);
+    return (await response.json()).data;
+  };
+  const cash = await post('/accounts', { name: '现金', type: 'cash', currency: 'CNY', openingBalance: opening });
+  const food = await post('/categories', { name: '餐饮', kind: 'expense' }), traffic = await post('/categories', { name: '交通', kind: 'expense' });
+  // A few minutes ago: inside the ledger's current month except in the first minutes of a month.
+  const recently = () => new Date(Date.now() - 5 * 60_000).toISOString();
+  const record = async (body: Record<string, unknown>) => {
+    const preview = await post('/transaction-previews', { timezone: 'Asia/Hong_Kong', occurredAt: recently(), ...body });
+    return post(body.kind === 'refund' ? `/transactions/${body.originalTransactionId}/refunds` : '/transactions', { previewId: preview.previewId }, { 'Idempotency-Key': randomUUID() });
+  };
+  return { ...u, ledger: b, base, post, record, cash, food, traffic };
+}
