@@ -31,14 +31,14 @@ async function throttled(context: BrowserContext, page: Page) {
   return cdp;
 }
 
-const browser = await chromium.launch();
-const results: Record<string, { lcp: number[]; cls: number[]; inp: number[]; jsKb: number[] }> = {};
+const browser = await chromium.launch(process.env.PERF_CHROMIUM ? { executablePath: process.env.PERF_CHROMIUM } : {});
+const results: Record<string, { lcp: number[]; cls: number[]; inp: number[]; jsKb: number[]; lazyKb: number[] }> = {};
 const pages = [
   { name: 'dashboard', path: (u: User) => `/ledgers/${u.ledgerId}/dashboard`, interact: (p: Page) => p.getByRole('button', { name: /记一笔/ }).first().click() },
   { name: 'transactions', path: (u: User) => `/ledgers/${u.ledgerId}/transactions`, interact: (p: Page) => p.getByLabel('搜索商家或备注').first().pressSequentially('餐') },
 ];
 for (const target of pages) {
-  const r: { lcp: number[]; cls: number[]; inp: number[]; jsKb: number[] } = (results[target.name] = { lcp: [], cls: [], inp: [], jsKb: [] });
+  const r: { lcp: number[]; cls: number[]; inp: number[]; jsKb: number[]; lazyKb: number[] } = (results[target.name] = { lcp: [], cls: [], inp: [], jsKb: [], lazyKb: [] });
   for (let run = 0; run < RUNS; run++) {
     const user = seed.users[run % seed.users.length];
     const context = await browser.newContext({ ...devices['Pixel 7'] });
@@ -46,16 +46,18 @@ for (const target of pages) {
     await context.addInitScript(observe);
     const page = await context.newPage();
     const cdp = await throttled(context, page);
-    let js = 0;
+    // Script bytes on the wire until the load event (first screen) and afterwards (lazy chunks such as ECharts).
+    let js = 0, lazy = 0, loaded = false;
     const scripts = new Set<string>();
     cdp.on('Network.responseReceived', (e: { requestId: string; type: string }) => { if (e.type === 'Script') scripts.add(e.requestId); });
-    cdp.on('Network.loadingFinished', (e: { encodedDataLength: number; requestId: string }) => { if (scripts.has(e.requestId)) js += e.encodedDataLength; });
+    cdp.on('Network.loadingFinished', (e: { encodedDataLength: number; requestId: string }) => { if (scripts.has(e.requestId)) { if (loaded) lazy += e.encodedDataLength; else js += e.encodedDataLength; } });
     await page.goto(`${BASE}${target.path(user)}`, { waitUntil: 'load', timeout: 120_000 });
+    loaded = true;
     await page.waitForTimeout(2500);
     await target.interact(page).catch(() => undefined);
     await page.waitForTimeout(1000);
     const v = await page.evaluate(() => { const w = window as unknown as { __lcp: number; __cls: number; __inp: number }; return { lcp: w.__lcp, cls: w.__cls, inp: w.__inp }; });
-    r.lcp.push(v.lcp); r.cls.push(Number(v.cls.toFixed(4))); r.inp.push(v.inp); r.jsKb.push(js / 1024);
+    r.lcp.push(v.lcp); r.cls.push(Number(v.cls.toFixed(4))); r.inp.push(v.inp); r.jsKb.push(js / 1024); r.lazyKb.push(lazy / 1024);
     await context.close();
   }
 }
@@ -78,13 +80,15 @@ for (let i = 0; i < 20; i++) {
   if (i % 5 === 4) heaps.push(await heap());
 }
 await page.emulateMedia({ reducedMotion: 'reduce' });
-const animation = await page.locator('[data-chart-animation]').first().getAttribute('data-chart-animation');
+let animation: string | null = null;
+for (let i = 0; i < 20 && animation !== 'false'; i++) { await page.waitForTimeout(100); animation = await page.locator('[data-chart-animation]').first().getAttribute('data-chart-animation'); }
 await browser.close();
 
 const summary = {
   profile: 'Pixel 7 · slow 4G (150 ms RTT, 1.6 Mbps / 750 kbps) · CPU ×4 · Chromium (Playwright) · laboratory data',
+  notes: 'inpMs 0 = every event of the interaction finished under the 16 ms reporting threshold; JS sizes are encoded (gzip / br) bytes on the wire',
   runs: RUNS,
-  pages: Object.fromEntries(Object.entries(results).map(([name, r]) => [name, { lcpMs: stats(r.lcp), cls: stats(r.cls), inpMs: stats(r.inp), firstLoadJsKb: stats(r.jsKb) }])),
+  pages: Object.fromEntries(Object.entries(results).map(([name, r]) => [name, { lcpMs: stats(r.lcp), cls: stats(r.cls), inpMs: stats(r.inp), firstScreenJsKb: stats(r.jsKb), lazyJsKb: stats(r.lazyKb) }])),
   charts: { instancesPerPage: { min: Math.min(...instances), max: Math.max(...instances) }, heapMb: heaps.map(h => Number(h.toFixed(1))), reducedMotionAnimation: animation },
 };
 writeFileSync(`${OUT}/vitals.json`, `${JSON.stringify(summary, null, 2)}\n`);

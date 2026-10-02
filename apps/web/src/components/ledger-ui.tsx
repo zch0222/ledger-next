@@ -1,5 +1,5 @@
 'use client';
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { createContext, startTransition, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { EntryDrawer, type EntryInit } from './entry-drawer';
 
 export type LedgerInfo = { id: string; name: string; baseCurrency: string; timezone: string; role: 'owner' | 'editor' | 'viewer' };
@@ -19,7 +19,8 @@ export function LedgerProvider({ ledger, accounts, categories, children }: { led
   const [entry, setEntry] = useState<EntryInit | null>(null), [toast, setToast] = useState<Toast>(null);
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const canWrite = ledger.role !== 'viewer';
-  const openEntry = useCallback((init: EntryInit = { mode: 'create' }) => { if (canWrite) setEntry(init); }, [canWrite]);
+  // A transition lets the tap paint at once (INP) and mounts the dialog right after, instead of inside the click task.
+  const openEntry = useCallback((init: EntryInit = { mode: 'create' }) => { if (canWrite) startTransition(() => setEntry(init)); }, [canWrite]);
   const showToast = useCallback((next: Toast) => {
     setToast(next);
     clearTimeout(timer.current);

@@ -31,6 +31,12 @@ async function expense(s: Session, base: string, account: string, category: stri
   return data<{ id: string; version: number }>(ok(await call(s, 'POST', `${base}/transactions`, { previewId: preview.previewId }, { 'Idempotency-Key': randomUUID() }), 'expense'));
 }
 
+async function testDelivery(s: Session, channelId: string) {
+  const test = data<{ id: string }>(ok(await call(s, 'POST', `/api/v1/notification-channels/${channelId}/test-deliveries`, {}, { 'Idempotency-Key': randomUUID() }), 'test delivery'));
+  let status = '';
+  for (let i = 0; i < 60 && !['accepted', 'failed', 'delivery_unknown'].includes(status); i++) { await sleep(1000); status = data<{ status: string }>(ok(await call(s, 'GET', `/api/v1/notification-channels/${channelId}/test-deliveries/${test.id}`), 'delivery')).status; }
+  return status;
+}
 async function snapshot(s: Session, state: State): Promise<Snapshot> {
   const base = `/api/v1/ledgers/${state.ledgerId}`;
   const accounts = data<{ id: string; balance: string }[]>(ok(await call(s, 'GET', `${base}/accounts?includeArchived=true`), 'accounts'));
@@ -66,6 +72,8 @@ if (step === 'seed') {
   ok(await call(s, 'DELETE', `${base}/transactions/${spent[3].id}`, undefined, { 'If-Match': `"v${spent[3].version}"` }), 'void');
   const chatId = String(1_000_000_000 + Math.floor(Math.random() * 1e9));
   const channel = data<{ id: string }>(ok(await call(s, 'POST', '/api/v1/notification-channels', { name: '演练 TG', config: { type: 'telegram', botToken: `987654321:${randomBytes(18).toString('base64url')}`, chatId } }), 'channel'));
+  // A channel receives reminders only after its first test message was accepted.
+  if (await testDelivery(s, channel.id) !== 'accepted') throw new Error('the Telegram channel could not be verified');
   const token = data<{ token: string }>(ok(await call(s, 'POST', '/api/v1/api-tokens', { name: '演练令牌', scopes: ['ledgers:read', 'transactions:read'], ledgerIds: [ledger.id], expiresInDays: 30 }), 'token')).token;
   const state: State = { email, password, ledgerId: ledger.id, cash, card, food, token, channelId: channel.id, chatId, snapshots: {} };
   state.snapshots.backup = await snapshot(s, state);
@@ -86,12 +94,10 @@ if (step === 'seed') {
   const me = await fetch(`${process.env.BASE_URL}/api/v1/me`, { headers: { Authorization: `Bearer ${state.token}` } });
   if (me.status !== 200) problems.push(`token after restore: HTTP ${me.status}`);
   // The channel credential is decrypted by the worker with the separately kept key: a test message must reach the mock.
-  const test = data<{ id: string }>(ok(await call(s, 'POST', `/api/v1/notification-channels/${state.channelId}/test-deliveries`, {}, { 'Idempotency-Key': randomUUID() }), 'test delivery'));
-  let delivery = '';
-  for (let i = 0; i < 60 && !['accepted', 'failed', 'delivery_unknown'].includes(delivery); i++) { await sleep(1000); delivery = data<{ status: string }>(ok(await call(s, 'GET', `/api/v1/notification-channels/${state.channelId}/test-deliveries/${test.id}`), 'delivery')).status; }
-  const inbox = ((await (await fetch(`${MOCK}/__inbox/telegram`)).json()) as { messages: { chatId: string }[] }).messages.filter(m => m.chatId === state.chatId);
-  if (delivery !== 'accepted' || !inbox.length) problems.push(`encrypted channel after restore: ${delivery}, ${inbox.length} message(s) at the mock`);
-  console.log(JSON.stringify({ expected, transactions: actual.transactions, audit: actual.audit, balances: actual.balances, delivery, problems }));
+  const received = async () => ((await (await fetch(`${MOCK}/__inbox/telegram`)).json()) as { messages: { chatId: string }[] }).messages.filter(m => m.chatId === state.chatId).length;
+  const before = await received(), delivery = await testDelivery(s, state.channelId), arrived = (await received()) - before;
+  if (delivery !== 'accepted' || arrived !== 1) problems.push(`encrypted channel after restore: ${delivery}, ${arrived} new message(s) at the mock`);
+  console.log(JSON.stringify({ expected, transactions: actual.transactions, audit: actual.audit, balances: actual.balances, delivery, arrived, problems }));
   if (problems.length) { console.error(problems.join('\n')); process.exit(1); }
 } else if (step === 'reminder') {
   const state = load(), s = await signIn(state), base = `/api/v1/ledgers/${state.ledgerId}`;

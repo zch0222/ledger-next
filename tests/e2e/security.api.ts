@@ -18,14 +18,20 @@ test('another user cannot tell whether any of my resources exist (AC07)', async 
   const approval = await a.post('/approval-requests', { method: 'DELETE', path: `${a.base}/transactions/${tx.id}`, body: null, summary: '作废' });
   const owned: [string, string][] = [['transactions', tx.id], ['accounts', a.cash.id], ['categories', a.food.id], ['tags', tag.id], ['subscriptions', sub.id], ['budgets', budget.id], ['export-jobs', exportJob.id], ['approval-requests', approval.id]];
 
-  const notFound = strip(await (await b.client.get(`/api/v1/ledgers/${a.ledger.id}/transactions/${randomUUID()}`)).json());
-  expect(notFound).toMatchObject({ status: 404, code: 'NOT_FOUND' });
   for (const [type, id] of owned) {
-    for (const path of [`/api/v1/ledgers/${a.ledger.id}/${type}/${id}`, `${b.base}/${type}/${id}`]) {
-      const response = await b.client.get(path);
+    // Collections without a single-item GET (405) are probed with a valid update instead.
+    const probe = async (path: string) => {
+      const read = await b.client.get(path);
+      return read.status() !== 405 ? read : b.client.patch(path, { data: type === 'tags' ? { name: '探测' } : {}, headers: { 'If-Match': '"v1"' } });
+    };
+    for (const prefix of [`/api/v1/ledgers/${a.ledger.id}`, b.base]) {
+      const path = `${prefix}/${type}/${id}`, response = await probe(path);
       expect(response.status(), path).toBe(404);
       const body = await response.json();
-      expect(strip(body), path).toEqual(notFound); // same answer as for an id that never existed
+      // Exactly the answer for an id that never existed at the same place.
+      const never = strip(await (await probe(`${prefix}/${type}/${randomUUID()}`)).json());
+      expect(never).toMatchObject({ status: 404, code: 'NOT_FOUND' });
+      expect(strip(body), path).toEqual(never);
       expect(JSON.stringify(body)).not.toMatch(/88\.00|秘密商户|会员/);
     }
     expect((await b.client.patch(`${b.base}/${type}/${id}`, { data: {}, headers: { 'If-Match': '"v1"' } })).status()).toBeGreaterThanOrEqual(400);

@@ -66,8 +66,12 @@ try {
   const replPassword = randomBytes(16).toString('hex');
   sql('mysql', `CREATE USER 'repl'@'%' IDENTIFIED BY '${replPassword}'; GRANT REPLICATION SLAVE ON *.* TO 'repl'@'%';`);
   must([...args, 'up', '-d', '--wait', 'mysql-replica'], 'standby');
-  shell(load('mysql-replica', dump('mysql', '--source-data=1')), 'seed standby');
-  sql('mysql-replica', `CHANGE REPLICATION SOURCE TO SOURCE_HOST='mysql', SOURCE_USER='repl', SOURCE_PASSWORD='${replPassword}', GET_SOURCE_PUBLIC_KEY=1; START REPLICA;`);
+  const standbyDump = path.join(path.dirname(backupFile), 'standby.sql');
+  shell(`${dump('mysql', '--source-data=2')} > '${standbyDump}'`, 'standby snapshot');
+  const [logFile, logPos] = /CHANGE REPLICATION SOURCE TO SOURCE_LOG_FILE='([^']+)', SOURCE_LOG_POS=(\d+)/.exec(readFileSync(standbyDump, 'utf8')).slice(1);
+  shell(load('mysql-replica', `cat '${standbyDump}'`), 'seed standby');
+  // Host, credentials and position in one statement: changing SOURCE_HOST alone resets the position.
+  sql('mysql-replica', `CHANGE REPLICATION SOURCE TO SOURCE_HOST='mysql', SOURCE_USER='repl', SOURCE_PASSWORD='${replPassword}', GET_SOURCE_PUBLIC_KEY=1, SOURCE_LOG_FILE='${logFile}', SOURCE_LOG_POS=${logPos}; START REPLICA;`);
 
   // The worker does not need the web process: stop web, let a reminder fall due, check it was sent.
   result.steps.reminder = drill('reminder');
@@ -86,7 +90,9 @@ try {
     Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 1000);
   }
   if (lag !== primaryCount) throw new Error(`standby did not catch up: ${lag} vs ${primaryCount}`);
-  result.steps.standby = { caughtUpSeconds: seconds(started), transactions: Number(primaryCount), status: sql('mysql-replica', "SELECT SERVICE_STATE FROM performance_schema.replication_applier_status") };
+  const applier = sql('mysql-replica', 'SELECT SERVICE_STATE FROM performance_schema.replication_applier_status');
+  if (applier !== 'ON') throw new Error(`standby applier is ${applier}`);
+  result.steps.standby = { caughtUpSeconds: seconds(started), transactions: Number(primaryCount), applier };
 
   // Disaster, then restore A (backup only) and restore B (standby).
   await destroyPrimary();

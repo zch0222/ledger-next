@@ -30,7 +30,7 @@ const yearStart = new Date(Date.UTC(Number(today.slice(0, 4)), Number(today.slic
 const report: Record<string, unknown> = { startedAt: new Date().toISOString(), config: { VUS, SECONDS, RUNS, users: seed.users.length } };
 
 // 1. Reminders falling due during the mixed run (every 10th user, 2–8 minutes from now).
-const reminderUsers = seed.users.filter((_, i) => i % 10 === 0);
+const reminderUsers = process.env.PERF_SKIP_REMINDERS ? [] : seed.users.filter((_, i) => i % 10 === 0);
 const ruleIds = await pool(reminderUsers, 10, async (u, i) => {
   const channels = data<{ id: string; type: string }[]>(ok(await call(u, 'GET', '/api/v1/notification-channels'), 'channels'));
   const at = new Date(Date.now() + (2 + (i % 7)) * 60_000);
@@ -122,7 +122,7 @@ console.error(`mixed load done: ${requests} requests in ${elapsed.toFixed(0)} s`
 const db = await mysql.createConnection(process.env.DATABASE_URL!);
 const waitUntil = Date.now() + 10 * 60_000;
 let delays: number[] = [], pending = ruleIds.length;
-while (Date.now() < waitUntil) {
+while (ruleIds.length && Date.now() < waitUntil) {
   const [rows] = await db.query(`SELECT d.status, TIMESTAMPDIFF(MICROSECOND, d.scheduled_at, MIN(a.started_at)) / 1e6 AS delay FROM notification_deliveries d LEFT JOIN notification_attempts a ON a.delivery_id = d.id
     WHERE d.rule_id IN (?) AND d.scheduled_at <= UTC_TIMESTAMP(3) GROUP BY d.id, d.status, d.scheduled_at`, [ruleIds]) as [{ status: string; delay: string | null }[], unknown];
   delays = rows.filter(r => r.delay !== null).map(r => Number(r.delay));

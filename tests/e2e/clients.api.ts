@@ -240,7 +240,7 @@ test('AC09: four clients on one ledger share permissions and idempotency; revoki
   // Revoke Claude Code's token: it fails on its next call, the other three carry on.
   expect((await b.client.delete(`/api/v1/api-tokens/${tokens['claude-code'].id}`)).status()).toBe(204);
   const after = await clients['claude-code'].callTool({ name: 'ledger_get_context', arguments: {} }).then(r => r as CallToolResult, (e: Error) => e);
-  expect(after instanceof Error ? after.message : JSON.stringify(sc(after).error)).toMatch(/401|invalid_token|INVALID_TOKEN/);
+  expect(after instanceof Error ? after.message : JSON.stringify(sc(after).error)).toMatch(/401|invalid_token|INVALID_TOKEN|令牌无效/);
   for (const id of ['codex', 'dsh', 'qoder'] as const) expect(sc(await clients[id].callTool({ name: 'ledger_get_context', arguments: {} }) as CallToolResult).ledger).toMatchObject({ id: b.ledger.id });
   for (const client of Object.values(clients)) await client.close().catch(() => undefined);
   await b.client.dispose();
