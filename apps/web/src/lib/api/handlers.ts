@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { SCOPES } from '../../../../../packages/contracts/src/common';
 import type { StableOperationId } from '../../../../../packages/contracts/src/operations';
-import type { Executor } from '../../../../../packages/db/src/index';
+import { database, type Executor } from '../../../../../packages/db/src/index';
 import { cursorCodec, pageOf, type Position } from '../../../../../packages/domain/src/cursor';
 import { DomainError } from '../../../../../packages/domain/src/policy';
 import { addMember, changeMember, createLedger, getLedger, listAuditEvents, listLedgers, listMembers, updateLedger, type AuthContext, type Keyset } from '../../../../../packages/domain/src/identity';
@@ -14,6 +14,10 @@ import { accountBalances, archiveBudget, budgetProgress, cashFlow, categoryBreak
 import { appearanceCookie, getPreferences, present as presentPreferences, updatePreferences } from '../../../../../packages/domain/src/preferences';
 import { createBillPayment, createSubscription, createSubscriptionPreview, getBillOccurrence, getSubscription, listBillOccurrences, listSubscriptions, updateBillOccurrence, updateSubscription } from '../../../../../packages/domain/src/subscriptions';
 import { createManualRateRecord, createRefreshJob, getExchangeRates, getRefreshJob, listManualRateRecords } from '../../../../../packages/domain/src/fx';
+import { createChannel, createTestDelivery, deleteChannel, getTestDelivery, listChannels, presentChannel, updateChannel, verifyChannel } from '../../../../../packages/domain/src/notify-channels';
+import { createReminderPreview, createReminderRule, deleteReminderRule, listReminderRules, presentRule, updateReminderRule } from '../../../../../packages/domain/src/reminders';
+import { deliveryStats, getDelivery, getNotification, listDeliveries, listNotifications, presentNotification, retryDelivery, updateNotification } from '../../../../../packages/domain/src/deliveries';
+import { presentDelivery } from '../../../../../packages/domain/src/notify-store';
 
 export type ApiContext = AuthContext & { user: { name: string; email: string } };
 export type ApiResult = { status: 200 | 201 | 202 | 204; data?: unknown; headers?: Record<string, string>; page?: { nextCursor: string | null; hasMore: boolean }; file?: { content: string; name: string; type: string } };
@@ -196,4 +200,33 @@ export const handlers: Record<StableOperationId, Handler> = {
     return { status: 200, data: presentPreferences(prefs.appearance, prefs.version), headers: { ...etag(prefs.version), 'Set-Cookie': appearanceCookie(prefs.appearance, secure) } };
   },
   listAuditEvents: input => paged(input, keyset => listAuditEvents(input.ctx, input.params.ledgerId, { action: input.query.action as string | undefined, ...keyset }), event => ({ ...event, createdAt: event.createdAt.toISOString() })),
+  // M5: reminders, channels, deliveries and the in-app inbox.
+  listReminderRules: input => pagedBy(input, { fetch: keyset => listReminderRules(input.ctx, input.params.ledgerId, keyset), position: keysetOf, schema: createdPosition, present: rows => Promise.all(rows.map(rule => presentRule(database(), rule))) }),
+  async createReminderPreview({ ctx, params, body }) { return { status: 201, data: await createReminderPreview(ctx, params.ledgerId, body) }; },
+  async createReminderRule({ ctx, params, body }, db) {
+    const rule = await createReminderRule(ctx, params.ledgerId, body, db);
+    return { status: 201, data: rule, headers: { ...location(params.ledgerId, 'reminder-rules', rule.id), ...etag(rule.version) } };
+  },
+  async updateReminderRule({ ctx, params, body, request }) { const rule = await updateReminderRule(ctx, params.ledgerId, params.ruleId, body, ifMatch(request)); return { status: 200, data: rule, headers: etag(rule.version) }; },
+  async deleteReminderRule({ ctx, params, request }) { await deleteReminderRule(ctx, params.ledgerId, params.ruleId, ifMatch(request)); return { status: 204 }; },
+  listNotificationChannels: input => paged(input, keyset => listChannels(input.ctx, keyset), presentChannel),
+  async createNotificationChannel({ ctx, body }, db) {
+    const row = await createChannel(ctx, body, db);
+    return { status: 201, data: presentChannel(row), headers: { Location: `/api/v1/notification-channels/${row.id}`, ...etag(row.version) } };
+  },
+  async updateNotificationChannel({ ctx, params, body, request }) { const row = await updateChannel(ctx, params.channelId, body, ifMatch(request)); return { status: 200, data: presentChannel(row), headers: etag(row.version) }; },
+  async deleteNotificationChannel({ ctx, params, request }) { await deleteChannel(ctx, params.channelId, ifMatch(request)); return { status: 204 }; },
+  async createTestDelivery({ ctx, params, body }, db) {
+    const delivery = await createTestDelivery(ctx, params.channelId, body, db);
+    return { status: 202, data: delivery, headers: { Location: `/api/v1/notification-channels/${params.channelId}/test-deliveries/${delivery.id}` } };
+  },
+  async getTestDelivery({ ctx, params }) { return { status: 200, data: await getTestDelivery(ctx, params.channelId, params.deliveryId) }; },
+  async createChannelVerification({ ctx, params, body }) { const row = await verifyChannel(ctx, params.channelId, body); return { status: 200, data: presentChannel(row), headers: etag(row.version) }; },
+  listNotificationDeliveries: input => paged(input, keyset => listDeliveries(input.ctx, input.params.ledgerId, input.query, keyset), presentDelivery),
+  async getNotificationDelivery({ ctx, params }) { return { status: 200, data: await getDelivery(ctx, params.ledgerId, params.deliveryId) }; },
+  async createDeliveryRetry({ ctx, params }) { return { status: 202, data: await retryDelivery(ctx, params.ledgerId, params.deliveryId) }; },
+  async getNotificationStats({ ctx, params }) { return { status: 200, data: await deliveryStats(ctx, params.ledgerId) }; },
+  listNotifications: input => paged(input, keyset => listNotifications(input.ctx, input.params.ledgerId, input.query, keyset), presentNotification),
+  async getNotification({ ctx, params }) { const row = await getNotification(ctx, params.ledgerId, params.notificationId); return { status: 200, data: presentNotification(row), headers: etag(row.version) }; },
+  async updateNotification({ ctx, params, body, request }) { const row = await updateNotification(ctx, params.ledgerId, params.notificationId, body, ifMatch(request)); return { status: 200, data: presentNotification(row), headers: etag(row.version) }; },
 };

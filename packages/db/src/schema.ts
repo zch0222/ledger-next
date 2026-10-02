@@ -213,6 +213,7 @@ export const subscriptions = mysqlTable('subscriptions', {
   timezone: varchar('timezone', { length: 64 }).notNull(), status: mysqlEnum('status', ['active', 'paused', 'cancelled']).notNull(),
   pausedUntil: date('paused_until', { mode: 'string' }), endsOn: date('ends_on', { mode: 'string' }), note: varchar('note', { length: 500 }),
   scheduleVersion: int('schedule_version').notNull().default(1), version: int('version').notNull().default(1), createdBy: varchar('created_by', { length: 36 }).notNull().references(() => user.id),
+  trialEndsOn: date('trial_ends_on', { mode: 'string' }), cancelBy: date('cancel_by', { mode: 'string' }),
   createdAt: createdAt(), updatedAt: updatedAt(),
 }, t => [uniqueIndex('subscription_ledger_uq').on(t.ledgerId, t.id), index('subscription_ledger_status_idx').on(t.ledgerId, t.status, t.createdAt)]);
 export const billOccurrences = mysqlTable('bill_occurrences', {
@@ -226,3 +227,58 @@ export const subscriptionPreviews = mysqlTable('subscription_previews', {
   normalizedInput: json('normalized_input').notNull(), expiresAt: datetime('expires_at', { mode: 'date', fsp: 3 }).notNull(),
   consumedAt: datetime('consumed_at', { mode: 'date', fsp: 3 }), consumedBy: varchar('consumed_by', { length: 36 }), createdAt: createdAt(),
 });
+
+// M5: notification channels, reminder rules, the delivery log (job store), attempts and in-app notifications.
+const CHANNEL_TYPES = ['telegram', 'feishu', 'wecom_bot', 'wecom_app', 'pushplus_wechat', 'email', 'webhook', 'in_app'] as const;
+const RESPONSE_CLASSES = ['ok', 'rate_limited', 'server_error', 'client_error', 'credential_error', 'timeout', 'network'] as const;
+export const REMINDER_EVENTS = ['bill_due', 'trial_end', 'cancel_deadline', 'overdue', 'budget_threshold', 'daily_entry', 'weekly_summary', 'monthly_summary', 'fx_threshold', 'delivery_failed'] as const;
+export const notificationChannels = mysqlTable('notification_channels', {
+  id: id(), userId: varchar('user_id', { length: 36 }).notNull().references(() => user.id, { onDelete: 'cascade' }), type: mysqlEnum('type', CHANNEL_TYPES).notNull(),
+  name: varchar('name', { length: 60 }).notNull(), enabled: boolean('enabled').notNull().default(true),
+  status: mysqlEnum('status', ['unconfigured', 'verifying', 'active', 'degraded', 'disabled']).notNull(),
+  sealedConfig: text('sealed_config'), keyId: varchar('key_id', { length: 16 }), configSummary: json('config_summary').notNull(),
+  verificationHash: char('verification_hash', { length: 64 }), verificationExpiresAt: datetime('verification_expires_at', { mode: 'date', fsp: 3 }), verificationAttempts: int('verification_attempts').notNull().default(0),
+  lastVerifiedAt: datetime('last_verified_at', { mode: 'date', fsp: 3 }), lastError: varchar('last_error', { length: 300 }), consecutiveFailures: int('consecutive_failures').notNull().default(0),
+  version: int('version').notNull().default(1), createdAt: createdAt(), updatedAt: updatedAt(), deletedAt: datetime('deleted_at', { mode: 'date', fsp: 3 }),
+}, t => [index('notification_channel_user_idx').on(t.userId, t.deletedAt, t.createdAt)]);
+export const reminderRules = mysqlTable('reminder_rules', {
+  id: id(), ledgerId: ledgerId(), ownerId: varchar('owner_id', { length: 36 }).notNull().references(() => user.id, { onDelete: 'cascade' }),
+  eventType: mysqlEnum('event_type', REMINDER_EVENTS).notNull(), subscriptionId: varchar('subscription_id', { length: 36 }), budgetId: varchar('budget_id', { length: 36 }),
+  leadDays: json('lead_days').notNull(), localTime: char('local_time', { length: 5 }).notNull(), timezone: varchar('timezone', { length: 64 }).notNull(),
+  quietStart: char('quiet_start', { length: 5 }), quietEnd: char('quiet_end', { length: 5 }), channelIds: json('channel_ids').notNull(),
+  enabled: boolean('enabled').notNull().default(true), templateVersion: int('template_version').notNull().default(1), includeDetails: boolean('include_details').notNull().default(false),
+  fxBase: varchar('fx_base', { length: 3 }), fxQuote: varchar('fx_quote', { length: 3 }), fxAbove: decimal('fx_above', { precision: 24, scale: 10 }), fxBelow: decimal('fx_below', { precision: 24, scale: 10 }), fxState: json('fx_state'),
+  plannedThrough: datetime('planned_through', { mode: 'date', fsp: 3 }), version: int('version').notNull().default(1),
+  createdAt: createdAt(), updatedAt: updatedAt(), deletedAt: datetime('deleted_at', { mode: 'date', fsp: 3 }),
+}, t => [uniqueIndex('reminder_rule_ledger_uq').on(t.ledgerId, t.id), index('reminder_rule_owner_idx').on(t.ledgerId, t.ownerId, t.deletedAt, t.createdAt)]);
+export const reminderPreviews = mysqlTable('reminder_previews', {
+  id: id(), ledgerId: ledgerId(), actorId: varchar('actor_id', { length: 36 }).notNull().references(() => user.id, { onDelete: 'cascade' }),
+  normalizedInput: json('normalized_input').notNull(), expiresAt: datetime('expires_at', { mode: 'date', fsp: 3 }).notNull(),
+  consumedAt: datetime('consumed_at', { mode: 'date', fsp: 3 }), consumedBy: varchar('consumed_by', { length: 36 }), createdAt: createdAt(),
+});
+export const notificationDeliveries = mysqlTable('notification_deliveries', {
+  id: id(), ledgerId: varchar('ledger_id', { length: 36 }).references(() => ledgers.id), userId: varchar('user_id', { length: 36 }).notNull().references(() => user.id, { onDelete: 'cascade' }),
+  channelId: varchar('channel_id', { length: 36 }).notNull().references(() => notificationChannels.id), channelType: mysqlEnum('channel_type', CHANNEL_TYPES).notNull(),
+  ruleId: varchar('rule_id', { length: 36 }), ruleVersion: int('rule_version'), eventType: varchar('event_type', { length: 32 }).notNull(), eventId: varchar('event_id', { length: 160 }).notNull(),
+  subjectId: varchar('subject_id', { length: 36 }), dedupeKey: varchar('dedupe_key', { length: 255 }).notNull(), templateVersion: int('template_version').notNull(), payload: json('payload').notNull(),
+  scheduledAt: datetime('scheduled_at', { mode: 'date', fsp: 3 }).notNull(), expiresAt: datetime('expires_at', { mode: 'date', fsp: 3 }).notNull(),
+  deferredByQuietHours: boolean('deferred_by_quiet_hours').notNull().default(false),
+  status: mysqlEnum('status', ['queued', 'sending', 'accepted', 'delivered', 'failed', 'delivery_unknown', 'expired', 'cancelled']).notNull(),
+  round: int('round').notNull().default(1), attempts: int('attempts').notNull().default(0), nextAttemptAt: datetime('next_attempt_at', { mode: 'date', fsp: 3 }).notNull(),
+  lastAttemptAt: datetime('last_attempt_at', { mode: 'date', fsp: 3 }), claimedAt: datetime('claimed_at', { mode: 'date', fsp: 3 }),
+  responseClass: mysqlEnum('response_class', RESPONSE_CLASSES), providerMessageId: varchar('provider_message_id', { length: 128 }),
+  lastError: varchar('last_error', { length: 300 }), reason: varchar('reason', { length: 160 }), deadLetter: boolean('dead_letter').notNull().default(false),
+  version: int('version').notNull().default(1), createdAt: createdAt(), updatedAt: updatedAt(),
+}, t => [uniqueIndex('notification_delivery_dedupe_uq').on(t.dedupeKey), index('notification_delivery_due_idx').on(t.status, t.nextAttemptAt)]);
+export const notificationAttempts = mysqlTable('notification_attempts', {
+  id: id(), deliveryId: varchar('delivery_id', { length: 36 }).notNull().references(() => notificationDeliveries.id, { onDelete: 'cascade' }),
+  round: int('round').notNull(), attemptNo: int('attempt_no').notNull(), startedAt: datetime('started_at', { mode: 'date', fsp: 3 }).notNull(), finishedAt: datetime('finished_at', { mode: 'date', fsp: 3 }),
+  outcome: mysqlEnum('outcome', ['accepted', 'delivered', 'retry', 'failed', 'unknown']), responseClass: mysqlEnum('response_class', RESPONSE_CLASSES),
+  httpStatus: int('http_status'), providerMessageId: varchar('provider_message_id', { length: 128 }), error: varchar('error', { length: 300 }),
+}, t => [uniqueIndex('notification_attempt_uq').on(t.deliveryId, t.round, t.attemptNo)]);
+export const notifications = mysqlTable('notifications', {
+  id: id(), ledgerId: ledgerId(), userId: varchar('user_id', { length: 36 }).notNull().references(() => user.id, { onDelete: 'cascade' }),
+  eventType: varchar('event_type', { length: 32 }).notNull(), title: varchar('title', { length: 200 }).notNull(), body: varchar('body', { length: 1000 }).notNull(),
+  link: varchar('link', { length: 500 }), deliveryId: varchar('delivery_id', { length: 36 }), dedupeKey: varchar('dedupe_key', { length: 255 }),
+  readAt: datetime('read_at', { mode: 'date', fsp: 3 }), version: int('version').notNull().default(1), createdAt: createdAt(),
+}, t => [uniqueIndex('notification_ledger_uq').on(t.ledgerId, t.id), uniqueIndex('notification_dedupe_uq').on(t.dedupeKey), index('notification_user_idx').on(t.userId, t.ledgerId, t.readAt, t.createdAt)]);

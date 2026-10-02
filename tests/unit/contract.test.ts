@@ -54,6 +54,9 @@ describe('OpenAPI document', () => {
     'M4-THEME': ['getPreferences', 'updatePreferences'],
     'M4-SUBS': ['createBillPayment', 'createSubscription', 'createSubscriptionPreview', 'getBillOccurrence', 'getSubscription', 'listBillOccurrences', 'listSubscriptions', 'updateBillOccurrence', 'updateSubscription'],
     'M3-FX': ['createExchangeRateRefreshJob', 'createManualRateRecord', 'getExchangeRateRefreshJob', 'getExchangeRates', 'listManualRateRecords'],
+    M5: ['createChannelVerification', 'createDeliveryRetry', 'createNotificationChannel', 'createReminderPreview', 'createReminderRule', 'createTestDelivery', 'deleteNotificationChannel', 'deleteReminderRule',
+      'getNotification', 'getNotificationDelivery', 'getNotificationStats', 'getTestDelivery', 'listNotificationChannels', 'listNotificationDeliveries', 'listNotifications', 'listReminderRules',
+      'updateNotification', 'updateNotificationChannel', 'updateReminderRule'],
   };
   it('marks exactly the implemented operations stable', () => {
     expect(ops.filter(x => x.o['x-stability'] === 'stable').map(x => x.o.operationId).sort()).toEqual(Object.values(IMPLEMENTED).flat().sort());

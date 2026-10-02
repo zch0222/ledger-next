@@ -7,10 +7,12 @@ import { processHistoryRequests, processRefreshJobs, pruneMinuteBatches, refresh
 import { fxConfig } from '../../../packages/domain/src/fx-provider';
 import { pruneIdempotencyRecords } from '../../../packages/domain/src/idempotent';
 import { maintainSubscriptions } from '../../../packages/domain/src/subscriptions';
+import { claimDue, sweepStuck } from '../../../packages/domain/src/deliveries';
+import { fxAlerts, planDueRules } from '../../../packages/domain/src/reminders';
 import { pruneExpiredPreviews } from '../../../packages/domain/src/transactions';
 import { startQueue } from './queue';
 
-// Background process: infrastructure heartbeat, housekeeping, the FX schedule (M3-FX) and the outbox queue (imports, exports). It never serves HTTP and
+// Background process: infrastructure heartbeat, housekeeping, the FX schedule (M3-FX), reminders (M5) and the outbox queue. It never serves HTTP and
 // does not depend on the web process being alive.
 const redis = new Redis(process.env.REDIS_URL!, { maxRetriesPerRequest: 1 });
 const workerId = randomUUID();
@@ -49,7 +51,11 @@ async function fxLatest() {
     if (!result.ok) {
       if (result.retryAfterSeconds) fxBackoffUntil = Date.now() + result.retryAfterSeconds * 1000;
       log({ task: 'fx.latest', status: 'failed', reason: result.error, retryAfterSeconds: result.retryAfterSeconds ?? null });
-    } else if (result.status !== 'unchanged') log({ task: 'fx.latest', status: result.status, batchId: result.batchId });
+    } else if (result.status !== 'unchanged') {
+      log({ task: 'fx.latest', status: result.status, batchId: result.batchId });
+      const alerts = await fxAlerts();
+      if (alerts) log({ task: 'reminders.fx', created: alerts });
+    }
   } catch (error) { console.error(JSON.stringify({ task: 'fx.latest', status: 'error', code: errorCode(error) })); }
 }
 async function fxJobs() {
@@ -70,12 +76,34 @@ async function subscriptionsTick() {
   } catch (error) { console.error(JSON.stringify({ task: 'subscriptions.maintain', status: 'error', code: errorCode(error) })); }
 }
 
+// Reminders (M5): plan rules near their horizon, claim due deliveries and hand them to the queue, recover stuck ones.
+// The tick bounds the dispatch delay (TECHNICAL_DESIGN §7.3: p95 ≤ 60 s from scheduled_at to the worker starting).
+const NOTIFY_TICK_MS = Number(process.env.NOTIFY_TICK_SECONDS || 10) * 1000;
+let notifying = false;
+async function notifyTick() {
+  if (notifying || stopping) return;
+  notifying = true;
+  try {
+    const planned = await planDueRules();
+    if (planned.created) log({ task: 'reminders.plan', ...planned });
+    const stuck = await sweepStuck();
+    if (stuck.requeued || stuck.unknown) log({ task: 'reminders.sweep', ...stuck });
+    for (let claimed = await claimDue(); claimed.length; claimed = await claimDue()) {
+      await queue.publishDeliveries(claimed);
+      log({ task: 'reminders.dispatch', claimed: claimed.length });
+      if (claimed.length < 50) break;
+    }
+  } catch (error) { console.error(JSON.stringify({ task: 'reminders.tick', status: 'error', code: errorCode(error) })); }
+  finally { notifying = false; }
+}
+
 await heartbeat();
 await housekeeping();
 void subscriptionsTick();
 const queue = startQueue(process.env.REDIS_URL!, log);
 void fxLatest();
-const timers = [setInterval(heartbeat, 10000), setInterval(housekeeping, 60 * 60 * 1000), setInterval(fxLatest, FX_POLL_MS), setInterval(fxJobs, 5000), setInterval(subscriptionsTick, Number(process.env.SUBSCRIPTION_TICK_SECONDS || 600) * 1000)];
+void notifyTick();
+const timers = [setInterval(notifyTick, NOTIFY_TICK_MS), setInterval(heartbeat, 10000), setInterval(housekeeping, 60 * 60 * 1000), setInterval(fxLatest, FX_POLL_MS), setInterval(fxJobs, 5000), setInterval(subscriptionsTick, Number(process.env.SUBSCRIPTION_TICK_SECONDS || 600) * 1000)];
 async function stop() {
   if (stopping) return;
   stopping = true;
@@ -87,4 +115,4 @@ async function stop() {
 }
 process.on('SIGTERM', () => { void stop(); });
 process.on('SIGINT', () => { void stop(); });
-log({ task: 'worker.ready', fxProvider: fx.url ? fx.provider : 'not configured', fxPollSeconds: FX_POLL_MS / 1000 });
+log({ task: 'worker.ready', fxProvider: fx.url ? fx.provider : 'not configured', fxPollSeconds: FX_POLL_MS / 1000, notifyTickSeconds: NOTIFY_TICK_MS / 1000, smtp: process.env.SMTP_URL ? 'configured' : 'not configured' });

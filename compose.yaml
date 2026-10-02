@@ -8,6 +8,13 @@ x-app-env: &app-env
   FX_PROVIDER_URL: ${FX_PROVIDER_URL:-}
   FX_PROVIDER_KEY: ${FX_PROVIDER_KEY:-}
   LEDGER_ADMIN_EMAILS: ${LEDGER_ADMIN_EMAILS:-}
+  # Notification channels (M5): credentials are sealed with these master keys ("id:base64(32 bytes)", first encrypts).
+  LEDGER_ENCRYPTION_KEYS: ${LEDGER_ENCRYPTION_KEYS:?Set LEDGER_ENCRYPTION_KEYS in .env}
+  SMTP_URL: ${SMTP_URL:-}
+  SMTP_FROM: ${SMTP_FROM:-Ledger Next <no-reply@localhost>}
+  # Private-network webhook receivers need an explicit allowlist (host or host:port); empty means public HTTPS only.
+  WEBHOOK_ALLOWLIST: ${WEBHOOK_ALLOWLIST:-}
+  CHANNEL_ENDPOINT_OVERRIDES: ${CHANNEL_ENDPOINT_OVERRIDES:-}
 services:
   mysql:
     image: mysql:8.4@sha256:6ea90827b1100f8f2ae306a539f86d2c264a26ed435a2a9f75551dd5c3aeb242 # 8.4.11 LTS, multi-platform index

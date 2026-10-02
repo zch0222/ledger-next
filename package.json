@@ -23,7 +23,8 @@
     "contract:check": "tsx packages/contracts/src/cli.ts check",
     "test:contract": "tsx packages/contracts/src/cli.ts check",
     "db:rollback": "tsx packages/db/src/rollback.ts",
-    "test:api": "playwright test --project=api"
+    "test:api": "playwright test --project=api",
+    "channels:rewrap": "tsx scripts/rewrap-channel-keys.ts"
   },
   "dependencies": {
     "@better-auth/drizzle-adapter": "1.7.7",
@@ -33,6 +34,7 @@
     "drizzle-orm": "0.45.3",
     "ioredis": "5.8.2",
     "mysql2": "3.24.5",
+    "nodemailer": "8.0.11",
     "openapi-fetch": "0.17.0",
     "zod": "4.3.6"
   },
@@ -40,6 +42,7 @@
     "@axe-core/playwright": "4.13.0",
     "@playwright/test": "1.63.0",
     "@types/node": "24.10.1",
+    "@types/nodemailer": "8.0.2",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
     "@vitest/coverage-v8": "5.0.3",

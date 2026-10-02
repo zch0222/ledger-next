@@ -6,7 +6,7 @@ import path from 'node:path';
 
 const localDesktop = path.join(process.env.LOCALAPPDATA ?? '', 'Programs/DockerDesktop/resources/bin/docker.exe');
 const docker = process.env.LEDGER_DOCKER || (process.platform === 'win32' && existsSync(localDesktop) ? localDesktop : 'docker');
-const env = { ...process.env, MYSQL_DATABASE: 'ledger_test', MYSQL_USER: 'ledger_test', MYSQL_PASSWORD: randomBytes(24).toString('hex'), MYSQL_ROOT_PASSWORD: randomBytes(24).toString('hex'), BETTER_AUTH_SECRET: randomBytes(48).toString('hex'), APP_URL: 'http://web:3000', PERSISTENCE_EMAIL: `restart-${randomBytes(12).toString('hex')}@example.test`, PERSISTENCE_PASSWORD: randomBytes(24).toString('hex') };
+const env = { ...process.env, MYSQL_DATABASE: 'ledger_test', MYSQL_USER: 'ledger_test', MYSQL_PASSWORD: randomBytes(24).toString('hex'), MYSQL_ROOT_PASSWORD: randomBytes(24).toString('hex'), BETTER_AUTH_SECRET: randomBytes(48).toString('hex'), LEDGER_ENCRYPTION_KEYS: `e2e:${randomBytes(32).toString('base64')}`, APP_URL: 'http://web:3000', PERSISTENCE_EMAIL: `restart-${randomBytes(12).toString('hex')}@example.test`, PERSISTENCE_PASSWORD: randomBytes(24).toString('hex') };
 // Each run owns its Compose project and volumes; never remove a user's development database.
 const project = `ledger-e2e-${process.pid}`;
 const LATEST_MIGRATION = readdirSync('packages/db/migrations').filter(f => f.endsWith('.sql')).sort().at(-1);

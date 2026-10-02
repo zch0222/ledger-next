@@ -12,6 +12,7 @@ import { formatAmount, parseAmount, sum, toColumn } from './money';
 import { DomainError, requireVersion } from './policy';
 import { cyclesPerYear, nextOccurrences, occurrencesBetween, scheduleWarnings, type Cycle } from './schedule';
 import { createTransaction, getTransaction } from './transactions';
+import { cancelForSubjects } from './notify-store';
 
 const PREVIEW_TTL_MS = 10 * 60 * 1000;
 /** Occurrences are materialized this far ahead (and at least the next three). */
@@ -50,6 +51,7 @@ async function present(db: Executor | Tx, row: SubscriptionRow, today: string) {
     cycle: cycleOf(row), anchorDate: row.anchorDate, timezone: row.timezone, status: row.status, nextDueDate: await nextDue(db, row, today),
     note: row.note, scheduleVersion: row.scheduleVersion, version: row.version, createdAt: row.createdAt.toISOString(),
     pausedUntil: row.pausedUntil, endsOn: row.endsOn, monthlyEquivalent: monthlyEquivalent(amount, row.currency, cycleOf(row)),
+    trialEndsOn: row.trialEndsOn, cancelBy: row.cancelBy,
   };
 }
 function presentOccurrence(row: OccurrenceRow, name: string, today: string) {
@@ -97,6 +99,9 @@ async function materialize(tx: Tx, row: SubscriptionRow, from: string, now = new
 }
 /** Unpaid occurrences from `from` on stop being payable (pause / cancel / schedule change); paid history stays. */
 async function cancelFuture(tx: Tx, subscriptionId: string, from: string) {
+  // Their queued reminders are cancelled in the same transaction (TECHNICAL_DESIGN §6.1, AC05).
+  const ids = (await tx.select({ id: billOccurrences.id }).from(billOccurrences).where(and(eq(billOccurrences.subscriptionId, subscriptionId), gte(billOccurrences.scheduledDate, from), inArray(billOccurrences.status, ['scheduled', 'due', 'overdue'])))).map(r => r.id);
+  await cancelForSubjects(tx, ids, '订阅已暂停、取消或改期');
   await tx.update(billOccurrences).set({ status: 'cancelled', version: sql`${billOccurrences.version} + 1`, updatedAt: new Date() })
     .where(and(eq(billOccurrences.subscriptionId, subscriptionId), gte(billOccurrences.scheduledDate, from), inArray(billOccurrences.status, ['scheduled', 'due', 'overdue'])));
 }
@@ -113,7 +118,7 @@ export async function createSubscription(ctx: AuthContext, ledgerId: string, bod
     try { await validateRefs(tx, ledgerId, input); } catch { throw new DomainError(409, 'PREVIEW_STALE', '账户或分类已变化，请重新预览'); }
     const row: SubscriptionRow = { id: randomUUID(), ledgerId, name: input.name, amount: toColumn(input.amount.amount), currency: input.amount.currency, accountId: input.accountId ?? null, categoryId: input.categoryId ?? null,
       cycleUnit: input.cycle.unit, cycleCount: input.cycle.count, anchorDate: input.anchorDate, timezone: input.timezone, status: 'active', pausedUntil: null, endsOn: null, note: input.note ?? null,
-      scheduleVersion: 1, version: 1, createdBy: ctx.userId, createdAt: now, updatedAt: now };
+      scheduleVersion: 1, version: 1, createdBy: ctx.userId, trialEndsOn: input.trialEndsOn ?? null, cancelBy: input.cancelBy ?? null, createdAt: now, updatedAt: now };
     await tx.insert(subscriptions).values(row);
     await materialize(tx, row, localDate(now, row.timezone), now);
     await tx.update(subscriptionPreviews).set({ consumedAt: now, consumedBy: row.id }).where(eq(subscriptionPreviews.id, previewId));
@@ -145,6 +150,8 @@ export async function updateSubscription(ctx: AuthContext, ledgerId: string, id:
     if (data.name !== undefined) next.name = data.name;
     if (data.note !== undefined) next.note = data.note;
     if (data.categoryId !== undefined) next.categoryId = data.categoryId;
+    if (data.trialEndsOn !== undefined) next.trialEndsOn = data.trialEndsOn;
+    if (data.cancelBy !== undefined) next.cancelBy = data.cancelBy;
     if (data.amount) { next.amount = toColumn(parseAmount(data.amount.amount, data.amount.currency)); next.currency = data.amount.currency; }
     if (data.cycle) { next.cycleUnit = data.cycle.unit; next.cycleCount = data.cycle.count; }
     if (data.anchorDate) next.anchorDate = data.anchorDate;
@@ -231,6 +238,7 @@ export async function updateBillOccurrence(ctx: AuthContext, ledgerId: string, i
     if (data.status === 'scheduled' && o.status !== 'skipped') throw new DomainError(409, 'BILL_NOT_SKIPPED', '只有已跳过的账单可以恢复');
     const next = { ...o, status: data.status, version: o.version + 1, updatedAt: now };
     await tx.update(billOccurrences).set({ status: data.status, version: next.version, updatedAt: now }).where(eq(billOccurrences.id, id));
+    if (data.status === 'skipped') await cancelForSubjects(tx, [id], '账单已跳过');
     await audit(tx, ctx, ledgerId, data.status === 'skipped' ? 'bill.skipped' : 'bill.restored', id);
     await emit(tx, ledgerId, data.status === 'skipped' ? 'bill.skipped' : 'bill.restored', { occurrenceId: id, subscriptionId: o.subscriptionId });
     return presentOccurrence(next, name, (await ledgerToday(tx, ledgerId, now)).today);
@@ -258,6 +266,7 @@ export async function createBillPayment(ctx: AuthContext, ledgerId: string, id: 
       transactionId = existing.id;
     }
     await tx.update(billOccurrences).set({ status: 'paid', transactionId, paidAt: now, version: o.version + 1, updatedAt: now }).where(eq(billOccurrences.id, id));
+    await cancelForSubjects(tx, [id], '账单已支付');
     await audit(tx, ctx, ledgerId, 'bill.paid', id);
     await emit(tx, ledgerId, 'bill.paid', { occurrenceId: id, subscriptionId: o.subscriptionId, transactionId });
     const today = (await ledgerToday(tx, ledgerId, now)).today;

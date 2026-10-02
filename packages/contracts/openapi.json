@@ -6166,8 +6166,7 @@
         "tags": [
           "Reminders"
         ],
-        "summary": "提醒规则",
-        "description": "计划于 M5-ENGINE 实现；当前返回 501。",
+        "summary": "我在本账本的提醒规则",
         "security": [
           {
             "session": []
@@ -6178,7 +6177,7 @@
             ]
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M5-ENGINE",
         "x-ledger-role": "viewer",
         "parameters": [
@@ -6216,7 +6215,7 @@
         ],
         "responses": {
           "200": {
-            "description": "提醒规则",
+            "description": "我在本账本的提醒规则",
             "headers": {
               "X-Request-Id": {
                 "$ref": "#/components/headers/X-Request-Id"
@@ -6248,9 +6247,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -6262,7 +6258,7 @@
           "Reminders"
         ],
         "summary": "提交预览创建规则",
-        "description": "计划于 M5-ENGINE 实现；当前返回 501。\n\n业务冲突码：PREVIEW_STALE。",
+        "description": "业务冲突码：PREVIEW_STALE。",
         "security": [
           {
             "session": []
@@ -6273,7 +6269,7 @@
             ]
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M5-ENGINE",
         "x-ledger-role": "editor",
         "x-idempotency": "required",
@@ -6353,9 +6349,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -6369,7 +6362,6 @@
           "Reminders"
         ],
         "summary": "未来三次提醒时间与免打扰影响",
-        "description": "计划于 M5-ENGINE 实现；当前返回 501。",
         "security": [
           {
             "session": []
@@ -6380,7 +6372,7 @@
             ]
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M5-ENGINE",
         "x-ledger-role": "editor",
         "parameters": [
@@ -6444,9 +6436,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -6460,7 +6449,6 @@
           "Reminders"
         ],
         "summary": "修改规则",
-        "description": "计划于 M5-ENGINE 实现；当前返回 501。",
         "security": [
           {
             "session": []
@@ -6471,7 +6459,7 @@
             ]
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M5-ENGINE",
         "x-ledger-role": "editor",
         "parameters": [
@@ -6556,9 +6544,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -6570,7 +6555,6 @@
           "Reminders"
         ],
         "summary": "停用规则并取消未发送任务",
-        "description": "计划于 M5-ENGINE 实现；当前返回 501。",
         "security": [
           {
             "session": []
@@ -6581,7 +6565,7 @@
             ]
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M5-ENGINE",
         "x-ledger-role": "editor",
         "parameters": [
@@ -6634,9 +6618,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -6650,13 +6631,12 @@
           "Channels"
         ],
         "summary": "我的通知渠道",
-        "description": "计划于 M5-ENGINE 实现；当前返回 501。",
         "security": [
           {
             "session": []
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M5-ENGINE",
         "parameters": [
           {
@@ -6710,9 +6690,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -6724,13 +6701,12 @@
           "Channels"
         ],
         "summary": "配置渠道（凭据加密保存）",
-        "description": "计划于 M5-ENGINE 实现；当前返回 501。",
         "security": [
           {
             "session": []
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M5-ENGINE",
         "x-idempotency": "optional",
         "parameters": [
@@ -6797,9 +6773,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -6813,13 +6786,12 @@
           "Channels"
         ],
         "summary": "修改 / 停用渠道",
-        "description": "计划于 M5-ENGINE 实现；当前返回 501。",
         "security": [
           {
             "session": []
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M5-ENGINE",
         "parameters": [
           {
@@ -6894,9 +6866,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -6908,13 +6877,12 @@
           "Channels"
         ],
         "summary": "删除渠道配置",
-        "description": "计划于 M5-ENGINE 实现；当前返回 501。",
         "security": [
           {
             "session": []
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M5-ENGINE",
         "parameters": [
           {
@@ -6957,9 +6925,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -6973,13 +6938,12 @@
           "Channels"
         ],
         "summary": "创建测试投递",
-        "description": "计划于 M5-ENGINE 实现；当前返回 501。",
         "security": [
           {
             "session": []
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M5-ENGINE",
         "x-idempotency": "required",
         "parameters": [
@@ -7055,8 +7019,154 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
+          "503": {
+            "$ref": "#/components/responses/ServiceUnavailable"
+          }
+        }
+      }
+    },
+    "/notification-channels/{channelId}/verifications": {
+      "post": {
+        "operationId": "createChannelVerification",
+        "tags": [
+          "Channels"
+        ],
+        "summary": "邮件验证码确认收件",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "x-stability": "stable",
+        "x-milestone": "M5-OTHER",
+        "parameters": [
+          {
+            "name": "channelId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChannelVerificationCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "邮件验证码确认收件",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/X-Request-Id"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationChannelResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "413": {
+            "$ref": "#/components/responses/PayloadTooLarge"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationFailed"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "503": {
+            "$ref": "#/components/responses/ServiceUnavailable"
+          }
+        }
+      }
+    },
+    "/notification-channels/{channelId}/test-deliveries/{deliveryId}": {
+      "get": {
+        "operationId": "getTestDelivery",
+        "tags": [
+          "Channels"
+        ],
+        "summary": "测试投递状态",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "x-stability": "stable",
+        "x-milestone": "M5-ENGINE",
+        "parameters": [
+          {
+            "name": "channelId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "deliveryId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "测试投递状态",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/X-Request-Id"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationDeliveryResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
           },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
@@ -7070,8 +7180,7 @@
         "tags": [
           "Notifications"
         ],
-        "summary": "投递记录与平台状态",
-        "description": "计划于 M5-ENGINE 实现；当前返回 501。",
+        "summary": "我的投递记录与平台状态",
         "security": [
           {
             "session": []
@@ -7082,7 +7191,7 @@
             ]
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M5-ENGINE",
         "x-ledger-role": "viewer",
         "parameters": [
@@ -7167,7 +7276,7 @@
         ],
         "responses": {
           "200": {
-            "description": "投递记录与平台状态",
+            "description": "我的投递记录与平台状态",
             "headers": {
               "X-Request-Id": {
                 "$ref": "#/components/headers/X-Request-Id"
@@ -7199,9 +7308,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -7215,7 +7321,6 @@
           "Notifications"
         ],
         "summary": "投递详情",
-        "description": "计划于 M5-ENGINE 实现；当前返回 501。",
         "security": [
           {
             "session": []
@@ -7226,7 +7331,7 @@
             ]
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M5-ENGINE",
         "x-ledger-role": "viewer",
         "parameters": [
@@ -7277,8 +7382,170 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
+          "503": {
+            "$ref": "#/components/responses/ServiceUnavailable"
+          }
+        }
+      }
+    },
+    "/ledgers/{ledgerId}/notification-deliveries/{deliveryId}/retries": {
+      "post": {
+        "operationId": "createDeliveryRetry",
+        "tags": [
+          "Notifications"
+        ],
+        "summary": "人工重放失败 / 未知 / 死信投递",
+        "description": "业务冲突码：DELIVERY_NOT_RETRYABLE。",
+        "security": [
+          {
+            "session": []
+          },
+          {
+            "pat": [
+              "reminders:write"
+            ]
+          }
+        ],
+        "x-stability": "stable",
+        "x-milestone": "M5-CHAOS",
+        "x-ledger-role": "viewer",
+        "parameters": [
+          {
+            "name": "ledgerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "deliveryId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeliveryRetryCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "人工重放失败 / 未知 / 死信投递",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/X-Request-Id"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationDeliveryResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "413": {
+            "$ref": "#/components/responses/PayloadTooLarge"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationFailed"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "503": {
+            "$ref": "#/components/responses/ServiceUnavailable"
+          }
+        }
+      }
+    },
+    "/ledgers/{ledgerId}/notification-stats": {
+      "get": {
+        "operationId": "getNotificationStats",
+        "tags": [
+          "Notifications"
+        ],
+        "summary": "最近 7 天投递统计与调度延迟",
+        "security": [
+          {
+            "session": []
+          },
+          {
+            "pat": [
+              "reminders:read"
+            ]
+          }
+        ],
+        "x-stability": "stable",
+        "x-milestone": "M5-CHAOS",
+        "x-ledger-role": "viewer",
+        "parameters": [
+          {
+            "name": "ledgerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "最近 7 天投递统计与调度延迟",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/X-Request-Id"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationStatsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
           },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
@@ -7293,7 +7560,6 @@
           "Notifications"
         ],
         "summary": "站内通知",
-        "description": "计划于 M5-OTHER 实现；当前返回 501。",
         "security": [
           {
             "session": []
@@ -7304,7 +7570,7 @@
             ]
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M5-OTHER",
         "x-ledger-role": "viewer",
         "parameters": [
@@ -7387,9 +7653,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -7403,7 +7666,6 @@
           "Notifications"
         ],
         "summary": "站内通知详情",
-        "description": "计划于 M5-OTHER 实现；当前返回 501。",
         "security": [
           {
             "session": []
@@ -7414,7 +7676,7 @@
             ]
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M5-OTHER",
         "x-ledger-role": "viewer",
         "parameters": [
@@ -7468,9 +7730,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -7482,7 +7741,6 @@
           "Notifications"
         ],
         "summary": "标记已读 / 未读",
-        "description": "计划于 M5-OTHER 实现；当前返回 501。",
         "security": [
           {
             "session": []
@@ -7493,7 +7751,7 @@
             ]
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M5-OTHER",
         "x-ledger-role": "viewer",
         "parameters": [
@@ -7577,9 +7835,6 @@
           },
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
-          },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
           },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
@@ -10293,6 +10548,19 @@
           "in_app"
         ]
       },
+      "ChannelVerificationCreate": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "pattern": "^\\d{6}$"
+          }
+        },
+        "required": [
+          "code"
+        ],
+        "additionalProperties": false
+      },
       "Currency": {
         "type": "string",
         "enum": [
@@ -10330,6 +10598,11 @@
       "Decimal": {
         "type": "string",
         "pattern": "^-?(0|[1-9]\\d{0,17})(\\.\\d{1,6})?$"
+      },
+      "DeliveryRetryCreate": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
       },
       "DeliveryStatus": {
         "type": "string",
@@ -11587,6 +11860,22 @@
               }
             ]
           },
+          "lastError": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "最近一次失败原因（已脱敏）"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "RFC 3339 UTC 时间"
+          },
           "version": {
             "type": "integer",
             "exclusiveMinimum": 0,
@@ -11601,6 +11890,8 @@
           "status",
           "configSummary",
           "lastVerifiedAt",
+          "lastError",
+          "createdAt",
           "version"
         ],
         "additionalProperties": false
@@ -11735,6 +12026,10 @@
                     "maxLength": 512,
                     "description": "pushplus 消息 token",
                     "writeOnly": true
+                  },
+                  "includeDetails": {
+                    "description": "默认只推标题、日期与链接；开启后才包含金额与备注",
+                    "type": "boolean"
                   }
                 },
                 "required": [
@@ -11983,6 +12278,10 @@
                     "maxLength": 512,
                     "description": "pushplus 消息 token",
                     "writeOnly": true
+                  },
+                  "includeDetails": {
+                    "description": "默认只推标题、日期与链接；开启后才包含金额与备注",
+                    "type": "boolean"
                   }
                 },
                 "required": [
@@ -12131,6 +12430,59 @@
             "type": "string",
             "format": "date-time",
             "description": "RFC 3339 UTC 时间"
+          },
+          "title": {
+            "type": "string"
+          },
+          "ruleId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "round": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991,
+            "description": "第几轮投递；人工重放后加一"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "RFC 3339 UTC 时间"
+          },
+          "deferredByQuietHours": {
+            "type": "boolean"
+          },
+          "deadLetter": {
+            "type": "boolean",
+            "description": "自动重试已用尽或永久失败，等待人工重放"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "取消 / 过期 / 未知状态的原因"
+          },
+          "lastError": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
@@ -12144,7 +12496,15 @@
           "attempts",
           "lastAttemptAt",
           "responseClass",
-          "createdAt"
+          "createdAt",
+          "title",
+          "ruleId",
+          "round",
+          "expiresAt",
+          "deferredByQuietHours",
+          "deadLetter",
+          "reason",
+          "lastError"
         ],
         "additionalProperties": false
       },
@@ -12215,6 +12575,121 @@
         "properties": {
           "data": {
             "$ref": "#/components/schemas/Notification"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ],
+        "additionalProperties": false
+      },
+      "NotificationStats": {
+        "type": "object",
+        "properties": {
+          "since": {
+            "type": "string",
+            "format": "date-time",
+            "description": "RFC 3339 UTC 时间"
+          },
+          "byStatus": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            }
+          },
+          "deadLetters": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "unknown": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "dispatchDelayMs": {
+            "type": "object",
+            "properties": {
+              "p50": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "p95": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "samples": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": [
+              "p50",
+              "p95",
+              "samples"
+            ],
+            "additionalProperties": false,
+            "description": "计划时间到 worker 开始发送的延迟"
+          }
+        },
+        "required": [
+          "since",
+          "byStatus",
+          "deadLetters",
+          "unknown",
+          "dispatchDelayMs"
+        ],
+        "additionalProperties": false
+      },
+      "NotificationStatsList": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NotificationStats"
+            }
+          },
+          "page": {
+            "$ref": "#/components/schemas/Page"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        },
+        "required": [
+          "data",
+          "page",
+          "meta"
+        ],
+        "additionalProperties": false
+      },
+      "NotificationStatsResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/NotificationStats"
           },
           "meta": {
             "$ref": "#/components/schemas/Meta"
@@ -12808,10 +13283,12 @@
             "$ref": "#/components/schemas/ReminderEvent"
           },
           "subscriptionId": {
+            "description": "账单 / 试用 / 取消截止类提醒：指定订阅；省略为本账本全部订阅",
             "type": "string",
             "format": "uuid"
           },
           "budgetId": {
+            "description": "预算阈值提醒：指定预算；省略为全部预算",
             "type": "string",
             "format": "uuid"
           },
@@ -12863,6 +13340,29 @@
               "type": "string",
               "format": "uuid"
             }
+          },
+          "fx": {
+            "type": "object",
+            "properties": {
+              "base": {
+                "$ref": "#/components/schemas/Currency"
+              },
+              "quote": {
+                "$ref": "#/components/schemas/Currency"
+              },
+              "above": {
+                "$ref": "#/components/schemas/Rate"
+              },
+              "below": {
+                "$ref": "#/components/schemas/Rate"
+              }
+            },
+            "required": [
+              "base",
+              "quote"
+            ],
+            "additionalProperties": false,
+            "description": "汇率阈值：1 base = ? quote 高于 above 或低于 below 时提醒；带回滞与 6 小时冷却"
           }
         },
         "required": [
@@ -13000,6 +13500,66 @@
             "type": "integer",
             "exclusiveMinimum": 0,
             "maximum": 9007199254740991
+          },
+          "fx": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "base": {
+                    "type": "string"
+                  },
+                  "quote": {
+                    "type": "string"
+                  },
+                  "above": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "below": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "base",
+                  "quote",
+                  "above",
+                  "below"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "nextFireTimes": {
+            "maxItems": 3,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "date-time",
+              "description": "RFC 3339 UTC 时间"
+            },
+            "description": "已排程的下三次发送时间（按渠道合并）；事件触发类为空"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "RFC 3339 UTC 时间"
           }
         },
         "required": [
@@ -13014,7 +13574,10 @@
           "channelIds",
           "enabled",
           "templateVersion",
-          "version"
+          "version",
+          "fx",
+          "nextFireTimes",
+          "createdAt"
         ],
         "additionalProperties": false
       },
@@ -13113,6 +13676,29 @@
               "type": "string",
               "format": "uuid"
             }
+          },
+          "fx": {
+            "type": "object",
+            "properties": {
+              "base": {
+                "$ref": "#/components/schemas/Currency"
+              },
+              "quote": {
+                "$ref": "#/components/schemas/Currency"
+              },
+              "above": {
+                "$ref": "#/components/schemas/Rate"
+              },
+              "below": {
+                "$ref": "#/components/schemas/Rate"
+              }
+            },
+            "required": [
+              "base",
+              "quote"
+            ],
+            "additionalProperties": false,
+            "description": "汇率阈值：1 base = ? quote 高于 above 或低于 below 时提醒；带回滞与 6 小时冷却"
           }
         },
         "additionalProperties": false
@@ -13415,6 +14001,32 @@
           "monthlyEquivalent": {
             "description": "预测指标（月均），不计入实际支出",
             "$ref": "#/components/schemas/Money"
+          },
+          "trialEndsOn": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date",
+                "description": "业务日期 YYYY-MM-DD，按账本 / 订阅时区解释"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "试用结束日（trial_end 提醒）"
+          },
+          "cancelBy": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date",
+                "description": "业务日期 YYYY-MM-DD，按账本 / 订阅时区解释"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "取消截止日（cancel_deadline 提醒）"
           }
         },
         "required": [
@@ -13434,7 +14046,9 @@
           "createdAt",
           "pausedUntil",
           "endsOn",
-          "monthlyEquivalent"
+          "monthlyEquivalent",
+          "trialEndsOn",
+          "cancelBy"
         ],
         "additionalProperties": false
       },
@@ -13551,6 +14165,16 @@
           "note": {
             "type": "string",
             "maxLength": 500
+          },
+          "trialEndsOn": {
+            "type": "string",
+            "format": "date",
+            "description": "业务日期 YYYY-MM-DD，按账本 / 订阅时区解释"
+          },
+          "cancelBy": {
+            "type": "string",
+            "format": "date",
+            "description": "业务日期 YYYY-MM-DD，按账本 / 订阅时区解释"
           }
         },
         "required": [
@@ -13674,6 +14298,30 @@
               {
                 "type": "string",
                 "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "trialEndsOn": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date",
+                "description": "业务日期 YYYY-MM-DD，按账本 / 订阅时区解释"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cancelBy": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date",
+                "description": "业务日期 YYYY-MM-DD，按账本 / 订阅时区解释"
               },
               {
                 "type": "null"

@@ -1,20 +1,26 @@
 import { z } from 'zod';
-import { LocalDate, LocalTime, Problem, QueryBoolean, ScopeSchema, Timestamp, Timezone, input, output, pageQuery, resource, shared, uuid } from './common';
+import { Currency, LocalDate, LocalTime, Problem, QueryBoolean, Rate, ScopeSchema, Timestamp, Timezone, input, output, pageQuery, resource, shared, uuid } from './common';
 
 const version = z.number().int().positive();
 const secret = (description: string) => z.string().min(1).max(512).meta({ description, writeOnly: true });
 
 export const ReminderEvent = shared('ReminderEvent', z.enum(['bill_due', 'trial_end', 'cancel_deadline', 'overdue', 'budget_threshold', 'daily_entry', 'weekly_summary', 'monthly_summary', 'fx_threshold', 'delivery_failed']));
 const quietHours = z.object({ start: LocalTime, end: LocalTime }).strict();
+const fxCondition = z.object({ base: Currency, quote: Currency, above: Rate.optional(), below: Rate.optional() }).strict()
+  .meta({ description: '汇率阈值：1 base = ? quote 高于 above 或低于 below 时提醒；带回滞与 6 小时冷却' });
 const reminderFields = {
-  eventType: ReminderEvent, subscriptionId: uuid.optional(), budgetId: uuid.optional(),
+  eventType: ReminderEvent, subscriptionId: uuid.optional().meta({ description: '账单 / 试用 / 取消截止类提醒：指定订阅；省略为本账本全部订阅' }),
+  budgetId: uuid.optional().meta({ description: '预算阈值提醒：指定预算；省略为全部预算' }),
   leadDays: z.array(z.number().int().min(0).max(30)).max(4).optional().meta({ description: '到期前天数，例如 [7,3,1,0]' }),
   localTime: LocalTime, timezone: Timezone, quietHours: quietHours.optional(), channelIds: z.array(uuid).min(1).max(8),
+  fx: fxCondition.optional(),
 };
 export const ReminderRule = resource('ReminderRule', z.object({
   id: uuid, eventType: ReminderEvent, subscriptionId: uuid.nullable(), budgetId: uuid.nullable(), leadDays: z.array(z.number().int()),
   localTime: z.string(), timezone: z.string(), quietHours: z.object({ start: z.string(), end: z.string() }).nullable(),
   channelIds: z.array(uuid), enabled: z.boolean(), templateVersion: z.number().int(), version,
+  fx: z.object({ base: z.string(), quote: z.string(), above: z.string().nullable(), below: z.string().nullable() }).nullable(),
+  nextFireTimes: z.array(Timestamp).max(3).meta({ description: '已排程的下三次发送时间（按渠道合并）；事件触发类为空' }), createdAt: Timestamp,
 }), '执行前再次检查规则版本、支付与取消状态');
 export const ReminderPreviewCreate = input('ReminderPreviewCreate', z.object(reminderFields).strict());
 export const ReminderPreview = resource('ReminderPreview', z.object({
@@ -22,21 +28,21 @@ export const ReminderPreview = resource('ReminderPreview', z.object({
   nextFireTimes: z.array(z.object({ scheduledAt: Timestamp, localDate: LocalDate, localTime: z.string(), deferredByQuietHours: z.boolean() })).max(3),
   warnings: z.array(z.object({ code: z.string(), message: z.string() })),
 }));
-export const ReminderRuleUpdate = input('ReminderRuleUpdate', z.object({ enabled: z.boolean().optional(), leadDays: reminderFields.leadDays, localTime: LocalTime.optional(), quietHours: quietHours.nullable().optional(), channelIds: reminderFields.channelIds.optional() }).strict());
+export const ReminderRuleUpdate = input('ReminderRuleUpdate', z.object({ enabled: z.boolean().optional(), leadDays: reminderFields.leadDays, localTime: LocalTime.optional(), quietHours: quietHours.nullable().optional(), channelIds: reminderFields.channelIds.optional(), fx: fxCondition.optional() }).strict(), '规则版本加一；未发送的旧任务取消后按新规则重排，已发送的不重复');
 
 export const ChannelType = shared('ChannelType', z.enum(['telegram', 'feishu', 'wecom_bot', 'wecom_app', 'pushplus_wechat', 'email', 'webhook', 'in_app']));
 export const NotificationChannel = resource('NotificationChannel', z.object({
   id: uuid, type: ChannelType, name: z.string(), enabled: z.boolean(),
   status: z.enum(['unconfigured', 'verifying', 'active', 'degraded', 'disabled']),
   configSummary: z.record(z.string(), z.string()).meta({ description: '脱敏摘要；永不返回明文凭据' }),
-  lastVerifiedAt: Timestamp.nullable(), version,
+  lastVerifiedAt: Timestamp.nullable(), lastError: z.string().nullable().meta({ description: '最近一次失败原因（已脱敏）' }), createdAt: Timestamp, version,
 }));
 const channelConfig = z.discriminatedUnion('type', [
   z.object({ type: z.literal('telegram'), botToken: secret('Bot token'), chatId: z.string().max(64) }).strict(),
   z.object({ type: z.literal('feishu'), webhookUrl: z.url().max(512), signingSecret: secret('签名校验密钥').optional() }).strict(),
   z.object({ type: z.literal('wecom_bot'), webhookUrl: z.url().max(512) }).strict(),
   z.object({ type: z.literal('wecom_app'), corpId: z.string().max(64), agentId: z.string().max(32), secret: secret('应用 Secret'), toUser: z.string().max(256) }).strict(),
-  z.object({ type: z.literal('pushplus_wechat'), token: secret('pushplus 消息 token') }).strict(),
+  z.object({ type: z.literal('pushplus_wechat'), token: secret('pushplus 消息 token'), includeDetails: z.boolean().optional().meta({ description: '默认只推标题、日期与链接；开启后才包含金额与备注' }) }).strict(),
   z.object({ type: z.literal('email'), address: z.email().max(255) }).strict(),
   z.object({ type: z.literal('webhook'), url: z.url().max(512).meta({ description: '仅 HTTPS；拒绝内网 / metadata 地址' }), secret: secret('HMAC 签名密钥').optional() }).strict(),
   z.object({ type: z.literal('in_app') }).strict(),
@@ -48,7 +54,16 @@ export const NotificationDelivery = resource('NotificationDelivery', z.object({
   id: uuid, channelId: uuid, channelType: ChannelType, eventType: ReminderEvent.or(z.literal('test')), eventId: z.string(),
   status: DeliveryStatus, scheduledAt: Timestamp, attempts: z.number().int().min(0), lastAttemptAt: Timestamp.nullable(),
   responseClass: z.enum(['ok', 'rate_limited', 'server_error', 'client_error', 'credential_error', 'timeout', 'network']).nullable(), createdAt: Timestamp,
+  title: z.string(), ruleId: uuid.nullable(), round: z.number().int().min(1).meta({ description: '第几轮投递；人工重放后加一' }),
+  expiresAt: Timestamp, deferredByQuietHours: z.boolean(), deadLetter: z.boolean().meta({ description: '自动重试已用尽或永久失败，等待人工重放' }),
+  reason: z.string().nullable().meta({ description: '取消 / 过期 / 未知状态的原因' }), lastError: z.string().nullable(),
 }));
+export const ChannelVerificationCreate = input('ChannelVerificationCreate', z.object({ code: z.string().regex(/^\d{6}$/) }).strict(), '邮件渠道：填写测试邮件中的 6 位验证码，证明地址可以收到');
+export const DeliveryRetryCreate = input('DeliveryRetryCreate', z.object({}).strict(), '失败、未知或死信投递的人工重放：新一轮最多 5 次尝试；未知状态重放可能产生重复消息');
+export const NotificationStats = resource('NotificationStats', z.object({
+  since: Timestamp, byStatus: z.record(z.string(), z.number().int()), deadLetters: z.number().int(), unknown: z.number().int(),
+  dispatchDelayMs: z.object({ p50: z.number().nullable(), p95: z.number().nullable(), samples: z.number().int() }).meta({ description: '计划时间到 worker 开始发送的延迟' }),
+}), '最近 7 天本人投递统计');
 export const TestDeliveryCreate = input('TestDeliveryCreate', z.object({ message: z.string().max(200).optional() }).strict());
 export const DeliveryQuery = z.object({ status: DeliveryStatus.optional(), channelId: uuid.optional(), dateFrom: LocalDate.optional(), dateTo: LocalDate.optional(), ...pageQuery }).strict();
 export const Notification = resource('Notification', z.object({ id: uuid, eventType: ReminderEvent, title: z.string(), body: z.string(), link: z.string().nullable(), readAt: Timestamp.nullable(), createdAt: Timestamp, version }), '站内通知，作为其他渠道故障时的兜底');

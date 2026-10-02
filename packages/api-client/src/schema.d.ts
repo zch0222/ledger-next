@@ -563,10 +563,7 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * 投递记录与平台状态
-         * @description 计划于 M5-ENGINE 实现；当前返回 501。
-         */
+        /** 我的投递记录与平台状态 */
         get: operations["listNotificationDeliveries"];
         put?: never;
         post?: never;
@@ -583,11 +580,45 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * 投递详情
-         * @description 计划于 M5-ENGINE 实现；当前返回 501。
-         */
+        /** 投递详情 */
         get: operations["getNotificationDelivery"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ledgers/{ledgerId}/notification-deliveries/{deliveryId}/retries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 人工重放失败 / 未知 / 死信投递
+         * @description 业务冲突码：DELIVERY_NOT_RETRYABLE。
+         */
+        post: operations["createDeliveryRetry"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ledgers/{ledgerId}/notification-stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 最近 7 天投递统计与调度延迟 */
+        get: operations["getNotificationStats"];
         put?: never;
         post?: never;
         delete?: never;
@@ -603,10 +634,7 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * 站内通知
-         * @description 计划于 M5-OTHER 实现；当前返回 501。
-         */
+        /** 站内通知 */
         get: operations["listNotifications"];
         put?: never;
         post?: never;
@@ -623,20 +651,14 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * 站内通知详情
-         * @description 计划于 M5-OTHER 实现；当前返回 501。
-         */
+        /** 站内通知详情 */
         get: operations["getNotification"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
-        /**
-         * 标记已读 / 未读
-         * @description 计划于 M5-OTHER 实现；当前返回 501。
-         */
+        /** 标记已读 / 未读 */
         patch: operations["updateNotification"];
         trace?: never;
     };
@@ -669,10 +691,7 @@ export type paths = {
         };
         get?: never;
         put?: never;
-        /**
-         * 未来三次提醒时间与免打扰影响
-         * @description 计划于 M5-ENGINE 实现；当前返回 501。
-         */
+        /** 未来三次提醒时间与免打扰影响 */
         post: operations["createReminderPreview"];
         delete?: never;
         options?: never;
@@ -687,17 +706,12 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * 提醒规则
-         * @description 计划于 M5-ENGINE 实现；当前返回 501。
-         */
+        /** 我在本账本的提醒规则 */
         get: operations["listReminderRules"];
         put?: never;
         /**
          * 提交预览创建规则
-         * @description 计划于 M5-ENGINE 实现；当前返回 501。
-         *
-         *     业务冲突码：PREVIEW_STALE。
+         * @description 业务冲突码：PREVIEW_STALE。
          */
         post: operations["createReminderRule"];
         delete?: never;
@@ -716,17 +730,11 @@ export type paths = {
         get?: never;
         put?: never;
         post?: never;
-        /**
-         * 停用规则并取消未发送任务
-         * @description 计划于 M5-ENGINE 实现；当前返回 501。
-         */
+        /** 停用规则并取消未发送任务 */
         delete: operations["deleteReminderRule"];
         options?: never;
         head?: never;
-        /**
-         * 修改规则
-         * @description 计划于 M5-ENGINE 实现；当前返回 501。
-         */
+        /** 修改规则 */
         patch: operations["updateReminderRule"];
         trace?: never;
     };
@@ -1044,16 +1052,10 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * 我的通知渠道
-         * @description 计划于 M5-ENGINE 实现；当前返回 501。
-         */
+        /** 我的通知渠道 */
         get: operations["listNotificationChannels"];
         put?: never;
-        /**
-         * 配置渠道（凭据加密保存）
-         * @description 计划于 M5-ENGINE 实现；当前返回 501。
-         */
+        /** 配置渠道（凭据加密保存） */
         post: operations["createNotificationChannel"];
         delete?: never;
         options?: never;
@@ -1071,17 +1073,11 @@ export type paths = {
         get?: never;
         put?: never;
         post?: never;
-        /**
-         * 删除渠道配置
-         * @description 计划于 M5-ENGINE 实现；当前返回 501。
-         */
+        /** 删除渠道配置 */
         delete: operations["deleteNotificationChannel"];
         options?: never;
         head?: never;
-        /**
-         * 修改 / 停用渠道
-         * @description 计划于 M5-ENGINE 实现；当前返回 501。
-         */
+        /** 修改 / 停用渠道 */
         patch: operations["updateNotificationChannel"];
         trace?: never;
     };
@@ -1094,11 +1090,42 @@ export type paths = {
         };
         get?: never;
         put?: never;
-        /**
-         * 创建测试投递
-         * @description 计划于 M5-ENGINE 实现；当前返回 501。
-         */
+        /** 创建测试投递 */
         post: operations["createTestDelivery"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/notification-channels/{channelId}/test-deliveries/{deliveryId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 测试投递状态 */
+        get: operations["getTestDelivery"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/notification-channels/{channelId}/verifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 邮件验证码确认收件 */
+        post: operations["createChannelVerification"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1599,6 +1626,9 @@ export type components = {
         };
         /** @enum {string} */
         ChannelType: "telegram" | "feishu" | "wecom_bot" | "wecom_app" | "pushplus_wechat" | "email" | "webhook" | "in_app";
+        ChannelVerificationCreate: {
+            code: string;
+        };
         /** @enum {string} */
         Currency: "CNY" | "USD" | "HKD" | "EUR" | "JPY";
         Cycle: {
@@ -1607,6 +1637,7 @@ export type components = {
             unit: "day" | "week" | "month" | "year";
         };
         Decimal: string;
+        DeliveryRetryCreate: Record<string, never>;
         /** @enum {string} */
         DeliveryStatus: "queued" | "sending" | "accepted" | "delivered" | "failed" | "delivery_unknown" | "expired" | "cancelled";
         ExchangeRateRefreshJob: {
@@ -1923,9 +1954,16 @@ export type components = {
             configSummary: {
                 [key: string]: string;
             };
+            /**
+             * Format: date-time
+             * @description RFC 3339 UTC 时间
+             */
+            createdAt: string;
             enabled: boolean;
             /** Format: uuid */
             id: string;
+            /** @description 最近一次失败原因（已脱敏） */
+            lastError: string | null;
             lastVerifiedAt: string | null;
             name: string;
             /** @enum {string} */
@@ -1961,6 +1999,8 @@ export type components = {
                 /** @constant */
                 type: "wecom_app";
             } | {
+                /** @description 默认只推标题、日期与链接；开启后才包含金额与备注 */
+                includeDetails?: boolean;
                 /** @description pushplus 消息 token */
                 token: string;
                 /** @constant */
@@ -2023,6 +2063,8 @@ export type components = {
                 /** @constant */
                 type: "wecom_app";
             } | {
+                /** @description 默认只推标题、日期与链接；开启后才包含金额与备注 */
+                includeDetails?: boolean;
                 /** @description pushplus 消息 token */
                 token: string;
                 /** @constant */
@@ -2059,18 +2101,33 @@ export type components = {
              * @description RFC 3339 UTC 时间
              */
             createdAt: string;
+            /** @description 自动重试已用尽或永久失败，等待人工重放 */
+            deadLetter: boolean;
+            deferredByQuietHours: boolean;
             eventId: string;
             eventType: components["schemas"]["ReminderEvent"] | "test";
+            /**
+             * Format: date-time
+             * @description RFC 3339 UTC 时间
+             */
+            expiresAt: string;
             /** Format: uuid */
             id: string;
             lastAttemptAt: string | null;
+            lastError: string | null;
+            /** @description 取消 / 过期 / 未知状态的原因 */
+            reason: string | null;
             responseClass: ("ok" | "rate_limited" | "server_error" | "client_error" | "credential_error" | "timeout" | "network") | null;
+            /** @description 第几轮投递；人工重放后加一 */
+            round: number;
+            ruleId: string | null;
             /**
              * Format: date-time
              * @description RFC 3339 UTC 时间
              */
             scheduledAt: string;
             status: components["schemas"]["DeliveryStatus"];
+            title: string;
         };
         NotificationDeliveryList: {
             data: components["schemas"]["NotificationDelivery"][];
@@ -2088,6 +2145,33 @@ export type components = {
         };
         NotificationResponse: {
             data: components["schemas"]["Notification"];
+            meta: components["schemas"]["Meta"];
+        };
+        NotificationStats: {
+            byStatus: {
+                [key: string]: number;
+            };
+            deadLetters: number;
+            /** @description 计划时间到 worker 开始发送的延迟 */
+            dispatchDelayMs: {
+                p50: number | null;
+                p95: number | null;
+                samples: number;
+            };
+            /**
+             * Format: date-time
+             * @description RFC 3339 UTC 时间
+             */
+            since: string;
+            unknown: number;
+        };
+        NotificationStatsList: {
+            data: components["schemas"]["NotificationStats"][];
+            meta: components["schemas"]["Meta"];
+            page: components["schemas"]["Page"];
+        };
+        NotificationStatsResponse: {
+            data: components["schemas"]["NotificationStats"];
             meta: components["schemas"]["Meta"];
         };
         NotificationUpdate: {
@@ -2231,10 +2315,20 @@ export type components = {
             }[];
         };
         ReminderPreviewCreate: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 预算阈值提醒：指定预算；省略为全部预算
+             */
             budgetId?: string;
             channelIds: string[];
             eventType: components["schemas"]["ReminderEvent"];
+            /** @description 汇率阈值：1 base = ? quote 高于 above 或低于 below 时提醒；带回滞与 6 小时冷却 */
+            fx?: {
+                above?: components["schemas"]["Rate"];
+                base: components["schemas"]["Currency"];
+                below?: components["schemas"]["Rate"];
+                quote: components["schemas"]["Currency"];
+            };
             /** @description 到期前天数，例如 [7,3,1,0] */
             leadDays?: number[];
             /** @description 本地时间 HH:mm */
@@ -2245,7 +2339,10 @@ export type components = {
                 /** @description 本地时间 HH:mm */
                 start: string;
             };
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 账单 / 试用 / 取消截止类提醒：指定订阅；省略为本账本全部订阅
+             */
             subscriptionId?: string;
             /** @description IANA 时区名 */
             timezone: string;
@@ -2262,12 +2359,25 @@ export type components = {
         ReminderRule: {
             budgetId: string | null;
             channelIds: string[];
+            /**
+             * Format: date-time
+             * @description RFC 3339 UTC 时间
+             */
+            createdAt: string;
             enabled: boolean;
             eventType: components["schemas"]["ReminderEvent"];
+            fx: {
+                above: string | null;
+                base: string;
+                below: string | null;
+                quote: string;
+            } | null;
             /** Format: uuid */
             id: string;
             leadDays: number[];
             localTime: string;
+            /** @description 已排程的下三次发送时间（按渠道合并）；事件触发类为空 */
+            nextFireTimes: string[];
             quietHours: {
                 end: string;
                 start: string;
@@ -2289,6 +2399,13 @@ export type components = {
         ReminderRuleUpdate: {
             channelIds?: string[];
             enabled?: boolean;
+            /** @description 汇率阈值：1 base = ? quote 高于 above 或低于 below 时提醒；带回滞与 6 小时冷却 */
+            fx?: {
+                above?: components["schemas"]["Rate"];
+                base: components["schemas"]["Currency"];
+                below?: components["schemas"]["Rate"];
+                quote: components["schemas"]["Currency"];
+            };
             /** @description 到期前天数，例如 [7,3,1,0] */
             leadDays?: number[];
             /** @description 本地时间 HH:mm */
@@ -2355,6 +2472,8 @@ export type components = {
              * @description 业务日期 YYYY-MM-DD，按账本 / 订阅时区解释
              */
             anchorDate: string;
+            /** @description 取消截止日（cancel_deadline 提醒） */
+            cancelBy: string | null;
             categoryId: string | null;
             /**
              * Format: date-time
@@ -2376,6 +2495,8 @@ export type components = {
             scheduleVersion: number;
             status: components["schemas"]["SubscriptionStatus"];
             timezone: string;
+            /** @description 试用结束日（trial_end 提醒） */
+            trialEndsOn: string | null;
             version: number;
         };
         SubscriptionList: {
@@ -2408,6 +2529,11 @@ export type components = {
              * @description 业务日期 YYYY-MM-DD，按账本 / 订阅时区解释
              */
             anchorDate: string;
+            /**
+             * Format: date
+             * @description 业务日期 YYYY-MM-DD，按账本 / 订阅时区解释
+             */
+            cancelBy?: string;
             /** Format: uuid */
             categoryId?: string;
             cycle: components["schemas"]["Cycle"];
@@ -2415,6 +2541,11 @@ export type components = {
             note?: string;
             /** @description IANA 时区名 */
             timezone: string;
+            /**
+             * Format: date
+             * @description 业务日期 YYYY-MM-DD，按账本 / 订阅时区解释
+             */
+            trialEndsOn?: string;
         };
         SubscriptionPreviewList: {
             data: components["schemas"]["SubscriptionPreview"][];
@@ -2439,6 +2570,7 @@ export type components = {
              * @description 业务日期 YYYY-MM-DD，按账本 / 订阅时区解释
              */
             anchorDate?: string;
+            cancelBy?: string | null;
             categoryId?: string | null;
             cycle?: components["schemas"]["Cycle"];
             /**
@@ -2451,6 +2583,7 @@ export type components = {
             /** @description 与 status=paused 一起：到该日自动恢复 */
             pausedUntil?: string | null;
             status?: components["schemas"]["SubscriptionStatus"];
+            trialEndsOn?: string | null;
         };
         Tag: {
             archivedAt: string | null;
@@ -4570,7 +4703,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description 投递记录与平台状态 */
+            /** @description 我的投递记录与平台状态 */
             200: {
                 headers: {
                     "X-Request-Id": components["headers"]["X-Request-Id"];
@@ -4586,7 +4719,6 @@ export interface operations {
             404: components["responses"]["NotFound"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -4616,7 +4748,72 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    createDeliveryRetry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                deliveryId: string;
+                ledgerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeliveryRetryCreate"];
+            };
+        };
+        responses: {
+            /** @description 人工重放失败 / 未知 / 死信投递 */
+            202: {
+                headers: {
+                    "X-Request-Id": components["headers"]["X-Request-Id"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationDeliveryResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            413: components["responses"]["PayloadTooLarge"];
+            415: components["responses"]["UnsupportedMediaType"];
+            422: components["responses"]["ValidationFailed"];
+            429: components["responses"]["TooManyRequests"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    getNotificationStats: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ledgerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 最近 7 天投递统计与调度延迟 */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["X-Request-Id"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationStatsResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            429: components["responses"]["TooManyRequests"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -4653,7 +4850,6 @@ export interface operations {
             404: components["responses"]["NotFound"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -4684,7 +4880,6 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -4728,7 +4923,6 @@ export interface operations {
             422: components["responses"]["ValidationFailed"];
             428: components["responses"]["PreconditionRequired"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -4795,7 +4989,6 @@ export interface operations {
             415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -4815,7 +5008,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description 提醒规则 */
+            /** @description 我在本账本的提醒规则 */
             200: {
                 headers: {
                     "X-Request-Id": components["headers"]["X-Request-Id"];
@@ -4831,7 +5024,6 @@ export interface operations {
             404: components["responses"]["NotFound"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -4875,7 +5067,6 @@ export interface operations {
             415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -4908,7 +5099,6 @@ export interface operations {
             412: components["responses"]["PreconditionFailed"];
             428: components["responses"]["PreconditionRequired"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -4952,7 +5142,6 @@ export interface operations {
             422: components["responses"]["ValidationFailed"];
             428: components["responses"]["PreconditionRequired"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -5886,7 +6075,6 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -5927,7 +6115,6 @@ export interface operations {
             415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -5959,7 +6146,6 @@ export interface operations {
             412: components["responses"]["PreconditionFailed"];
             428: components["responses"]["PreconditionRequired"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -6002,7 +6188,6 @@ export interface operations {
             422: components["responses"]["ValidationFailed"];
             428: components["responses"]["PreconditionRequired"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -6045,7 +6230,71 @@ export interface operations {
             415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    getTestDelivery: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                channelId: string;
+                deliveryId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 测试投递状态 */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["X-Request-Id"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationDeliveryResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
+            429: components["responses"]["TooManyRequests"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    createChannelVerification: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                channelId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChannelVerificationCreate"];
+            };
+        };
+        responses: {
+            /** @description 邮件验证码确认收件 */
+            200: {
+                headers: {
+                    ETag: components["headers"]["ETag"];
+                    "X-Request-Id": components["headers"]["X-Request-Id"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationChannelResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            413: components["responses"]["PayloadTooLarge"];
+            415: components["responses"]["UnsupportedMediaType"];
+            422: components["responses"]["ValidationFailed"];
+            429: components["responses"]["TooManyRequests"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };

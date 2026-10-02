@@ -15,6 +15,9 @@ services:
       FX_POLL_SECONDS: "2"
       FX_STALE_FAILURES: "3"
       FX_TIMEOUT_MS: "1500"
+      # Reminders: a short tick and provider timeout so retries, timeouts and recovery are observable quickly.
+      NOTIFY_TICK_SECONDS: "1"
+      CHANNEL_TIMEOUT_MS: "1500"
   mock-services:
     restart: "no"
   tests:
@@ -30,6 +33,11 @@ services:
       FX_PROVIDER: itest
       FX_PROVIDER_URL: http://mock-services:4010/fixer
       FX_PROVIDER_KEY: mock-fixer-key
+      LEDGER_ENCRYPTION_KEYS: ${LEDGER_ENCRYPTION_KEYS}
+      WEBHOOK_ALLOWLIST: mock-services:4010
+      CHANNEL_ENDPOINT_OVERRIDES: https://api.telegram.org=http://mock-services:4010/telegram,https://open.feishu.cn=http://mock-services:4010/feishu,https://qyapi.weixin.qq.com=http://mock-services:4010/wecom,https://www.pushplus.plus=http://mock-services:4010/pushplus
+      SMTP_URL: smtp://mock-services:2525
+      CHANNEL_TIMEOUT_MS: "1500"
       CI: "1"
       PERSISTENCE_EMAIL: ${PERSISTENCE_EMAIL:-}
       PERSISTENCE_PASSWORD: ${PERSISTENCE_PASSWORD:-}
