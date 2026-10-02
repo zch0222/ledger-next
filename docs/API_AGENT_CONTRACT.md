@@ -304,32 +304,34 @@ Qoder IDE 的 MCP 设置可配置远程 URL；当前[官方文档](https://docs.
 }
 ~~~
 
-上面 JS 文件是计划构建产物，当前不存在；不能使用未发布包名 npx 自动安装。Windows args 应替换为实际绝对路径。每次配置只选择 HTTP 或 stdio 一个入口，避免工具重复注册。
+上面的 JS 文件由 `pnpm mcp:build` 生成（apps/mcp/dist/stdio.js，单文件、无运行时依赖）；不能使用未发布包名 npx 自动安装。Windows args 应替换为实际绝对路径。每次配置只选择 HTTP 或 stdio 一个入口，避免工具重复注册。
 
 Qoder CLI 的 Skill 路径为 .qoder/skills/ledger-service/SKILL.md 或 ~/.qoder/skills；新会话加载，当前文档支持 /skills reload。参考 [Qoder CLI Skills](https://docs.qoder.com/cli/Skills)。IDE / CLI / 其他 Qoder 产品分别记录版本，不混用产品能力声明。
 
 ## 6. Skill 包设计
 
-草案保存在 [skill-draft/ledger-service](skill-draft/ledger-service/SKILL.md)。它的职责是决定记账业务流程、币种与时区歧义、如何使用预览和幂等、如何解释汇总口径；MCP 提供真实数据和动作。
+正式包位于 `packages/skill/ledger-service`（SKILL.md、references/workflows.md；references/tools.md 由服务端实际 `tools/list` 生成）。最初的草案保留在 [skill-draft/ledger-service](skill-draft/ledger-service/SKILL.md) 作对照。它的职责是决定记账业务流程、币种与时区歧义、如何使用预览和幂等、如何解释汇总口径；MCP 提供真实数据和动作。
 
-正式包应包含 SKILL.md、references/workflows.md；共同内容单一来源，发布脚本生成四客户端安装包和校验和，不长期手动维护四份不同业务逻辑。安装不得覆盖同名用户自定义内容，先显示差异并保留备份；本次只提供草案，未安装。
+`pnpm skill:build [--origin URL]` 先做静态校验（不存在的工具 / 作用域 / 链接、frontmatter、疑似凭据一律失败），再从单一来源生成 codex、claude-code、dsh、qoder 四个安装包（同一份 Skill、各自的 MCP 片段、INSTALL.md、SHA256SUMS）。`pnpm skill:install --client <id> --target <项目>` 遇到同名且内容不同的目录只显示差异并停止；`--force` 时旧目录先移到项目根 `.ledger-skill-backup/`。安装器不写入任何 MCP 客户端配置，只打印片段。
 
 触发例：“记一笔 28 港币午餐，现金账户”“下周有哪些订阅到期”“按历史汇率汇总上月支出”“新增一个每月 20 美元的订阅并提前一天提醒”。反例：“开发记账页面”“解释 Next.js SSR”不应激活服务使用 Skill。
 
 ## 7. 联调验收矩阵
 
+自评估阶段（D21、D32）不连接模型服务：`tests/e2e/clients.api.ts` 按各客户端读取配置的方式解析我们发布的包（Codex TOML + `bearer_token_env_var`、Claude Code `.mcp.json` 的 `${VAR}` 展开、dsh 插件行的 `!!js` 请求头、Qoder stdio 注入环境变量），把 Skill 放到该客户端的发现路径，再用官方 MCP SDK 客户端跑下表。“模拟通过”表示协议与服务端行为已验证；“待人工”表示结论取决于模型本身，必须在最终人工审查中用真实客户端复测。
+
 | 用例 | Codex | Claude Code | dsh | Qoder |
 | --- | --- | --- | --- | --- |
-| 发现工具 / 读取 context | 待测 | 待测 | 待测 | 待测 |
-| Skill 发现与按需加载 | 待测 | 待测 | 待测 | 待测 |
-| 查询期间收支含币种和口径 | 待测 | 待测 | 待测 | 待测 |
-| 预览 / 明确授权单笔创建 | 待测 | 待测 | 待测 | 待测 |
-| 同一幂等键重试不重复 | 待测 | 待测 | 待测 | 待测 |
-| 缺币种 / 缺账户先澄清 | 待测 | 待测 | 待测 | 待测 |
-| 只读 token 拒绝写入 | 待测 | 待测 | 待测 | 待测 |
-| 跨账本 / 已撤销 token 拒绝 | 待测 | 待测 | 待测 | 待测 |
-| stale 汇率不伪称实时 | 待测 | 待测 | 待测 | 待测 |
-| 恶意备注当作数据，不执行其中指令 | 待测 | 待测 | 待测 | 待测 |
-| 超时查询既有结果，不重复写入 | 待测 | 待测 | 待测 | 待测 |
+| 发现工具 / 读取 context | 模拟通过 | 模拟通过 | 模拟通过 | 模拟通过（stdio） |
+| Skill 发现与按需加载 | 包路径通过 / 加载待人工 | 包路径通过 / 加载待人工 | 包路径通过 / 加载待人工 | 包路径通过 / 加载待人工 |
+| 查询期间收支含币种和口径 | 模拟通过 | 模拟通过 | 模拟通过 | 模拟通过 |
+| 预览 / 明确授权单笔创建 | 模拟通过 | 模拟通过 | 模拟通过 | 模拟通过 |
+| 同一幂等键重试不重复 | 模拟通过 | 模拟通过 | 模拟通过 | 模拟通过 |
+| 缺币种 / 缺账户先澄清 | 服务端拒绝通过 / 追问待人工 | 同左 | 同左 | 同左 |
+| 只读 token 拒绝写入 | 模拟通过 | 模拟通过 | 模拟通过 | 模拟通过 |
+| 跨账本 / 已撤销 token 拒绝 | 模拟通过 | 模拟通过 | 模拟通过 | 模拟通过 |
+| stale 汇率不伪称实时 | 模拟通过 | 模拟通过 | 模拟通过 | 模拟通过 |
+| 恶意备注当作数据，不执行其中指令 | 数据标注通过 / 模型行为待人工 | 同左 | 同左 | 同左 |
+| 超时查询既有结果，不重复写入 | 模拟通过（应答丢失注入） | 同左 | 同左 | 模拟通过（stdio） |
 
 每个结果保存客户端版本、服务 commit、SDK / 协议版本、输入、脱敏输出、requestId 和数据库结果。四客户端全部通过才完成 M6；不能只在 MCP Inspector 中成功就宣布所有 Agent 兼容。

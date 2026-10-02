@@ -5,7 +5,7 @@ description: 使用已连接的 Ledger Next 服务查询账目、分析收支、
 
 # Ledger Next 服务使用
 
-这是待服务实现后联调的 Skill 草案。先检查当前会话是否真的有 ledger_get_context 等 MCP 工具；没有则说明服务未连接，不虚构记录、接口结果或安装未发布的软件包。
+这是早期草案，正式包见 packages/skill/ledger-service（以正式包为准）。先检查当前会话是否真的有 ledger_get_context 等 MCP 工具；没有则说明服务未连接，不虚构记录、接口结果或安装未发布的软件包。
 
 调用工具原始名可能带客户端服务器前缀；从实际工具列表解析，不能猜测客户端工具名。
 

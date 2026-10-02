@@ -26,7 +26,9 @@
     "test:api": "playwright test --project=api",
     "channels:rewrap": "tsx scripts/rewrap-channel-keys.ts",
     "mcp:build": "node scripts/build-mcp.mjs",
-    "mcp:stdio": "node --import tsx apps/mcp/src/stdio.ts"
+    "mcp:stdio": "node --import tsx apps/mcp/src/stdio.ts",
+    "skill:build": "tsx scripts/skill.ts build",
+    "skill:install": "tsx scripts/skill.ts install"
   },
   "dependencies": {
     "@better-auth/drizzle-adapter": "1.7.7",

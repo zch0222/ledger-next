@@ -172,9 +172,12 @@ export function createLedgerMcpServer(rest: Rest, options: ServerOptions) {
     const query = { base, quotes: quotes.join(','), asOf };
     const result = await rest<{ base: string; asOf: string; rates: { quote: string; value: string | null; sourceAt: string | null; freshness: string }[] }>('GET', '/exchange-rates', { query });
     if (!result.ok) return fail(result.problem);
-    const lines = result.data.rates.map(r => `1 ${base} = ${r.value ?? '—'} ${r.quote}（${FRESH[r.freshness] ?? r.freshness}${r.sourceAt ? `，报价时间 ${r.sourceAt}` : ''}）`);
-    const notLive = result.data.rates.some(r => r.freshness !== 'fresh') ? '\n其中有非实时或缺失的报价：回答时如实说明，不要称为实时汇率。' : '';
-    return ok(`参考汇率：\n${lines.join('\n')}${notLive}`, { ...result.data, requestId: result.requestId, resourceUrl: url('/exchange-rates', query) });
+    // A point in the past is answered from history: even an exact-day quote is not a live rate.
+    const historical = asOf !== undefined && Date.parse(asOf) < Date.now() - 5 * 60_000;
+    const label = (freshness: string) => (historical && freshness === 'fresh' ? '当时的历史报价' : FRESH[freshness] ?? freshness);
+    const lines = result.data.rates.map(r => `1 ${base} = ${r.value ?? '—'} ${r.quote}（${label(r.freshness)}${r.sourceAt ? `，报价时间 ${r.sourceAt}` : ''}）`);
+    const notLive = historical ? `\n这些是 ${asOf} 时点的历史报价，不要称为实时汇率。` : result.data.rates.some(r => r.freshness !== 'fresh') ? '\n其中有非实时或缺失的报价：回答时如实说明，不要称为实时汇率。' : '';
+    return ok(`参考汇率${historical ? '（历史）' : ''}：\n${lines.join('\n')}${notLive}`, { ...result.data, historical, requestId: result.requestId, resourceUrl: url('/exchange-rates', query) });
   });
 
   server.registerTool('ledger_list_subscriptions', {

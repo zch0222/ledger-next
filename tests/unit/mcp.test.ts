@@ -158,6 +158,10 @@ describe('MCP tools over a scripted REST', () => {
     expect(text(rates)).toContain('实时（2 分钟内）');
     expect(text(rates)).toContain('缺失');
     expect(text(rates)).toContain('不要称为实时汇率');
+    const past = await call('ledger_get_exchange_rates', { base: 'USD', quotes: ['CNY'], asOf: '2026-01-05T00:00:00Z' });
+    expect(text(past)).toContain('当时的历史报价');
+    expect(text(past)).not.toContain('实时（2 分钟内）');
+    expect(past.structuredContent).toMatchObject({ historical: true });
     const subs = await call('ledger_list_subscriptions', { ledgerId: LEDGER, dueFrom: '2026-10-05', dueTo: '2026-10-12', billStatus: 'scheduled' });
     expect(subs.structuredContent).toMatchObject({ items: [{ id: 'x' }], bills: [{ name: '会员' }] });
     expect(calls.at(-1)).toMatchObject({ path: `/ledgers/${LEDGER}/bill-occurrences`, query: { dateFrom: '2026-10-05', dateTo: '2026-10-12', status: 'scheduled', limit: 100 } });
