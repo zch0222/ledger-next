@@ -1,0 +1,11 @@
+# Optional overlay for builds behind a TLS-intercepting proxy: trusts one extra CA while installing packages.
+# The CA is a BuildKit secret, so it never lands in an image layer.
+#   LEDGER_BUILD_CA=/path/to/ca.pem docker compose -f compose.yaml -f compose.build-ca.yaml up -d --build --wait
+# `pnpm test:e2e` adds it automatically when LEDGER_BUILD_CA is set.
+services:
+  migrate: { build: { secrets: [build_ca] } }
+  web: { build: { secrets: [build_ca] } }
+  worker: { build: { secrets: [build_ca] } }
+secrets:
+  build_ca:
+    file: ${LEDGER_BUILD_CA:?Set LEDGER_BUILD_CA to the CA bundle path}

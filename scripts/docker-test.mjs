@@ -1,6 +1,7 @@
 import { randomBytes } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, readdirSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
 
 const localDesktop = path.join(process.env.LOCALAPPDATA ?? '', 'Programs/DockerDesktop/resources/bin/docker.exe');
@@ -10,6 +11,14 @@ const env = { ...process.env, MYSQL_DATABASE: 'ledger_test', MYSQL_USER: 'ledger
 const project = `ledger-e2e-${process.pid}`;
 const LATEST_MIGRATION = readdirSync('packages/db/migrations').filter(f => f.endsWith('.sql')).sort().at(-1);
 const args = ['compose', '-p', project, '-f', 'compose.yaml', '-f', 'compose.test.yaml'];
+mkdirSync('test-results', { recursive: true }); mkdirSync('playwright-report', { recursive: true });
+// Behind a TLS-intercepting proxy, LEDGER_BUILD_CA names a CA bundle trusted only while installing packages.
+if (process.env.LEDGER_BUILD_CA) {
+  // Outside test-results/: Playwright empties that folder when it starts.
+  const overlay = path.join(mkdtempSync(path.join(tmpdir(), 'ledger-e2e-')), 'compose.build-ca.tests.yaml');
+  writeFileSync(overlay, 'services:\n  tests: { build: { secrets: [build_ca] } }\n');
+  args.push('-f', 'compose.build-ca.yaml', '-f', overlay);
+}
 function run(params) {
   const result = spawnSync(docker, params, { env, stdio: 'inherit' });
   if (result.error) throw result.error;
@@ -18,7 +27,6 @@ function run(params) {
 const context = spawnSync(docker, ['context', 'inspect', '--format', '{{.Endpoints.docker.Host}}'], { env, encoding: 'utf8' });
 const endpoint = process.env.DOCKER_HOST || context.stdout?.trim();
 if (context.status !== 0 || !/^(npipe:\/\/|unix:\/\/|tcp:\/\/(127\.0\.0\.1|localhost):)/.test(endpoint ?? '')) throw new Error('E2E requires a local Docker engine');
-mkdirSync('test-results', { recursive: true }); mkdirSync('playwright-report', { recursive: true });
 let status = 1;
 try {
   if (run([...args, 'build']) !== 0) throw new Error('Docker build failed');
@@ -48,6 +56,7 @@ try {
     if (!accepted.includes(code)) { status = 1; console.error(`${service} did not shut down gracefully`); }
   }
 } catch (error) {
+  status = 1; // a failure after the Playwright run (e.g. shutdown) must still fail the command
   run([...args, 'logs', '--no-color', '--tail', '60', 'web', 'worker', 'migrate']);
   console.error(error instanceof Error ? error.message : 'Docker verification failed');
 } finally {

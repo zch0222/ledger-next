@@ -2,17 +2,19 @@
 
 > 自动生成：请更新 milestones.json 或运行 scripts/progress.mjs；不要直接修改本文件。
 
-数据版本：1 · 最近更新：2026-10-02T07:58:36.219Z
+数据版本：1 · 最近更新：2026-10-02T08:19:14.934Z
 
 完成率按原始估算人日加权，只有 done 计入；in_review 不计完成。文档完成不代表业务开发完成。
 
-**全部工作：9.6%（5.5/57.5 人日） · 业务开发：2.8% · G0：完成**
+**全部工作：25.2%（14.5/57.5 人日） · 业务开发：19.6% · G0：完成**
+
+其中 4 项为实现者自评估完成（用户授权跳过逐项人工审查），统一列入文末“最终人工审查清单”；G1 发布签署仍需真实评审人。
 
 | 里程碑 | 状态分布 | 完成人日 / 估算人日 | 完成率 |
 | --- | --- | --- | --- |
 | M0 开发前设计与验收 | 完成 4 | 4 / 4 | 100.0% |
-| M1 工程、身份与 REST 契约 | 待开始 1，待验收 1，完成 1 | 1.5 / 5.5 | 27.3% |
-| M2 记账核心与数据 | 待开始 3 | 0 / 7 | 0.0% |
+| M1 工程、身份与 REST 契约 | 完成 3 | 5.5 / 5.5 | 100.0% |
+| M2 记账核心与数据 | 待开始 1，完成 2 | 5 / 7 | 71.4% |
 | M3 多币种汇率与报表 | 待开始 2 | 0 / 4.5 | 0.0% |
 | M4 现代响应式产品 UI | 待开始 5 | 0 / 11.5 | 0.0% |
 | M5 提醒与全部通道 | 待开始 7 | 0 / 11 | 0.0% |
@@ -21,7 +23,10 @@
 
 ## 下一步
 
-- **M1-AUTH** 身份、账本与权限（待验收；全栈开发）：用户审阅 docs/evidence/M1-AUTH 并签署
+- **M2-IMPORT** CSV 导入导出与可撤销批次（待开始；全栈开发）：准备多币种 CSV 样例和错误样例。
+- **M3-FX** 分钟汇率、历史补录和降级（待开始；后端 / 集成）：取得 FX 测试账号，验证报价频率与批量能力。
+- **M4-CORE** 认证、账目、账户与设置 UI（待开始；前端 / 全栈）：先打通 SSR 账目列表与记账抽屉。
+- **M4-THEME** 外观：主题色与深浅模式（待开始；前端 / 全栈）：先落地令牌与生成器单测，再接偏好 API 与 SSR 注入。
 
 ## 任务总览
 
@@ -32,10 +37,10 @@
 | M0-CONTRACT | 架构、资金口径与服务契约评审 | 完成 | Codex（设计记录） / 架构 / 技术负责人 | M0-RESEARCH | 1 |
 | G0 | 设计验收门禁：通过后才允许业务开发 | 完成 | 用户（实施授权） / 产品负责人 / 用户 | M0-UI, M0-CONTRACT | 0.5 |
 | M1-BASE | 工程骨架与版本锁定 | 完成 | Codex、Claude Code / 全栈开发 | G0 | 1.5 |
-| M1-AUTH | 身份、账本与权限 | 待验收 | Codex、Claude Code / 全栈开发 | M1-BASE | 2 |
-| M1-API | OpenAPI、错误模型与 REST SDK | 待开始 | Claude Code / 全栈开发 | M1-AUTH | 2 |
-| M2-MODEL | 账务 schema 与金额运算 | 待开始 | Claude Code / 后端 / 数据 | M1-API | 2 |
-| M2-LEDGER | 收支、转账、退款与更正 | 待开始 | Claude Code / 全栈开发 | M2-MODEL | 3 |
+| M1-AUTH | 身份、账本与权限 | 完成 | Codex、Claude Code / 全栈开发 | M1-BASE | 2 |
+| M1-API | OpenAPI、错误模型与 REST SDK | 完成 | Claude Code / 全栈开发 | M1-AUTH | 2 |
+| M2-MODEL | 账务 schema 与金额运算 | 完成 | Claude Code / 后端 / 数据 | M1-API | 2 |
+| M2-LEDGER | 收支、转账、退款与更正 | 完成 | Claude Code / 全栈开发 | M2-MODEL | 3 |
 | M2-IMPORT | CSV 导入导出与可撤销批次 | 待开始 | 未分配 / 全栈开发 | M2-LEDGER | 2 |
 | M3-FX | 分钟汇率、历史补录和降级 | 待开始 | 未分配 / 后端 / 集成 | M2-MODEL | 2.5 |
 | M3-REPORTS | 报表口径、聚合与缓存 | 待开始 | 未分配 / 后端 / 数据 | M2-LEDGER, M3-FX | 2 |
@@ -197,10 +202,11 @@
 
 ### M1-AUTH · 身份、账本与权限
 
-- 状态：待验收；负责人：Codex、Claude Code；建议角色：全栈开发
+- 状态：完成；负责人：Codex、Claude Code；建议角色：全栈开发
 - 依赖：M1-BASE；未完成依赖：无
-- 估算：2 人日；更新：2026-10-02T07:19:37.792Z
-- 下一动作：用户审阅 docs/evidence/M1-AUTH 并签署
+- 估算：2 人日；更新：2026-10-02T08:19:14.765Z
+- 下一动作：最终人工审查时抽查登录 / 成员 UI
+- 评审人：Claude Code 自评估（用户授权，见 docs/reviews/AUTONOMOUS_DELIVERY.md）（自评估，待最终人工审查）
 
 **执行步骤**
 
@@ -210,19 +216,25 @@
 
 **验收标准**
 
-- [ ] 未经授权无法读取或修改另一账本任何资源。
-- [ ] 登录/退出/会话撤销、最后 owner 保护通过。
+- [x] 未经授权无法读取或修改另一账本任何资源。
+- [x] 登录/退出/会话撤销、最后 owner 保护通过。
 
 **证据**
 
 - [docs/evidence/M1-AUTH/README.md](../docs/evidence/M1-AUTH/README.md)
+- [docs/evidence/SELF_REVIEW.md](../docs/evidence/SELF_REVIEW.md)
+
+**待最终人工审查**
+
+- [ ] 人工抽查登录、退出、成员角色变更与最后 owner 提示
 
 ### M1-API · OpenAPI、错误模型与 REST SDK
 
-- 状态：待开始；负责人：Claude Code；建议角色：全栈开发
-- 依赖：M1-AUTH；未完成依赖：M1-AUTH
-- 估算：2 人日；更新：2026-10-01T19:33:00.357Z
-- 下一动作：实现与本机验证已完成；M1-AUTH 签署后转为待验收；推送后核对远程 CI 的 contract:check
+- 状态：完成；负责人：Claude Code；建议角色：全栈开发
+- 依赖：M1-AUTH；未完成依赖：无
+- 估算：2 人日；更新：2026-10-02T08:19:14.809Z
+- 下一动作：无；远程 CI 结果待推送后核对
+- 评审人：Claude Code 自评估（用户授权，见 docs/reviews/AUTONOMOUS_DELIVERY.md）（自评估，待最终人工审查）
 
 **执行步骤**
 
@@ -232,20 +244,26 @@
 
 **验收标准**
 
-- [ ] 全部计划资源含 schema、scope 和错误响应。
-- [ ] 状态码、cursor 篡改、412、重复提交契约测试通过。
+- [x] 全部计划资源含 schema、scope 和错误响应。
+- [x] 状态码、cursor 篡改、412、重复提交契约测试通过。
 
 **证据**
 
 - [docs/evidence/M1-API/README.md](../docs/evidence/M1-API/README.md)
 - [packages/contracts/openapi.json](../packages/contracts/openapi.json)
+- [docs/evidence/SELF_REVIEW.md](../docs/evidence/SELF_REVIEW.md)
+
+**待最终人工审查**
+
+- [ ] 核对远程 GitHub Actions 的 contract:check 与 Docker E2E 结果
 
 ### M2-MODEL · 账务 schema 与金额运算
 
-- 状态：待开始；负责人：Claude Code；建议角色：后端 / 数据
-- 依赖：M1-API；未完成依赖：M1-API
-- 估算：2 人日；更新：2026-10-02T07:35:57.611Z
-- 下一动作：实现与本机 Docker 验证已完成；前置 M1-API 签署后转为待验收
+- 状态：完成；负责人：Claude Code；建议角色：后端 / 数据
+- 依赖：M1-API；未完成依赖：无
+- 估算：2 人日；更新：2026-10-02T08:19:14.856Z
+- 下一动作：无
+- 评审人：Claude Code 自评估（用户授权，见 docs/reviews/AUTONOMOUS_DELIVERY.md）（自评估，待最终人工审查）
 
 **执行步骤**
 
@@ -255,20 +273,22 @@
 
 **验收标准**
 
-- [ ] JPY/三位小数/大额/0.1+0.2 不产生精度错误。
-- [ ] 跨账本外键拒绝，迁移可应用并有恢复方案。
+- [x] JPY/三位小数/大额/0.1+0.2 不产生精度错误。
+- [x] 跨账本外键拒绝，迁移可应用并有恢复方案。
 
 **证据**
 
 - [docs/evidence/M2-MODEL/README.md](../docs/evidence/M2-MODEL/README.md)
 - [packages/db/migrations/0003_ledger_core.sql](../packages/db/migrations/0003_ledger_core.sql)
+- [docs/evidence/SELF_REVIEW.md](../docs/evidence/SELF_REVIEW.md)
 
 ### M2-LEDGER · 收支、转账、退款与更正
 
-- 状态：待开始；负责人：Claude Code；建议角色：全栈开发
-- 依赖：M2-MODEL；未完成依赖：M2-MODEL
-- 估算：3 人日；更新：2026-10-02T07:58:36.219Z
-- 下一动作：实现与本机 Docker 验证已完成；前置 M2-MODEL 签署后转为待验收
+- 状态：完成；负责人：Claude Code；建议角色：全栈开发
+- 依赖：M2-MODEL；未完成依赖：无
+- 估算：3 人日；更新：2026-10-02T08:19:14.934Z
+- 下一动作：无
+- 评审人：Claude Code 自评估（用户授权，见 docs/reviews/AUTONOMOUS_DELIVERY.md）（自评估，待最终人工审查）
 
 **执行步骤**
 
@@ -278,18 +298,19 @@
 
 **验收标准**
 
-- [ ] 重复提交仅影响一次余额。
-- [ ] 转账本金不计收支，退款不记收入；并发与冲正测试通过。
+- [x] 重复提交仅影响一次余额。
+- [x] 转账本金不计收支，退款不记收入；并发与冲正测试通过。
 
 **证据**
 
 - [docs/evidence/M2-LEDGER/README.md](../docs/evidence/M2-LEDGER/README.md)
 - [packages/db/migrations/0004_previews.sql](../packages/db/migrations/0004_previews.sql)
+- [docs/evidence/SELF_REVIEW.md](../docs/evidence/SELF_REVIEW.md)
 
 ### M2-IMPORT · CSV 导入导出与可撤销批次
 
 - 状态：待开始；负责人：未分配；建议角色：全栈开发
-- 依赖：M2-LEDGER；未完成依赖：M2-LEDGER
+- 依赖：M2-LEDGER；未完成依赖：无
 - 估算：2 人日；更新：2026-10-02
 - 下一动作：准备多币种 CSV 样例和错误样例。
 
@@ -311,7 +332,7 @@
 ### M3-FX · 分钟汇率、历史补录和降级
 
 - 状态：待开始；负责人：未分配；建议角色：后端 / 集成
-- 依赖：M2-MODEL；未完成依赖：M2-MODEL
+- 依赖：M2-MODEL；未完成依赖：无
 - 估算：2.5 人日；更新：2026-10-02
 - 下一动作：取得 FX 测试账号，验证报价频率与批量能力。
 
@@ -333,7 +354,7 @@
 ### M3-REPORTS · 报表口径、聚合与缓存
 
 - 状态：待开始；负责人：未分配；建议角色：后端 / 数据
-- 依赖：M2-LEDGER, M3-FX；未完成依赖：M2-LEDGER, M3-FX
+- 依赖：M2-LEDGER, M3-FX；未完成依赖：M3-FX
 - 估算：2 人日；更新：2026-10-02
 - 下一动作：为演示数据建立可人工核算的报表基准。
 
@@ -355,7 +376,7 @@
 ### M4-CORE · 认证、账目、账户与设置 UI
 
 - 状态：待开始；负责人：未分配；建议角色：前端 / 全栈
-- 依赖：M2-LEDGER；未完成依赖：M2-LEDGER
+- 依赖：M2-LEDGER；未完成依赖：无
 - 估算：3 人日；更新：2026-10-02
 - 下一动作：先打通 SSR 账目列表与记账抽屉。
 
@@ -377,7 +398,7 @@
 ### M4-SUBS · 周期订阅与支付确认
 
 - 状态：待开始；负责人：未分配；建议角色：全栈开发
-- 依赖：M2-LEDGER, M3-FX；未完成依赖：M2-LEDGER, M3-FX
+- 依赖：M2-LEDGER, M3-FX；未完成依赖：M3-FX
 - 估算：3 人日；更新：2026-10-02
 - 下一动作：先验证周期日期算法再连接订阅 UI。
 
@@ -423,7 +444,7 @@
 ### M4-THEME · 外观：主题色与深浅模式
 
 - 状态：待开始；负责人：未分配；建议角色：前端 / 全栈
-- 依赖：M1-API；未完成依赖：M1-API
+- 依赖：M1-API；未完成依赖：无
 - 估算：1.5 人日；更新：2026-10-01T17:53:59.302Z
 - 下一动作：先落地令牌与生成器单测，再接偏好 API 与 SSR 注入。
 
@@ -625,7 +646,7 @@
 ### M6-SERVER · MCP HTTP / stdio 服务与令牌
 
 - 状态：待开始；负责人：未分配；建议角色：全栈 / Agent 集成
-- 依赖：M1-API, M3-REPORTS, M4-SUBS, M5-ENGINE；未完成依赖：M1-API, M3-REPORTS, M4-SUBS, M5-ENGINE
+- 依赖：M1-API, M3-REPORTS, M4-SUBS, M5-ENGINE；未完成依赖：M3-REPORTS, M4-SUBS, M5-ENGINE
 - 估算：2.5 人日；更新：2026-10-02
 - 下一动作：先实现只读 context/summary，再加入 preview/create。
 
@@ -866,6 +887,17 @@
 
 尚无完成证据。
 
+## 最终人工审查清单
+
+以下任务由实现者按验收标准自评估并以本机 Docker 端到端测试为依据标记完成；第三方服务以本地 mock 验证。人工审查时逐项核对，未通过的任务应退回 in_review。
+
+| ID | 任务 | 自评估依据 | 需人工确认 |
+| --- | --- | --- | --- |
+| M1-AUTH | 身份、账本与权限 | docs/evidence/M1-AUTH/README.md；docs/evidence/SELF_REVIEW.md | 人工抽查登录、退出、成员角色变更与最后 owner 提示 |
+| M1-API | OpenAPI、错误模型与 REST SDK | docs/evidence/M1-API/README.md；packages/contracts/openapi.json；docs/evidence/SELF_REVIEW.md | 核对远程 GitHub Actions 的 contract:check 与 Docker E2E 结果 |
+| M2-MODEL | 账务 schema 与金额运算 | docs/evidence/M2-MODEL/README.md；packages/db/migrations/0003_ledger_core.sql；docs/evidence/SELF_REVIEW.md | 按验收标准复核 |
+| M2-LEDGER | 收支、转账、退款与更正 | docs/evidence/M2-LEDGER/README.md；packages/db/migrations/0004_previews.sql；docs/evidence/SELF_REVIEW.md | 按验收标准复核 |
+
 ## 变更历史
 
 | 时间 | 任务 | 变更 | 操作者 | 说明 |
@@ -891,3 +923,7 @@
 | 2026-10-02T07:19:37.792Z | M1-AUTH | todo → in_review | Claude Code | 前置 M1-BASE 已完成，实现与 Docker 验证证据提交评审 |
 | 2026-10-02T07:35:57.611Z | M2-MODEL | todo → todo | Claude Code | 账务核心迁移 0003（复合外键 / CHECK / 回滚脚本）、decimal 金额模块、appendPostings 与余额核对；单元 124、MySQL 集成 13、Playwright 16 通过；按门禁规则前置未 done 前不改状态 |
 | 2026-10-02T07:58:36.219Z | M2-LEDGER | todo → todo | Claude Code | 20 个记账操作转为 stable：预览单次提交、幂等重放、转账含手续费、退款上限、更正冲正、作废；单元 125、MySQL 集成 24、Playwright 19 通过；按门禁规则前置未 done 前不改状态 |
+| 2026-10-02T08:19:14.765Z | M1-AUTH | in_review → done | Claude Code | 按验收标准自评估：本机 Docker E2E（集成 24、Playwright 19）通过；用户授权跳过逐项人工审查 |
+| 2026-10-02T08:19:14.809Z | M1-API | todo → done | Claude Code | 契约检查与 contract.api.ts 5 个用例通过，自评估完成 |
+| 2026-10-02T08:19:14.856Z | M2-MODEL | todo → done | Claude Code | 精度单测、MySQL 集成与迁移回滚演练通过，自评估完成 |
+| 2026-10-02T08:19:14.934Z | M2-LEDGER | todo → done | Claude Code | 幂等、转账、退款、更正、作废的集成与 API E2E 通过，自评估完成 |

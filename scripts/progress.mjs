@@ -26,10 +26,12 @@ function validate() {
     for (const id of task.dependsOn) if (!map.has(id)) errors.push(task.id + ': 依赖不存在 ' + id);
     if (active.has(task.status) && pending(task).length) errors.push(task.id + ': 前置未完成 ' + pending(task).join(', '));
     if (task.status === 'blocked' && !task.blockedReason?.trim()) errors.push(task.id + ': 缺阻塞原因');
+    if (task.reviewMode !== undefined && !['human', 'self'].includes(task.reviewMode)) errors.push(task.id + ': reviewMode 只能为 human 或 self');
     if (task.status === 'done') {
       if (!task.evidence?.length) errors.push(task.id + ': 完成必须有证据');
       if (!task.owner || task.owner === '未分配') errors.push(task.id + ': 完成必须有实际负责人');
       if (task.requiresReview && !task.reviewer?.trim()) errors.push(task.id + ': 完成必须有评审人');
+      if (task.reviewMode === 'self' && /^G\d+$/.test(task.id)) errors.push(task.id + ': 门禁任务必须由真实评审人签署，不能自评估');
       for (const evidence of task.evidence ?? []) {
         if (/^https?:\/\//.test(evidence)) continue; // Remote content must be reviewed by a human.
         const local = path.resolve(root, evidence.split('#')[0]);
@@ -57,6 +59,8 @@ function progress(tasks) {
   return { total, completed, percent: total ? (100 * completed / total).toFixed(1) : '0.0' };
 }
 
+const selfReviewed = () => data.tasks.filter(t => t.status === 'done' && t.reviewMode === 'self');
+
 function render() {
   const all = progress(data.tasks);
   const dev = progress(data.tasks.filter(t => t.phase === 'development'));
@@ -71,6 +75,7 @@ function render() {
     '',
     '**全部工作：' + all.percent + '%（' + all.completed + '/' + all.total + ' 人日） · 业务开发：' + dev.percent + '% · G0：' + labels[map.get('G0').status] + '**',
     '',
+    ...(selfReviewed().length ? ['其中 ' + selfReviewed().length + ' 项为实现者自评估完成（用户授权跳过逐项人工审查），统一列入文末“最终人工审查清单”；G1 发布签署仍需真实评审人。', ''] : []),
     '| 里程碑 | 状态分布 | 完成人日 / 估算人日 | 完成率 |',
     '| --- | --- | --- | --- |'
   ];
@@ -93,7 +98,7 @@ function render() {
       '- 估算：' + t.estimateDays + ' 人日；更新：' + t.updatedAt,
       '- 下一动作：' + t.nextAction);
     if (t.blockedReason) lines.push('- 阻塞：' + t.blockedReason);
-    if (t.reviewer) lines.push('- 评审人：' + t.reviewer);
+    if (t.reviewer) lines.push('- 评审人：' + t.reviewer + (t.reviewMode === 'self' ? '（自评估，待最终人工审查）' : ''));
     lines.push('', '**执行步骤**', '');
     t.steps.forEach((s, i) => lines.push((i + 1) + '. ' + s));
     lines.push('', '**验收标准**', '');
@@ -104,8 +109,21 @@ function render() {
       const href = /^https?:\/\//.test(evidence) ? evidence : '../' + evidence;
       lines.push('- [' + evidence + '](' + href + ')');
     }
+    if (t.finalChecks?.length) {
+      lines.push('', '**待最终人工审查**', '');
+      t.finalChecks.forEach(s => lines.push('- [ ] ' + s));
+    }
     lines.push('');
   }
+  lines.push('## 最终人工审查清单', '');
+  const review = selfReviewed();
+  if (!review.length) lines.push('暂无自评估任务。');
+  else {
+    lines.push('以下任务由实现者按验收标准自评估并以本机 Docker 端到端测试为依据标记完成；第三方服务以本地 mock 验证。人工审查时逐项核对，未通过的任务应退回 in_review。', '');
+    lines.push('| ID | 任务 | 自评估依据 | 需人工确认 |', '| --- | --- | --- | --- |');
+    for (const t of review) lines.push('| ' + [t.id, t.title, t.evidence.join('；'), (t.finalChecks ?? []).join('；') || '按验收标准复核'].map(esc).join(' | ') + ' |');
+  }
+  lines.push('');
   lines.push('## 变更历史', '', '| 时间 | 任务 | 变更 | 操作者 | 说明 |', '| --- | --- | --- | --- | --- |');
   for (const event of data.history) lines.push('| ' + [event.at,event.id,event.from + ' → ' + event.to,event.actor,event.note].map(esc).join(' | ') + ' |');
   return lines.join('\n') + '\n';
@@ -122,7 +140,7 @@ function options(values) {
   for (let i = 0; i < values.length; i += 2) {
     if (!values[i]?.startsWith('--') || values[i + 1] === undefined || values[i + 1].startsWith('--')) throw new Error('参数应为 --key value');
     const key = values[i].slice(2);
-    if (!['status','owner','actor','evidence','reviewer','reason','next','note'].includes(key)) throw new Error('未知参数: ' + key);
+    if (!['status','owner','actor','evidence','reviewer','reason','next','note','review-mode','final-check'].includes(key)) throw new Error('未知参数: ' + key);
     (result[key] ??= []).push(values[i + 1]);
   }
   return result;
@@ -161,6 +179,8 @@ try {
     if (opts.reason) task.blockedReason = opts.reason.at(-1);
     if (task.status !== 'blocked') task.blockedReason = '';
     if (opts.evidence) task.evidence = [...new Set([...task.evidence, ...opts.evidence])];
+    if (opts['review-mode']) task.reviewMode = opts['review-mode'].at(-1);
+    if (opts['final-check']) task.finalChecks = [...new Set([...(task.finalChecks ?? []), ...opts['final-check']])];
     task.updatedAt = new Date().toISOString();
     data.updatedAt = task.updatedAt;
     data.history.push({at:task.updatedAt,id:task.id,from:previous,to:task.status,actor,note});
@@ -169,7 +189,7 @@ try {
     writeAtomic(reportPath, render());
     console.log(task.id + ': ' + labels[previous] + ' → ' + labels[task.status]);
   } else {
-    throw new Error('用法: node scripts/progress.mjs status|next|show ID|validate|render|update ID --status 状态 --actor 姓名 --note 说明');
+    throw new Error('用法: node scripts/progress.mjs status|next|show ID|validate|render|update ID --status 状态 --actor 姓名 --note 说明 [--review-mode human|self] [--final-check 待人工确认项]');
   }
 } catch (error) {
   console.error(error.message);

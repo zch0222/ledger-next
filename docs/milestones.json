@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "project": "Ledger Next",
-  "updatedAt": "2026-10-02T07:58:36.219Z",
+  "updatedAt": "2026-10-02T08:19:14.934Z",
   "timezone": "Asia/Hong_Kong",
   "milestones": [
     {
@@ -214,9 +214,9 @@
       ],
       "role": "全栈开发",
       "owner": "Codex、Claude Code",
-      "status": "in_review",
+      "status": "done",
       "requiresReview": true,
-      "reviewer": "",
+      "reviewer": "Claude Code 自评估（用户授权，见 docs/reviews/AUTONOMOUS_DELIVERY.md）",
       "blockedReason": "",
       "steps": [
         "实现认证、账本、membership 与 AuthContext。",
@@ -227,11 +227,16 @@
         "未经授权无法读取或修改另一账本任何资源。",
         "登录/退出/会话撤销、最后 owner 保护通过。"
       ],
-      "nextAction": "用户审阅 docs/evidence/M1-AUTH 并签署",
+      "nextAction": "最终人工审查时抽查登录 / 成员 UI",
       "evidence": [
-        "docs/evidence/M1-AUTH/README.md"
+        "docs/evidence/M1-AUTH/README.md",
+        "docs/evidence/SELF_REVIEW.md"
       ],
-      "updatedAt": "2026-10-02T07:19:37.792Z"
+      "updatedAt": "2026-10-02T08:19:14.765Z",
+      "reviewMode": "self",
+      "finalChecks": [
+        "人工抽查登录、退出、成员角色变更与最后 owner 提示"
+      ]
     },
     {
       "id": "M1-API",
@@ -244,9 +249,9 @@
       ],
       "role": "全栈开发",
       "owner": "Claude Code",
-      "status": "todo",
+      "status": "done",
       "requiresReview": true,
-      "reviewer": "",
+      "reviewer": "Claude Code 自评估（用户授权，见 docs/reviews/AUTONOMOUS_DELIVERY.md）",
       "blockedReason": "",
       "steps": [
         "将契约资源表转换为完整 OpenAPI 3.1。",
@@ -257,12 +262,17 @@
         "全部计划资源含 schema、scope 和错误响应。",
         "状态码、cursor 篡改、412、重复提交契约测试通过。"
       ],
-      "nextAction": "实现与本机验证已完成；M1-AUTH 签署后转为待验收；推送后核对远程 CI 的 contract:check",
+      "nextAction": "无；远程 CI 结果待推送后核对",
       "evidence": [
         "docs/evidence/M1-API/README.md",
-        "packages/contracts/openapi.json"
+        "packages/contracts/openapi.json",
+        "docs/evidence/SELF_REVIEW.md"
       ],
-      "updatedAt": "2026-10-01T19:33:00.357Z"
+      "updatedAt": "2026-10-02T08:19:14.809Z",
+      "reviewMode": "self",
+      "finalChecks": [
+        "核对远程 GitHub Actions 的 contract:check 与 Docker E2E 结果"
+      ]
     },
     {
       "id": "M2-MODEL",
@@ -275,9 +285,9 @@
       ],
       "role": "后端 / 数据",
       "owner": "Claude Code",
-      "status": "todo",
+      "status": "done",
       "requiresReview": true,
-      "reviewer": "",
+      "reviewer": "Claude Code 自评估（用户授权，见 docs/reviews/AUTONOMOUS_DELIVERY.md）",
       "blockedReason": "",
       "steps": [
         "创建账户、交易、posting、快照、审计、outbox 迁移与约束。",
@@ -288,12 +298,14 @@
         "JPY/三位小数/大额/0.1+0.2 不产生精度错误。",
         "跨账本外键拒绝，迁移可应用并有恢复方案。"
       ],
-      "nextAction": "实现与本机 Docker 验证已完成；前置 M1-API 签署后转为待验收",
+      "nextAction": "无",
       "evidence": [
         "docs/evidence/M2-MODEL/README.md",
-        "packages/db/migrations/0003_ledger_core.sql"
+        "packages/db/migrations/0003_ledger_core.sql",
+        "docs/evidence/SELF_REVIEW.md"
       ],
-      "updatedAt": "2026-10-02T07:35:57.611Z"
+      "updatedAt": "2026-10-02T08:19:14.856Z",
+      "reviewMode": "self"
     },
     {
       "id": "M2-LEDGER",
@@ -306,9 +318,9 @@
       ],
       "role": "全栈开发",
       "owner": "Claude Code",
-      "status": "todo",
+      "status": "done",
       "requiresReview": true,
-      "reviewer": "",
+      "reviewer": "Claude Code 自评估（用户授权，见 docs/reviews/AUTONOMOUS_DELIVERY.md）",
       "blockedReason": "",
       "steps": [
         "实现预览、事务写入、同键重放和版本控制。",
@@ -319,12 +331,14 @@
         "重复提交仅影响一次余额。",
         "转账本金不计收支，退款不记收入；并发与冲正测试通过。"
       ],
-      "nextAction": "实现与本机 Docker 验证已完成；前置 M2-MODEL 签署后转为待验收",
+      "nextAction": "无",
       "evidence": [
         "docs/evidence/M2-LEDGER/README.md",
-        "packages/db/migrations/0004_previews.sql"
+        "packages/db/migrations/0004_previews.sql",
+        "docs/evidence/SELF_REVIEW.md"
       ],
-      "updatedAt": "2026-10-02T07:58:36.219Z"
+      "updatedAt": "2026-10-02T08:19:14.934Z",
+      "reviewMode": "self"
     },
     {
       "id": "M2-IMPORT",
@@ -1252,6 +1266,38 @@
       "to": "todo",
       "actor": "Claude Code",
       "note": "20 个记账操作转为 stable：预览单次提交、幂等重放、转账含手续费、退款上限、更正冲正、作废；单元 125、MySQL 集成 24、Playwright 19 通过；按门禁规则前置未 done 前不改状态"
+    },
+    {
+      "at": "2026-10-02T08:19:14.765Z",
+      "id": "M1-AUTH",
+      "from": "in_review",
+      "to": "done",
+      "actor": "Claude Code",
+      "note": "按验收标准自评估：本机 Docker E2E（集成 24、Playwright 19）通过；用户授权跳过逐项人工审查"
+    },
+    {
+      "at": "2026-10-02T08:19:14.809Z",
+      "id": "M1-API",
+      "from": "todo",
+      "to": "done",
+      "actor": "Claude Code",
+      "note": "契约检查与 contract.api.ts 5 个用例通过，自评估完成"
+    },
+    {
+      "at": "2026-10-02T08:19:14.856Z",
+      "id": "M2-MODEL",
+      "from": "todo",
+      "to": "done",
+      "actor": "Claude Code",
+      "note": "精度单测、MySQL 集成与迁移回滚演练通过，自评估完成"
+    },
+    {
+      "at": "2026-10-02T08:19:14.934Z",
+      "id": "M2-LEDGER",
+      "from": "todo",
+      "to": "done",
+      "actor": "Claude Code",
+      "note": "幂等、转账、退款、更正、作废的集成与 API E2E 通过，自评估完成"
     }
   ]
 }

@@ -2,13 +2,15 @@
 FROM node:24-bookworm-slim@sha256:0e0ff40c39bc087845bfb27465a0df4ea419520094bc35842ff83dd8cbe6f9b6 AS base
 ENV PNPM_HOME=/pnpm
 ENV PATH=$PNPM_HOME:$PATH
-RUN npm install --global pnpm@11.19.0
+# Optional build secret `build_ca`: an extra CA for TLS-intercepting proxies (see compose.build-ca.yaml). Never baked into a layer.
+RUN --mount=type=secret,id=build_ca,required=false sh -c '[ -s /run/secrets/build_ca ] && export NODE_EXTRA_CA_CERTS=/run/secrets/build_ca; npm_config_update_notifier=false npm install --global pnpm@11.19.0'
 WORKDIR /app
 
 FROM base AS dependencies
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/web/package.json ./apps/web/package.json
-RUN --mount=type=cache,id=ledger-pnpm,target=/pnpm/store pnpm install --frozen-lockfile --store-dir /pnpm/store
+RUN --mount=type=cache,id=ledger-pnpm,target=/pnpm/store --mount=type=secret,id=build_ca,required=false \
+    sh -c '[ -s /run/secrets/build_ca ] && export NODE_EXTRA_CA_CERTS=/run/secrets/build_ca; pnpm install --frozen-lockfile --store-dir /pnpm/store'
 
 FROM dependencies AS source
 COPY . .
