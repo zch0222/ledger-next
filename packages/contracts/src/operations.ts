@@ -28,7 +28,8 @@ export interface OperationDef {
 const op = <const D extends OperationDef>(def: D) => def;
 const L = '/ledgers/{ledgerId}';
 const page = z.object(pageQuery).strict();
-const S = 'stable' as const, PL = 'planned' as const;
+// Every published operation is implemented; new ones start as 'planned' (answering 501) until their milestone.
+const S = 'stable' as const;
 
 export const operations = [
   // M1: identity, ledgers and memberships (implemented)
@@ -126,15 +127,15 @@ export const operations = [
   op({ id: 'getNotification', method: 'get', path: `${L}/notifications/{notificationId}`, tag: 'Notifications', summary: '站内通知详情', stability: S, milestone: 'M5-OTHER', role: 'viewer', scopes: ['notifications:read'], status: 200, response: X.Notification.single, headers: ['ETag'] }),
   op({ id: 'updateNotification', method: 'patch', path: `${L}/notifications/{notificationId}`, tag: 'Notifications', summary: '标记已读 / 未读', stability: S, milestone: 'M5-OTHER', role: 'viewer', scopes: ['notifications:write'], body: X.NotificationUpdate, status: 200, response: X.Notification.single, headers: ['ETag'] }),
 
-  // M6: tokens, approvals, operations
-  op({ id: 'listApiTokens', method: 'get', path: '/api-tokens', tag: 'Tokens', summary: '令牌元信息', stability: PL, milestone: 'M6-SERVER', scopes: null, query: page, status: 200, response: X.ApiToken.list }),
-  op({ id: 'createApiToken', method: 'post', path: '/api-tokens', tag: 'Tokens', summary: '签发 PAT（只显示一次）', stability: PL, milestone: 'M6-SERVER', scopes: null, body: X.ApiTokenCreate, idempotency: 'optional', status: 201, response: X.ApiTokenCreated, headers: ['Location'] }),
-  op({ id: 'revokeApiToken', method: 'delete', path: '/api-tokens/{tokenId}', tag: 'Tokens', summary: '撤销令牌，立即生效', stability: PL, milestone: 'M6-SERVER', scopes: null, ifMatch: false, status: 204 }),
-  op({ id: 'listApprovalRequests', method: 'get', path: `${L}/approval-requests`, tag: 'Approvals', summary: '待审批的高影响操作', stability: PL, milestone: 'M6-SERVER', role: 'owner', scopes: null, query: X.ApprovalQuery, status: 200, response: X.ApprovalRequest.list }),
-  op({ id: 'createApprovalRequest', method: 'post', path: `${L}/approval-requests`, tag: 'Approvals', summary: 'Agent 发起审批', stability: PL, milestone: 'M6-SERVER', role: 'editor', scopes: ['approvals:write'], body: X.ApprovalRequestCreate, idempotency: 'optional', status: 201, response: X.ApprovalRequest.single, headers: ['Location', 'ETag'] }),
-  op({ id: 'getApprovalRequest', method: 'get', path: `${L}/approval-requests/{approvalId}`, tag: 'Approvals', summary: '审批状态', stability: PL, milestone: 'M6-SERVER', role: 'viewer', scopes: ['approvals:write'], status: 200, response: X.ApprovalRequest.single, headers: ['ETag'] }),
-  op({ id: 'updateApprovalRequest', method: 'patch', path: `${L}/approval-requests/{approvalId}`, tag: 'Approvals', summary: '批准 / 拒绝（仅 Web 用户）', stability: PL, milestone: 'M6-SERVER', role: 'owner', scopes: null, body: X.ApprovalRequestUpdate, status: 200, response: X.ApprovalRequest.single, headers: ['ETag'] }),
-  op({ id: 'getOperation', method: 'get', path: `${L}/operations/{operationId}`, tag: 'Operations', summary: '写入结果 / 异步操作状态（原 actor）', stability: PL, milestone: 'M6-SERVER', role: 'viewer', scopes: [], status: 200, response: X.Operation.single }),
+  // M6: tokens, approvals, operations (implemented)
+  op({ id: 'listApiTokens', method: 'get', path: '/api-tokens', tag: 'Tokens', summary: '令牌元信息', stability: S, milestone: 'M6-SERVER', scopes: null, query: page, status: 200, response: X.ApiToken.list }),
+  op({ id: 'createApiToken', method: 'post', path: '/api-tokens', tag: 'Tokens', summary: '签发 PAT（只显示一次）', stability: S, milestone: 'M6-SERVER', scopes: null, body: X.ApiTokenCreate, idempotency: 'optional', status: 201, response: X.ApiTokenCreated, headers: ['Location'] }),
+  op({ id: 'revokeApiToken', method: 'delete', path: '/api-tokens/{tokenId}', tag: 'Tokens', summary: '撤销令牌，立即生效', stability: S, milestone: 'M6-SERVER', scopes: null, ifMatch: false, status: 204 }),
+  op({ id: 'listApprovalRequests', method: 'get', path: `${L}/approval-requests`, tag: 'Approvals', summary: '待审批的高影响操作', stability: S, milestone: 'M6-SERVER', role: 'owner', scopes: null, query: X.ApprovalQuery, status: 200, response: X.ApprovalRequest.list }),
+  op({ id: 'createApprovalRequest', method: 'post', path: `${L}/approval-requests`, tag: 'Approvals', summary: 'Agent 发起审批', stability: S, milestone: 'M6-SERVER', role: 'editor', scopes: ['approvals:write'], body: X.ApprovalRequestCreate, idempotency: 'optional', status: 201, response: X.ApprovalRequest.single, headers: ['Location', 'ETag'] }),
+  op({ id: 'getApprovalRequest', method: 'get', path: `${L}/approval-requests/{approvalId}`, tag: 'Approvals', summary: '审批状态', stability: S, milestone: 'M6-SERVER', role: 'viewer', scopes: ['approvals:write'], status: 200, response: X.ApprovalRequest.single, headers: ['ETag'] }),
+  op({ id: 'updateApprovalRequest', method: 'patch', path: `${L}/approval-requests/{approvalId}`, tag: 'Approvals', summary: '批准 / 拒绝（仅 Web 用户）', stability: S, milestone: 'M6-SERVER', role: 'owner', scopes: null, body: X.ApprovalRequestUpdate, status: 200, response: X.ApprovalRequest.single, headers: ['ETag'] }),
+  op({ id: 'getOperation', method: 'get', path: `${L}/operations/{operationId}`, tag: 'Operations', summary: '写入结果 / 异步操作状态（原 actor）', stability: S, milestone: 'M6-SERVER', role: 'viewer', scopes: [], status: 200, response: X.Operation.single }),
 ] as const satisfies readonly OperationDef[];
 
 export type Operation = (typeof operations)[number];

@@ -68,6 +68,7 @@ try {
   run([...args, 'logs', '--no-color', '--tail', '60', 'web', 'worker', 'migrate']);
   console.error(error instanceof Error ? error.message : 'Docker verification failed');
 } finally {
-  run([...args, 'down', '--volumes', '--remove-orphans']);
+  // Removes this run's containers, volumes and the images it built, so repeated runs do not fill the disk.
+  run([...args, 'down', '--volumes', '--remove-orphans', '--rmi', 'local']);
 }
 process.exitCode = status;

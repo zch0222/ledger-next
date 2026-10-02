@@ -41,6 +41,7 @@ export const Page = output('Page', z.object({ nextCursor: z.string().nullable(),
 export const Problem = output('Problem', z.object({
   type: z.string(), title: z.string(), status: z.number().int(), code: z.string(), detail: z.string().optional(), requestId: z.string(),
   errors: z.array(z.object({ path: z.string(), message: z.string(), code: z.string().optional() })).optional(),
+  approval: z.object({ id: z.uuid(), approvalUrl: z.string(), expiresAt: z.iso.datetime() }).optional().meta({ description: 'APPROVAL_REQUIRED：已为本请求创建的审批；批准后携带 X-Approval-Id 重试' }),
 }), 'RFC 9457 problem+json；code 为稳定机器码，title 为可展示说明');
 
 // Envelopes: single {data, meta}; list {data[], page, meta}.

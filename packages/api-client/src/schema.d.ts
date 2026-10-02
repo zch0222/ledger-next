@@ -7,16 +7,10 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * 令牌元信息
-         * @description 计划于 M6-SERVER 实现；当前返回 501。
-         */
+        /** 令牌元信息 */
         get: operations["listApiTokens"];
         put?: never;
-        /**
-         * 签发 PAT（只显示一次）
-         * @description 计划于 M6-SERVER 实现；当前返回 501。
-         */
+        /** 签发 PAT（只显示一次） */
         post: operations["createApiToken"];
         delete?: never;
         options?: never;
@@ -34,10 +28,7 @@ export type paths = {
         get?: never;
         put?: never;
         post?: never;
-        /**
-         * 撤销令牌，立即生效
-         * @description 计划于 M6-SERVER 实现；当前返回 501。
-         */
+        /** 撤销令牌，立即生效 */
         delete: operations["revokeApiToken"];
         options?: never;
         head?: never;
@@ -175,16 +166,10 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * 待审批的高影响操作
-         * @description 计划于 M6-SERVER 实现；当前返回 501。
-         */
+        /** 待审批的高影响操作 */
         get: operations["listApprovalRequests"];
         put?: never;
-        /**
-         * Agent 发起审批
-         * @description 计划于 M6-SERVER 实现；当前返回 501。
-         */
+        /** Agent 发起审批 */
         post: operations["createApprovalRequest"];
         delete?: never;
         options?: never;
@@ -199,20 +184,14 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * 审批状态
-         * @description 计划于 M6-SERVER 实现；当前返回 501。
-         */
+        /** 审批状态 */
         get: operations["getApprovalRequest"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
-        /**
-         * 批准 / 拒绝（仅 Web 用户）
-         * @description 计划于 M6-SERVER 实现；当前返回 501。
-         */
+        /** 批准 / 拒绝（仅 Web 用户） */
         patch: operations["updateApprovalRequest"];
         trace?: never;
     };
@@ -669,10 +648,7 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * 写入结果 / 异步操作状态（原 actor）
-         * @description 计划于 M6-SERVER 实现；当前返回 501。
-         */
+        /** 写入结果 / 异步操作状态（原 actor） */
         get: operations["getOperation"];
         put?: never;
         post?: never;
@@ -2272,6 +2248,14 @@ export type components = {
             previewId: string;
         };
         Problem: {
+            /** @description APPROVAL_REQUIRED：已为本请求创建的审批；批准后携带 X-Approval-Id 重试 */
+            approval?: {
+                approvalUrl: string;
+                /** Format: date-time */
+                expiresAt: string;
+                /** Format: uuid */
+                id: string;
+            };
             code: string;
             detail?: string;
             errors?: {
@@ -2976,7 +2960,6 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -3016,7 +2999,6 @@ export interface operations {
             415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -3043,7 +3025,6 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -3503,7 +3484,6 @@ export interface operations {
             404: components["responses"]["NotFound"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -3547,7 +3527,6 @@ export interface operations {
             415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -3578,7 +3557,6 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -3622,7 +3600,6 @@ export interface operations {
             422: components["responses"]["ValidationFailed"];
             428: components["responses"]["PreconditionRequired"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };
@@ -4952,7 +4929,6 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             429: components["responses"]["TooManyRequests"];
-            501: components["responses"]["NotImplemented"];
             503: components["responses"]["ServiceUnavailable"];
         };
     };

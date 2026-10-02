@@ -282,3 +282,18 @@ export const notifications = mysqlTable('notifications', {
   link: varchar('link', { length: 500 }), deliveryId: varchar('delivery_id', { length: 36 }), dedupeKey: varchar('dedupe_key', { length: 255 }),
   readAt: datetime('read_at', { mode: 'date', fsp: 3 }), version: int('version').notNull().default(1), createdAt: createdAt(),
 }, t => [uniqueIndex('notification_ledger_uq').on(t.ledgerId, t.id), uniqueIndex('notification_dedupe_uq').on(t.dedupeKey), index('notification_user_idx').on(t.userId, t.ledgerId, t.readAt, t.createdAt)]);
+
+// M6: personal access tokens (hash only) and approval requests for high-impact Agent writes.
+export const apiTokens = mysqlTable('api_tokens', {
+  id: id(), userId: varchar('user_id', { length: 36 }).notNull().references(() => user.id, { onDelete: 'cascade' }), name: varchar('name', { length: 60 }).notNull(),
+  tokenHash: char('token_hash', { length: 64 }).notNull(), prefix: varchar('prefix', { length: 16 }).notNull(), scopes: json('scopes').notNull(), ledgerIds: json('ledger_ids').notNull(),
+  expiresAt: datetime('expires_at', { mode: 'date', fsp: 3 }).notNull(), revokedAt: datetime('revoked_at', { mode: 'date', fsp: 3 }), lastUsedAt: datetime('last_used_at', { mode: 'date', fsp: 3 }), createdAt: createdAt(),
+}, t => [uniqueIndex('api_token_hash_uq').on(t.tokenHash), index('api_token_user_idx').on(t.userId, t.createdAt)]);
+export const approvalRequests = mysqlTable('approval_requests', {
+  id: id(), ledgerId: ledgerId(), status: mysqlEnum('status', ['pending', 'approved', 'rejected', 'expired', 'consumed']).notNull(),
+  method: mysqlEnum('method', ['POST', 'PATCH', 'DELETE']).notNull(), path: varchar('path', { length: 255 }).notNull(), bodyHash: char('body_hash', { length: 64 }).notNull(),
+  summary: varchar('summary', { length: 500 }).notNull(), reason: varchar('reason', { length: 500 }), requestedBy: varchar('requested_by', { length: 36 }).notNull().references(() => user.id, { onDelete: 'cascade' }),
+  via: mysqlEnum('via', ['session', 'token']).notNull(), tokenId: varchar('token_id', { length: 36 }), decidedBy: varchar('decided_by', { length: 36 }), decidedAt: datetime('decided_at', { mode: 'date', fsp: 3 }),
+  decisionNote: varchar('decision_note', { length: 500 }), expiresAt: datetime('expires_at', { mode: 'date', fsp: 3 }).notNull(), consumedAt: datetime('consumed_at', { mode: 'date', fsp: 3 }),
+  version: int('version').notNull().default(1), createdAt: createdAt(),
+}, t => [uniqueIndex('approval_ledger_uq').on(t.ledgerId, t.id), index('approval_ledger_status_idx').on(t.ledgerId, t.status, t.createdAt)]);

@@ -7849,13 +7849,12 @@
           "Tokens"
         ],
         "summary": "令牌元信息",
-        "description": "计划于 M6-SERVER 实现；当前返回 501。",
         "security": [
           {
             "session": []
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M6-SERVER",
         "parameters": [
           {
@@ -7909,9 +7908,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -7923,13 +7919,12 @@
           "Tokens"
         ],
         "summary": "签发 PAT（只显示一次）",
-        "description": "计划于 M6-SERVER 实现；当前返回 501。",
         "security": [
           {
             "session": []
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M6-SERVER",
         "x-idempotency": "optional",
         "parameters": [
@@ -7993,9 +7988,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -8009,13 +8001,12 @@
           "Tokens"
         ],
         "summary": "撤销令牌，立即生效",
-        "description": "计划于 M6-SERVER 实现；当前返回 501。",
         "security": [
           {
             "session": []
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M6-SERVER",
         "parameters": [
           {
@@ -8049,9 +8040,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -8065,13 +8053,12 @@
           "Approvals"
         ],
         "summary": "待审批的高影响操作",
-        "description": "计划于 M6-SERVER 实现；当前返回 501。",
         "security": [
           {
             "session": []
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M6-SERVER",
         "x-ledger-role": "owner",
         "parameters": [
@@ -8156,9 +8143,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -8170,7 +8154,6 @@
           "Approvals"
         ],
         "summary": "Agent 发起审批",
-        "description": "计划于 M6-SERVER 实现；当前返回 501。",
         "security": [
           {
             "session": []
@@ -8181,7 +8164,7 @@
             ]
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M6-SERVER",
         "x-ledger-role": "editor",
         "x-idempotency": "optional",
@@ -8261,9 +8244,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -8277,7 +8257,6 @@
           "Approvals"
         ],
         "summary": "审批状态",
-        "description": "计划于 M6-SERVER 实现；当前返回 501。",
         "security": [
           {
             "session": []
@@ -8288,7 +8267,7 @@
             ]
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M6-SERVER",
         "x-ledger-role": "viewer",
         "parameters": [
@@ -8342,9 +8321,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -8356,13 +8332,12 @@
           "Approvals"
         ],
         "summary": "批准 / 拒绝（仅 Web 用户）",
-        "description": "计划于 M6-SERVER 实现；当前返回 501。",
         "security": [
           {
             "session": []
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M6-SERVER",
         "x-ledger-role": "owner",
         "parameters": [
@@ -8447,9 +8422,6 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
-          },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
@@ -8463,7 +8435,6 @@
           "Operations"
         ],
         "summary": "写入结果 / 异步操作状态（原 actor）",
-        "description": "计划于 M6-SERVER 实现；当前返回 501。",
         "security": [
           {
             "session": []
@@ -8472,7 +8443,7 @@
             "pat": []
           }
         ],
-        "x-stability": "planned",
+        "x-stability": "stable",
         "x-milestone": "M6-SERVER",
         "x-ledger-role": "viewer",
         "parameters": [
@@ -8522,9 +8493,6 @@
           },
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
-          },
-          "501": {
-            "$ref": "#/components/responses/NotImplemented"
           },
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
@@ -13174,6 +13142,29 @@
               ],
               "additionalProperties": false
             }
+          },
+          "approval": {
+            "description": "APPROVAL_REQUIRED：已为本请求创建的审批；批准后携带 X-Approval-Id 重试",
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "approvalUrl": {
+                "type": "string"
+              },
+              "expiresAt": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "required": [
+              "id",
+              "approvalUrl",
+              "expiresAt"
+            ],
+            "additionalProperties": false
           }
         },
         "required": [

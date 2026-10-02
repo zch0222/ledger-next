@@ -57,6 +57,7 @@ describe('OpenAPI document', () => {
     M5: ['createChannelVerification', 'createDeliveryRetry', 'createNotificationChannel', 'createReminderPreview', 'createReminderRule', 'createTestDelivery', 'deleteNotificationChannel', 'deleteReminderRule',
       'getNotification', 'getNotificationDelivery', 'getNotificationStats', 'getTestDelivery', 'listNotificationChannels', 'listNotificationDeliveries', 'listNotifications', 'listReminderRules',
       'updateNotification', 'updateNotificationChannel', 'updateReminderRule'],
+    M6: ['createApiToken', 'createApprovalRequest', 'getApprovalRequest', 'getOperation', 'listApiTokens', 'listApprovalRequests', 'revokeApiToken', 'updateApprovalRequest'],
   };
   it('marks exactly the implemented operations stable', () => {
     expect(ops.filter(x => x.o['x-stability'] === 'stable').map(x => x.o.operationId).sort()).toEqual(Object.values(IMPLEMENTED).flat().sort());

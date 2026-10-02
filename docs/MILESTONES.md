@@ -2,7 +2,7 @@
 
 > 自动生成：请更新 milestones.json 或运行 scripts/progress.mjs；不要直接修改本文件。
 
-数据版本：1 · 最近更新：2026-10-02T10:24:31.234Z
+数据版本：1 · 最近更新：2026-10-02T11:34:11.386Z
 
 完成率按原始估算人日加权，只有 done 计入；in_review 不计完成。文档完成不代表业务开发完成。
 
@@ -17,13 +17,13 @@
 | M2 记账核心与数据 | 完成 3 | 7 / 7 | 100.0% |
 | M3 多币种汇率与报表 | 完成 2 | 4.5 / 4.5 | 100.0% |
 | M4 现代响应式产品 UI | 完成 5 | 11.5 / 11.5 | 100.0% |
-| M5 提醒与全部通道 | 待开始 7 | 0 / 11 | 0.0% |
+| M5 提醒与全部通道 | 待开始 6，待验收 1 | 0 / 11 | 0.0% |
 | M6 MCP、Skill 与四 Agent | 待开始 6 | 0 / 6.5 | 0.0% |
 | M7 质量、运维与发布 | 待开始 5 | 0 / 7.5 | 0.0% |
 
 ## 下一步
 
-- **M5-ENGINE** 提醒调度、Outbox 与可靠投递（待开始；后端）：先用假供应商验证队列与任务状态机。
+- **M5-ENGINE** 提醒调度、Outbox 与可靠投递（待验收；后端）：Docker 全量回归（commit c6003e5 起）进行中：集成 75 通过、混沌演练通过、API 24 通过；浏览器用例完成后自评估核销
 
 ## 任务总览
 
@@ -46,14 +46,14 @@
 | M4-DASH | 总览、分析与预算可视化 | 完成 | Claude Code / 前端 | M3-REPORTS, M4-SUBS | 2 |
 | M4-THEME | 外观：主题色与深浅模式 | 完成 | Claude Code / 前端 / 全栈 | M1-API | 1.5 |
 | M4-RESP | 全页面移动端与无障碍验收 | 完成 | Claude Code / 前端 / QA | M4-CORE, M4-DASH, M4-THEME | 2 |
-| M5-ENGINE | 提醒调度、Outbox 与可靠投递 | 待开始 | 未分配 / 后端 | M4-SUBS | 2.5 |
-| M5-TG | Telegram 通道 | 待开始 | 未分配 / 集成开发 | M5-ENGINE | 1 |
-| M5-FEISHU | 飞书通道 | 待开始 | 未分配 / 集成开发 | M5-ENGINE | 1 |
-| M5-WECOM | 企业微信机器人与应用消息 | 待开始 | 未分配 / 集成开发 | M5-ENGINE | 1.5 |
-| M5-WX | 个人微信通道 | 待开始 | 未分配 / 集成开发 | M5-ENGINE | 1.5 |
-| M5-OTHER | 站内、邮件与 Webhook | 待开始 | 未分配 / 集成开发 | M5-ENGINE | 1.5 |
-| M5-CHAOS | 提醒跨通道故障与恢复验收 | 待开始 | 未分配 / QA / 后端 | M5-TG, M5-FEISHU, M5-WECOM, M5-WX, M5-OTHER | 2 |
-| M6-SERVER | MCP HTTP / stdio 服务与令牌 | 待开始 | 未分配 / 全栈 / Agent 集成 | M1-API, M3-REPORTS, M4-SUBS, M5-ENGINE | 2.5 |
+| M5-ENGINE | 提醒调度、Outbox 与可靠投递 | 待验收 | Claude Code / 后端 | M4-SUBS | 2.5 |
+| M5-TG | Telegram 通道 | 待开始 | Claude Code / 集成开发 | M5-ENGINE | 1 |
+| M5-FEISHU | 飞书通道 | 待开始 | Claude Code / 集成开发 | M5-ENGINE | 1 |
+| M5-WECOM | 企业微信机器人与应用消息 | 待开始 | Claude Code / 集成开发 | M5-ENGINE | 1.5 |
+| M5-WX | 个人微信通道 | 待开始 | Claude Code / 集成开发 | M5-ENGINE | 1.5 |
+| M5-OTHER | 站内、邮件与 Webhook | 待开始 | Claude Code / 集成开发 | M5-ENGINE | 1.5 |
+| M5-CHAOS | 提醒跨通道故障与恢复验收 | 待开始 | Claude Code / QA / 后端 | M5-TG, M5-FEISHU, M5-WECOM, M5-WX, M5-OTHER | 2 |
+| M6-SERVER | MCP HTTP / stdio 服务与令牌 | 待开始 | Claude Code / 全栈 / Agent 集成 | M1-API, M3-REPORTS, M4-SUBS, M5-ENGINE | 2.5 |
 | M6-SKILL | 正式 Skill 与配置包 | 待开始 | 未分配 / Agent 集成 | M6-SERVER | 1 |
 | M6-CODEX | Codex 联调 | 待开始 | 未分配 / Agent 集成 / QA | M6-SKILL | 0.5 |
 | M6-CLAUDE | Claude Code 联调 | 待开始 | 未分配 / Agent 集成 / QA | M6-SKILL | 0.5 |
@@ -538,10 +538,10 @@
 
 ### M5-ENGINE · 提醒调度、Outbox 与可靠投递
 
-- 状态：待开始；负责人：未分配；建议角色：后端
+- 状态：待验收；负责人：Claude Code；建议角色：后端
 - 依赖：M4-SUBS；未完成依赖：无
-- 估算：2.5 人日；更新：2026-10-02
-- 下一动作：先用假供应商验证队列与任务状态机。
+- 估算：2.5 人日；更新：2026-10-02T11:34:10.936Z
+- 下一动作：Docker 全量回归（commit c6003e5 起）进行中：集成 75 通过、混沌演练通过、API 24 通过；浏览器用例完成后自评估核销
 
 **执行步骤**
 
@@ -556,14 +556,15 @@
 
 **证据**
 
-尚无完成证据。
+- [docs/evidence/M5-ENGINE/README.md](../docs/evidence/M5-ENGINE/README.md)
+- [packages/db/migrations/0010_notifications.sql](../packages/db/migrations/0010_notifications.sql)
 
 ### M5-TG · Telegram 通道
 
-- 状态：待开始；负责人：未分配；建议角色：集成开发
+- 状态：待开始；负责人：Claude Code；建议角色：集成开发
 - 依赖：M5-ENGINE；未完成依赖：M5-ENGINE
-- 估算：1 人日；更新：2026-10-02
-- 下一动作：准备该渠道测试接收人和凭据后实施。
+- 估算：1 人日；更新：2026-10-02T11:34:11.005Z
+- 下一动作：实现与 mock 收件证据已完成（docs/evidence/M5-TG）；待 M5-ENGINE 核销后自评估，真实接收列入最终人工审查
 
 **执行步骤**
 
@@ -582,10 +583,10 @@
 
 ### M5-FEISHU · 飞书通道
 
-- 状态：待开始；负责人：未分配；建议角色：集成开发
+- 状态：待开始；负责人：Claude Code；建议角色：集成开发
 - 依赖：M5-ENGINE；未完成依赖：M5-ENGINE
-- 估算：1 人日；更新：2026-10-02
-- 下一动作：准备该渠道测试接收人和凭据后实施。
+- 估算：1 人日；更新：2026-10-02T11:34:11.070Z
+- 下一动作：实现与 mock 收件证据已完成（docs/evidence/M5-FEISHU）；待 M5-ENGINE 核销后自评估，真实接收列入最终人工审查
 
 **执行步骤**
 
@@ -604,10 +605,10 @@
 
 ### M5-WECOM · 企业微信机器人与应用消息
 
-- 状态：待开始；负责人：未分配；建议角色：集成开发
+- 状态：待开始；负责人：Claude Code；建议角色：集成开发
 - 依赖：M5-ENGINE；未完成依赖：M5-ENGINE
-- 估算：1.5 人日；更新：2026-10-02
-- 下一动作：准备该渠道测试接收人和凭据后实施。
+- 估算：1.5 人日；更新：2026-10-02T11:34:11.131Z
+- 下一动作：实现与 mock 收件证据已完成（docs/evidence/M5-WECOM）；待 M5-ENGINE 核销后自评估，真实接收列入最终人工审查
 
 **执行步骤**
 
@@ -626,10 +627,10 @@
 
 ### M5-WX · 个人微信通道
 
-- 状态：待开始；负责人：未分配；建议角色：集成开发
+- 状态：待开始；负责人：Claude Code；建议角色：集成开发
 - 依赖：M5-ENGINE；未完成依赖：M5-ENGINE
-- 估算：1.5 人日；更新：2026-10-02
-- 下一动作：准备该渠道测试接收人和凭据后实施。
+- 估算：1.5 人日；更新：2026-10-02T11:34:11.185Z
+- 下一动作：实现与 mock 收件证据已完成（docs/evidence/M5-WX）；待 M5-ENGINE 核销后自评估，真实接收列入最终人工审查
 
 **执行步骤**
 
@@ -648,10 +649,10 @@
 
 ### M5-OTHER · 站内、邮件与 Webhook
 
-- 状态：待开始；负责人：未分配；建议角色：集成开发
+- 状态：待开始；负责人：Claude Code；建议角色：集成开发
 - 依赖：M5-ENGINE；未完成依赖：M5-ENGINE
-- 估算：1.5 人日；更新：2026-10-02
-- 下一动作：准备该渠道测试接收人和凭据后实施。
+- 估算：1.5 人日；更新：2026-10-02T11:34:11.258Z
+- 下一动作：实现与 mock 收件证据已完成（docs/evidence/M5-OTHER）；待 M5-ENGINE 核销后自评估，真实接收列入最终人工审查
 
 **执行步骤**
 
@@ -670,10 +671,10 @@
 
 ### M5-CHAOS · 提醒跨通道故障与恢复验收
 
-- 状态：待开始；负责人：未分配；建议角色：QA / 后端
+- 状态：待开始；负责人：Claude Code；建议角色：QA / 后端
 - 依赖：M5-TG, M5-FEISHU, M5-WECOM, M5-WX, M5-OTHER；未完成依赖：M5-TG, M5-FEISHU, M5-WECOM, M5-WX, M5-OTHER
-- 估算：2 人日；更新：2026-10-02
-- 下一动作：用故障注入演练完整通知链。
+- 估算：2 人日；更新：2026-10-02T11:34:11.323Z
+- 下一动作：实现与 mock 收件证据已完成（docs/evidence/M5-CHAOS）；待 M5-ENGINE 核销后自评估，真实接收列入最终人工审查
 
 **执行步骤**
 
@@ -692,10 +693,10 @@
 
 ### M6-SERVER · MCP HTTP / stdio 服务与令牌
 
-- 状态：待开始；负责人：未分配；建议角色：全栈 / Agent 集成
+- 状态：待开始；负责人：Claude Code；建议角色：全栈 / Agent 集成
 - 依赖：M1-API, M3-REPORTS, M4-SUBS, M5-ENGINE；未完成依赖：M5-ENGINE
-- 估算：2.5 人日；更新：2026-10-02
-- 下一动作：先实现只读 context/summary，再加入 preview/create。
+- 估算：2.5 人日；更新：2026-10-02T11:34:11.386Z
+- 下一动作：开发中（前置 M5-ENGINE 待核销）：PAT（只存哈希、作用域与账本限制、立即撤销）、审批（绑定方法 / 路径 / 请求体哈希，网页端批准后 X-Approval-Id 消费）、operation 查询与路由已实现（迁移 0011）；下一步 MCP 工具（HTTP /mcp + stdio）、P10 页面与测试
 
 **执行步骤**
 
@@ -996,3 +997,11 @@
 | 2026-10-02T10:24:25.750Z | M4-CORE | in_progress → done | Claude Code | 记账 / 更正 / 退款 / 作废 / 归档 / 导入导出 / 只读角色与无 JS 首屏由 flows / settings / visual 规格在 Docker 桌面与移动项目验证 |
 | 2026-10-02T10:24:31.174Z | M4-DASH | todo → done | Claude Code | 合计与钻取一致、同实例更新、卸载清理、首屏 JS 152.4 KiB gzip（含框架）、ECharts 独立延迟 chunk |
 | 2026-10-02T10:24:31.234Z | M4-RESP | todo → done | Claude Code | 17 页 × 6 宽度 × 4 组外观无溢出、axe 0 违规、移动触摸目标 ≥44px、减少动画动态生效 |
+| 2026-10-02T11:34:10.936Z | M5-ENGINE | todo → in_review | Claude Code | 提醒引擎、P07/P08 与本地渠道 mock 已实现；等待 Docker 全量回归结果 |
+| 2026-10-02T11:34:11.005Z | M5-TG | todo → todo | Claude Code | 适配器与 E2E 已写，证据文档已建 |
+| 2026-10-02T11:34:11.070Z | M5-FEISHU | todo → todo | Claude Code | 适配器与 E2E 已写，证据文档已建 |
+| 2026-10-02T11:34:11.131Z | M5-WECOM | todo → todo | Claude Code | 适配器与 E2E 已写，证据文档已建 |
+| 2026-10-02T11:34:11.185Z | M5-WX | todo → todo | Claude Code | 适配器与 E2E 已写，证据文档已建 |
+| 2026-10-02T11:34:11.258Z | M5-OTHER | todo → todo | Claude Code | 适配器与 E2E 已写，证据文档已建 |
+| 2026-10-02T11:34:11.323Z | M5-CHAOS | todo → todo | Claude Code | 适配器与 E2E 已写，证据文档已建 |
+| 2026-10-02T11:34:11.386Z | M6-SERVER | todo → todo | Claude Code | M6-SERVER 进行中的工作随 WIP 提交 |

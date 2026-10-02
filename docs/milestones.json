@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "project": "Ledger Next",
-  "updatedAt": "2026-10-02T10:24:31.234Z",
+  "updatedAt": "2026-10-02T11:34:11.386Z",
   "timezone": "Asia/Hong_Kong",
   "milestones": [
     {
@@ -643,8 +643,8 @@
         "M4-SUBS"
       ],
       "role": "后端",
-      "owner": "未分配",
-      "status": "todo",
+      "owner": "Claude Code",
+      "status": "in_review",
       "requiresReview": true,
       "reviewer": "",
       "blockedReason": "",
@@ -657,9 +657,12 @@
         "worker/Redis 重启可恢复，不重复入账。",
         "已付/取消/规则版本变化使旧提醒失效。"
       ],
-      "nextAction": "先用假供应商验证队列与任务状态机。",
-      "evidence": [],
-      "updatedAt": "2026-10-02"
+      "nextAction": "Docker 全量回归（commit c6003e5 起）进行中：集成 75 通过、混沌演练通过、API 24 通过；浏览器用例完成后自评估核销",
+      "evidence": [
+        "docs/evidence/M5-ENGINE/README.md",
+        "packages/db/migrations/0010_notifications.sql"
+      ],
+      "updatedAt": "2026-10-02T11:34:10.936Z"
     },
     {
       "id": "M5-TG",
@@ -671,7 +674,7 @@
         "M5-ENGINE"
       ],
       "role": "集成开发",
-      "owner": "未分配",
+      "owner": "Claude Code",
       "status": "todo",
       "requiresReview": true,
       "reviewer": "",
@@ -685,9 +688,9 @@
         "Telegram有独立接收证据，不用其他渠道结果替代。",
         "密钥不回显，平台受理不误报用户已读。"
       ],
-      "nextAction": "准备该渠道测试接收人和凭据后实施。",
+      "nextAction": "实现与 mock 收件证据已完成（docs/evidence/M5-TG）；待 M5-ENGINE 核销后自评估，真实接收列入最终人工审查",
       "evidence": [],
-      "updatedAt": "2026-10-02"
+      "updatedAt": "2026-10-02T11:34:11.005Z"
     },
     {
       "id": "M5-FEISHU",
@@ -699,7 +702,7 @@
         "M5-ENGINE"
       ],
       "role": "集成开发",
-      "owner": "未分配",
+      "owner": "Claude Code",
       "status": "todo",
       "requiresReview": true,
       "reviewer": "",
@@ -713,9 +716,9 @@
         "飞书有独立接收证据，不用其他渠道结果替代。",
         "密钥不回显，平台受理不误报用户已读。"
       ],
-      "nextAction": "准备该渠道测试接收人和凭据后实施。",
+      "nextAction": "实现与 mock 收件证据已完成（docs/evidence/M5-FEISHU）；待 M5-ENGINE 核销后自评估，真实接收列入最终人工审查",
       "evidence": [],
-      "updatedAt": "2026-10-02"
+      "updatedAt": "2026-10-02T11:34:11.070Z"
     },
     {
       "id": "M5-WECOM",
@@ -727,7 +730,7 @@
         "M5-ENGINE"
       ],
       "role": "集成开发",
-      "owner": "未分配",
+      "owner": "Claude Code",
       "status": "todo",
       "requiresReview": true,
       "reviewer": "",
@@ -741,9 +744,9 @@
         "企业微信有独立接收证据，不用其他渠道结果替代。",
         "密钥不回显，平台受理不误报用户已读。"
       ],
-      "nextAction": "准备该渠道测试接收人和凭据后实施。",
+      "nextAction": "实现与 mock 收件证据已完成（docs/evidence/M5-WECOM）；待 M5-ENGINE 核销后自评估，真实接收列入最终人工审查",
       "evidence": [],
-      "updatedAt": "2026-10-02"
+      "updatedAt": "2026-10-02T11:34:11.131Z"
     },
     {
       "id": "M5-WX",
@@ -755,7 +758,7 @@
         "M5-ENGINE"
       ],
       "role": "集成开发",
-      "owner": "未分配",
+      "owner": "Claude Code",
       "status": "todo",
       "requiresReview": true,
       "reviewer": "",
@@ -769,9 +772,9 @@
         "个人微信有独立接收证据，不用其他渠道结果替代。",
         "密钥不回显，平台受理不误报用户已读。"
       ],
-      "nextAction": "准备该渠道测试接收人和凭据后实施。",
+      "nextAction": "实现与 mock 收件证据已完成（docs/evidence/M5-WX）；待 M5-ENGINE 核销后自评估，真实接收列入最终人工审查",
       "evidence": [],
-      "updatedAt": "2026-10-02"
+      "updatedAt": "2026-10-02T11:34:11.185Z"
     },
     {
       "id": "M5-OTHER",
@@ -783,7 +786,7 @@
         "M5-ENGINE"
       ],
       "role": "集成开发",
-      "owner": "未分配",
+      "owner": "Claude Code",
       "status": "todo",
       "requiresReview": true,
       "reviewer": "",
@@ -797,9 +800,9 @@
         "其他有独立接收证据，不用其他渠道结果替代。",
         "密钥不回显，平台受理不误报用户已读。"
       ],
-      "nextAction": "准备该渠道测试接收人和凭据后实施。",
+      "nextAction": "实现与 mock 收件证据已完成（docs/evidence/M5-OTHER）；待 M5-ENGINE 核销后自评估，真实接收列入最终人工审查",
       "evidence": [],
-      "updatedAt": "2026-10-02"
+      "updatedAt": "2026-10-02T11:34:11.258Z"
     },
     {
       "id": "M5-CHAOS",
@@ -815,7 +818,7 @@
         "M5-OTHER"
       ],
       "role": "QA / 后端",
-      "owner": "未分配",
+      "owner": "Claude Code",
       "status": "todo",
       "requiresReview": true,
       "reviewer": "",
@@ -829,9 +832,9 @@
         "每种故障有预期状态与恢复证据。",
         "实测调度延迟符合预算，重复风险明确可见。"
       ],
-      "nextAction": "用故障注入演练完整通知链。",
+      "nextAction": "实现与 mock 收件证据已完成（docs/evidence/M5-CHAOS）；待 M5-ENGINE 核销后自评估，真实接收列入最终人工审查",
       "evidence": [],
-      "updatedAt": "2026-10-02"
+      "updatedAt": "2026-10-02T11:34:11.323Z"
     },
     {
       "id": "M6-SERVER",
@@ -846,7 +849,7 @@
         "M5-ENGINE"
       ],
       "role": "全栈 / Agent 集成",
-      "owner": "未分配",
+      "owner": "Claude Code",
       "status": "todo",
       "requiresReview": true,
       "reviewer": "",
@@ -860,9 +863,9 @@
         "MCP 不直连数据库、不另写资金逻辑。",
         "只读令牌不可写，撤销立即生效，幂等跨入口一致。"
       ],
-      "nextAction": "先实现只读 context/summary，再加入 preview/create。",
+      "nextAction": "开发中（前置 M5-ENGINE 待核销）：PAT（只存哈希、作用域与账本限制、立即撤销）、审批（绑定方法 / 路径 / 请求体哈希，网页端批准后 X-Approval-Id 消费）、operation 查询与路由已实现（迁移 0011）；下一步 MCP 工具（HTTP /mcp + stdio）、P10 页面与测试",
       "evidence": [],
-      "updatedAt": "2026-10-02"
+      "updatedAt": "2026-10-02T11:34:11.386Z"
     },
     {
       "id": "M6-SKILL",
@@ -1468,6 +1471,70 @@
       "to": "done",
       "actor": "Claude Code",
       "note": "17 页 × 6 宽度 × 4 组外观无溢出、axe 0 违规、移动触摸目标 ≥44px、减少动画动态生效"
+    },
+    {
+      "at": "2026-10-02T11:34:10.936Z",
+      "id": "M5-ENGINE",
+      "from": "todo",
+      "to": "in_review",
+      "actor": "Claude Code",
+      "note": "提醒引擎、P07/P08 与本地渠道 mock 已实现；等待 Docker 全量回归结果"
+    },
+    {
+      "at": "2026-10-02T11:34:11.005Z",
+      "id": "M5-TG",
+      "from": "todo",
+      "to": "todo",
+      "actor": "Claude Code",
+      "note": "适配器与 E2E 已写，证据文档已建"
+    },
+    {
+      "at": "2026-10-02T11:34:11.070Z",
+      "id": "M5-FEISHU",
+      "from": "todo",
+      "to": "todo",
+      "actor": "Claude Code",
+      "note": "适配器与 E2E 已写，证据文档已建"
+    },
+    {
+      "at": "2026-10-02T11:34:11.131Z",
+      "id": "M5-WECOM",
+      "from": "todo",
+      "to": "todo",
+      "actor": "Claude Code",
+      "note": "适配器与 E2E 已写，证据文档已建"
+    },
+    {
+      "at": "2026-10-02T11:34:11.185Z",
+      "id": "M5-WX",
+      "from": "todo",
+      "to": "todo",
+      "actor": "Claude Code",
+      "note": "适配器与 E2E 已写，证据文档已建"
+    },
+    {
+      "at": "2026-10-02T11:34:11.258Z",
+      "id": "M5-OTHER",
+      "from": "todo",
+      "to": "todo",
+      "actor": "Claude Code",
+      "note": "适配器与 E2E 已写，证据文档已建"
+    },
+    {
+      "at": "2026-10-02T11:34:11.323Z",
+      "id": "M5-CHAOS",
+      "from": "todo",
+      "to": "todo",
+      "actor": "Claude Code",
+      "note": "适配器与 E2E 已写，证据文档已建"
+    },
+    {
+      "at": "2026-10-02T11:34:11.386Z",
+      "id": "M6-SERVER",
+      "from": "todo",
+      "to": "todo",
+      "actor": "Claude Code",
+      "note": "M6-SERVER 进行中的工作随 WIP 提交"
     }
   ]
 }

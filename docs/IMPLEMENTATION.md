@@ -1,6 +1,6 @@
 # 实现状态与本地运行
 
-2026-10-02 · M1 工程、身份与 REST 契约；M2 账务模型、记账 API、CSV 导入导出；M3 分钟汇率（本地 mock 供应商）与报表 / 预算；M4 全部业务页面、订阅、外观同步与响应式 / 无障碍验收。UI 基线为 `docs/ui/index.html` v0.3。进度以 [MILESTONES.md](MILESTONES.md) 为准；按用户授权，门禁改为实现者自评估 + Docker E2E，汇总在其“最终人工审查清单”。
+2026-10-02 · M1 工程、身份与 REST 契约；M2 账务模型、记账 API、CSV 导入导出；M3 分钟汇率（本地 mock 供应商）与报表 / 预算；M4 全部业务页面、订阅、外观同步与响应式 / 无障碍验收；M5 提醒调度与七类通知渠道（全部经本地协议 mock 验证）。UI 基线为 `docs/ui/index.html` v0.3。进度以 [MILESTONES.md](MILESTONES.md) 为准；按用户授权，门禁改为实现者自评估 + Docker E2E，汇总在其“最终人工审查清单”。
 
 ## 本批范围
 
@@ -22,6 +22,7 @@
 - 异步任务（M2-IMPORT 起）：业务事务写 outbox → Worker 每秒以 SKIP LOCKED 认领并发布到 BullMQ（jobId = 事件 ID）→ 幂等处理器；每分钟补扫停滞任务。
 - 汇率（M3-FX，迁移 0005）：Fixer 协议适配器，Worker 每 60 秒以 Redis 租约单批拉取；新鲜度按源时间（≤120 s fresh / ≤15 min delayed / 更久或连续失败 stale）；交叉率取同一批次；跳变批次待核验；预览锁定汇率；回溯交易用当时批次或当日历史日率，缺失时排队补录；人工汇率记录；管理员刷新任务（`LEDGER_ADMIN_EMAILS`）。**供应商为本地 mock**（`apps/mock-services`，`compose.mock.yaml`），真实套餐待人工审查。
 - 报表与预算（M3-REPORTS，迁移 0007）：summary / cash-flow / category-breakdown / account-balances / budget-progress 与预算 CRUD。只汇总有效版本（posted），转账不计收支，退款冲减支出并计入退款发生期；历史口径用入账时的基准金额，其他币种逐笔按当日交叉率（缺失计入 excludedCount 并标记 partial，可用人工汇率补齐）；当前估值按最新参考汇率。Redis 缓存 30 秒，键含账本、数据版本（每次资金写入同事务递增）、FX 版本（当前估值）与全部查询参数。
+- 提醒（M5，迁移 0010）：规则（订阅到期 / 逾期 / 试用结束 / 取消截止 / 预算阈值 / 每日记账 / 周与月小结 / 汇率阈值 / 投递失败）按“账本 + 属主”保存，预览给出下三次时间与免打扰影响；Worker 每 `NOTIFY_TICK_SECONDS`（默认 10 秒）物化 48 小时内的提醒、认领到期投递并经 BullMQ 发送；投递日志以去重键保证唯一，发送前复核规则版本、账单与订阅状态、渠道状态和免打扰；429 / 5xx / 网络错误退避重试 5 次后死信，无应答记 unknown 不自动重发，P07 可人工重放。渠道：Telegram、飞书、企业微信群机器人、企业微信应用消息、个人微信（pushplus）、邮件（SMTP + 验证码）、Webhook（HMAC、SSRF 防护）、站内；凭据以 `LEDGER_ENCRYPTION_KEYS` 信封加密，`pnpm channels:rewrap` 轮换主密钥。测试 / 演示栈（compose.mock.yaml）把官方域名改写到 `mock-services`，SMTP 指向其内置 SMTP；生产需配置真实 `SMTP_URL`，不设置改写变量。
 - 认证限流沿用 Better Auth 默认（sign-in / sign-up 每客户端 10 秒 3 次），客户端地址取 `X-Forwarded-For`；生产反向代理须覆盖该头为真实客户端地址。
 
 ## 运行
@@ -44,7 +45,7 @@ docker compose logs --tail 100 web worker migrate
 docker compose down
 ```
 
-普通 `down` 保留数据库。不要对需要保留的数据使用 `down --volumes`。Worker 负责心跳、过期数据清理、汇率抓取（配置 `FX_PROVIDER_URL` 后）与 outbox → BullMQ 异步任务；提醒调度与渠道投递随 M5。
+普通 `down` 保留数据库。不要对需要保留的数据使用 `down --volumes`。Worker 负责心跳、过期数据清理、汇率抓取（配置 `FX_PROVIDER_URL` 后）、提醒调度与渠道投递，以及 outbox → BullMQ 异步任务。升级到 M5 的已有部署需在 `.env` 增加 `LEDGER_ENCRYPTION_KEYS`（`node -e "console.log('k1:'+require('crypto').randomBytes(32).toString('base64'))"`）。
 
 在 TLS 被代理重签的网络里构建镜像时，设置 `LEDGER_BUILD_CA=<CA 文件>` 并叠加 `compose.build-ca.yaml`（CA 以 BuildKit secret 传入，不进入镜像层）；`pnpm test:e2e` 会自动叠加。
 
@@ -77,4 +78,4 @@ Windows 不在 PATH 的 Docker 可以通过 `LEDGER_DOCKER` 指定可执行文�
 
 ## 尚未实现
 
-PAT / Bearer 认证与作用域执行（M6-SERVER，契约已定义）；M5 提醒与渠道（P07 / P08 页面目前为说明页）；M6 MCP 与四客户端；M7 完整回归、备份恢复与生产发布。注册目前用于受控自托管环境；邮件验证、找回密码和 OIDC 尚未接入，UI 不显示不可用入口。添加成员仅支持已注册邮箱，没有发送邀请邮件。
+M6 进行中：PAT（Bearer，只存哈希；作用域、账本限制、撤销即时生效，签发需 15 分钟内重新登录）、高影响写入的网页审批（绑定方法 / 路径 / 请求体哈希与发起人，`X-Approval-Id` 一次性消费）与 operation 查询已接入 REST（迁移 0011），尚缺测试与 P10 页面；MCP 服务（HTTP `/mcp` 与 stdio，仅经 REST）、正式 Skill 包与四客户端验证未完成。M7 完整回归、备份恢复与生产发布未开始。注册目前用于受控自托管环境；邮件验证、找回密码和 OIDC 尚未接入，UI 不显示不可用入口。添加成员仅支持已注册邮箱，没有发送邀请邮件。

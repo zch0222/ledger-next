@@ -18,8 +18,9 @@ import { createChannel, createTestDelivery, deleteChannel, getTestDelivery, list
 import { createReminderPreview, createReminderRule, deleteReminderRule, listReminderRules, presentRule, updateReminderRule } from '../../../../../packages/domain/src/reminders';
 import { deliveryStats, getDelivery, getNotification, listDeliveries, listNotifications, presentNotification, retryDelivery, updateNotification } from '../../../../../packages/domain/src/deliveries';
 import { presentDelivery } from '../../../../../packages/domain/src/notify-store';
+import { createApproval, createToken, decideApproval, getApproval, getOperation, listApprovals, listTokens, presentToken, revokeToken, type Auth } from '../../../../../packages/domain/src/agents';
 
-export type ApiContext = AuthContext & { user: { name: string; email: string } };
+export type ApiContext = AuthContext & { user: { name: string; email: string }; auth: Auth };
 export type ApiResult = { status: 200 | 201 | 202 | 204; data?: unknown; headers?: Record<string, string>; page?: { nextCursor: string | null; hasMore: boolean }; file?: { content: string; name: string; type: string } };
 type Input = { ctx: ApiContext; params: Record<string, string>; query: Record<string, unknown>; body: unknown; request: Request; operationId: string };
 type Handler = (input: Input, db?: Executor) => Promise<ApiResult>;
@@ -48,14 +49,16 @@ async function pagedBy<T>(input: Input, options: { fetch: (keyset: Keyset) => Pr
 const paged = <T extends { id: string; createdAt: Date }, R>(input: Input, fetch: (keyset: Keyset) => Promise<T[]>, present: (row: T) => R) =>
   pagedBy(input, { fetch, position: keysetOf, schema: createdPosition, present: rows => rows.map(present) });
 const includeArchived = (input: Input) => ({ includeArchived: input.query.includeArchived as boolean });
+/** A token sees only the ledgers it was issued for. */
+const visibleTo = (ctx: ApiContext) => (ledger: { id: string }) => ctx.auth.type !== 'token' || ctx.auth.ledgerIds.includes(ledger.id);
 
 // Typed as a complete record: a stable operation without a handler (or a handler for a planned one) fails to compile.
 export const handlers: Record<StableOperationId, Handler> = {
   async getMe({ ctx }) {
-    const ledgers = (await listLedgers(ctx)).map(omitCreatedAt);
-    return { status: 200, data: { id: ctx.userId, ...ctx.user, defaultLedgerId: ledgers[0]?.id ?? null, ledgers, auth: { type: 'session', scopes: [...SCOPES] } } };
+    const ledgers = (await listLedgers(ctx)).filter(visibleTo(ctx)).map(omitCreatedAt);
+    return { status: 200, data: { id: ctx.userId, ...ctx.user, defaultLedgerId: ledgers[0]?.id ?? null, ledgers, auth: ctx.auth.type === 'token' ? { type: 'token', scopes: ctx.auth.scopes } : { type: 'session', scopes: [...SCOPES] } } };
   },
-  listLedgers: input => paged(input, keyset => listLedgers(input.ctx, keyset), omitCreatedAt),
+  listLedgers: input => paged(input, async keyset => (await listLedgers(input.ctx, keyset)).filter(visibleTo(input.ctx)), omitCreatedAt),
   async createLedger({ ctx, body }, db) {
     const ledger = await createLedger(ctx, body, db);
     return { status: 201, data: ledger, headers: { Location: `/api/v1/ledgers/${ledger.id}`, ...etag(ledger.version) } };
@@ -229,4 +232,16 @@ export const handlers: Record<StableOperationId, Handler> = {
   listNotifications: input => paged(input, keyset => listNotifications(input.ctx, input.params.ledgerId, input.query, keyset), presentNotification),
   async getNotification({ ctx, params }) { const row = await getNotification(ctx, params.ledgerId, params.notificationId); return { status: 200, data: presentNotification(row), headers: etag(row.version) }; },
   async updateNotification({ ctx, params, body, request }) { const row = await updateNotification(ctx, params.ledgerId, params.notificationId, body, ifMatch(request)); return { status: 200, data: presentNotification(row), headers: etag(row.version) }; },
+  // M6: personal access tokens, approvals, operations.
+  listApiTokens: input => pagedBy(input, { fetch: keyset => listTokens(input.ctx, keyset), position: keysetOf, schema: createdPosition, present: rows => rows.map(presentToken) }),
+  async createApiToken({ ctx, body }) { const token = await createToken(ctx, body); return { status: 201, data: token, headers: { Location: `/api/v1/api-tokens/${token.id}` } }; },
+  async revokeApiToken({ ctx, params }) { await revokeToken(ctx, params.tokenId); return { status: 204 }; },
+  listApprovalRequests: input => pagedBy(input, { fetch: keyset => listApprovals(input.ctx, input.params.ledgerId, input.query, keyset), position: row => [row.createdAtDate.toISOString(), row.id], schema: createdPosition, present: rows => rows.map(({ createdAtDate, ...rest }) => { void createdAtDate; return rest; }) }),
+  async createApprovalRequest({ ctx, params, body }) {
+    const approval = await createApproval(ctx, params.ledgerId, body);
+    return { status: 201, data: approval, headers: { ...location(params.ledgerId, 'approval-requests', approval.id), ...etag(approval.version) } };
+  },
+  async getApprovalRequest({ ctx, params }) { const approval = await getApproval(ctx, params.ledgerId, params.approvalId); return { status: 200, data: approval, headers: etag(approval.version) }; },
+  async updateApprovalRequest({ ctx, params, body, request }) { const approval = await decideApproval(ctx, params.ledgerId, params.approvalId, body, ifMatch(request)); return { status: 200, data: approval, headers: etag(approval.version) }; },
+  async getOperation({ ctx, params }) { return { status: 200, data: await getOperation(ctx, params.ledgerId, params.operationId) }; },
 };

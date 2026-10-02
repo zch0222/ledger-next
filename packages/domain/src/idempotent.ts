@@ -51,3 +51,9 @@ export async function pruneIdempotencyRecords(now = new Date()) {
   const [result] = await database().delete(idempotencyRecords).where(lte(idempotencyRecords.expiresAt, now)).limit(1000);
   return result.affectedRows;
 }
+
+/** Whether a completed write exists for this key (an approval is not needed again to replay it). */
+export async function hasIdempotencyRecord(request: { actorId: string; method: string; path: string; key: string }) {
+  const [row] = await database().select({ status: idempotencyRecords.responseStatus }).from(idempotencyRecords).where(eq(idempotencyRecords.scopeHash, idempotencyScope(request.actorId, request.method, request.path, request.key)));
+  return Boolean(row && row.status > 0);
+}
