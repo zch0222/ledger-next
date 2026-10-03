@@ -13,3 +13,4 @@ playwright-report/
 .pnpm-store/
 docs/evidence/runtime/
 playwright.local.config.ts
+.playwright-mcp/
