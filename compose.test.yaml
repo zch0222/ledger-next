@@ -48,7 +48,7 @@ services:
       web: { condition: service_healthy }
       worker: { condition: service_healthy }
     volumes:
-      - ./test-results:/app/test-results
-      - ./playwright-report:/app/playwright-report
+      - ${LEDGER_HOST_DIR:-.}/test-results:/app/test-results
+      - ${LEDGER_HOST_DIR:-.}/playwright-report:/app/playwright-report
     init: true
     shm_size: 1gb

@@ -31,11 +31,10 @@
 
 ## 运行
 
-前置：本机 Docker Engine / Docker Desktop（Linux 容器）、Compose ≥2.24.4；执行本机质量命令还需要 Node 24 与 pnpm 11.19.0。Compose 的 `!override` 用于清除测试栈的端口映射。
+前置：本机只需 Docker Engine / Docker Desktop（Linux 容器）、Compose ≥2.24.4。依赖安装与构建都在 Dockerfile 多阶段内完成（构建上下文排除本机 `node_modules`）；生成 `.env`、质量检查和 e2e / perf / ops 编排也都有容器入口，不需要本机 Node.js / pnpm。本机装有 Node 24 与 pnpm 11.19.0 时，`pnpm` 命令照常可用。Compose 的 `!override` 用于清除测试栈的端口映射。仓库 `.gitattributes` 固定 LF 换行，Windows 检出送进 Linux 镜像的文件与 CI 一致。
 
 ```powershell
-pnpm install --frozen-lockfile
-node scripts/setup-env.mjs
+docker compose -f compose.tools.yaml run --rm setup-env   # 本机有 Node 时也可 node scripts/setup-env.mjs
 docker compose up -d --build --wait
 # 本地演示汇率等第三方功能（全部为本地 mock，不连接真实服务）：
 docker compose -f compose.yaml -f compose.mock.yaml up -d --build --wait
@@ -49,13 +48,25 @@ docker compose logs --tail 100 web worker migrate
 docker compose down
 ```
 
-普通 `down` 保留数据库。不要对需要保留的数据使用 `down --volumes`。Worker 负责心跳、过期数据清理、汇率抓取（配置 `FX_PROVIDER_URL` 后）、提醒调度与渠道投递，以及 outbox → BullMQ 异步任务。升级到 M5 的已有部署需在 `.env` 增加 `LEDGER_ENCRYPTION_KEYS`（`node -e "console.log('k1:'+require('crypto').randomBytes(32).toString('base64'))"`）。
+普通 `down` 保留数据库。不要对需要保留的数据使用 `down --volumes`。Worker 负责心跳、过期数据清理、汇率抓取（配置 `FX_PROVIDER_URL` 后）、提醒调度与渠道投递，以及 outbox → BullMQ 异步任务。升级到 M5 的已有部署需在 `.env` 增加 `LEDGER_ENCRYPTION_KEYS`（`docker compose -f compose.tools.yaml run --rm tools node -p "'k1:'+require('crypto').randomBytes(32).toString('base64')"`）。
 
-在 TLS 被代理重签的网络里构建镜像时，设置 `LEDGER_BUILD_CA=<CA 文件>` 并叠加 `compose.build-ca.yaml`（CA 以 BuildKit secret 传入，不进入镜像层）；`pnpm test:e2e` 会自动叠加。
+在 TLS 被代理重签的网络里构建镜像时，设置 `LEDGER_BUILD_CA=<CA 文件>` 并叠加 `compose.build-ca.yaml`（CA 以 BuildKit secret 传入，不进入镜像层）；`pnpm test:e2e` 会自动叠加。经 `compose.tools.yaml` 运行时，CA 文件须放在仓库内并写相对路径（容器只看得到挂载到 `/work` 的仓库）。
 
 生产部署沿用 Compose；设置真实 HTTPS `APP_URL`、独立随机密钥和反向代理，Cookie 会按 HTTPS 自动启用 Secure。数据库不暴露公网。部署、备份、恢复与常见事件处理见 [RUNBOOK.md](RUNBOOK.md)。
 
 ## 质量命令
+
+只有 Docker 时：
+
+```powershell
+docker build --target verify .                          # lint + typecheck + test:unit + contract:check + progress validate
+docker build --target verify-report --output . .        # 同上，并把 coverage/ 写回仓库
+docker compose -f compose.tools.yaml run --rm e2e       # = pnpm test:e2e；另有 perf（test:perf）、ops（test:ops）
+```
+
+`verify` 在镜像构建阶段用与生产镜像相同的依赖层执行检查，任一失败即构建失败；结果按输入缓存，源码未变时复用上次通过的结果，需要强制重跑时加 `--no-cache-filter verify`。`compose.tools.yaml` 的 toolbox 容器（Node 24 + Docker CLI / Compose / Buildx）把仓库挂载到 `/work` 并共享 Docker socket，在本机 Docker 引擎上启动与 `pnpm test:*` 完全相同的独立测试栈。测试栈的证据目录是引擎侧的绑定挂载，`scripts/toolbox-host.mjs` 从 toolbox 容器自身的挂载推断仓库在引擎侧的路径（`LEDGER_HOST_DIR`；Docker Desktop for Windows 映射为 `/run/desktop/mnt/host/<盘符>/…`）。推断不对时（例如其他虚拟化方案）手动设置 `LEDGER_HOST_DIR`。
+
+本机有 Node 24 与 pnpm 11.19.0 时：
 
 ```powershell
 pnpm lint
@@ -68,7 +79,7 @@ node scripts/progress.mjs validate
 
 修改 `packages/contracts/src` 后运行 `pnpm contract:generate` 并提交生成的 `openapi.json` 与 `packages/api-client/src/schema.d.ts`。
 
-`test:e2e` 检查 Docker context 必须指向本机，创建 `ledger-e2e-{pid}` 独立项目及随机凭据，构建真实生产 Web 镜像；MySQL 迁移与 worker 就绪后先重放迁移，创建持久化样本，重启 MySQL / Redis / Web / worker 并验证账号、认证和账本保留，再在 Playwright 容器内执行 API 集成和浏览器测试，最后仅清理本次测试项目与卷。不会使用本机开发数据库，也不会用 mock / SQLite 替代 MySQL；第三方供应商（汇率、后续通知渠道）一律由测试栈内的 `mock-services` 按公开协议模拟，可注入故障。失败返回非零退出码；trace、截图、JSON 和 HTML 报告在 `test-results/`、`playwright-report/`。
+`test:e2e` 检查 Docker context 必须指向本机，创建 `ledger-e2e-{pid}-{随机后缀}` 独立项目及随机凭据，构建真实生产 Web 镜像；MySQL 迁移与 worker 就绪后先重放迁移，创建持久化样本，重启 MySQL / Redis / Web / worker 并验证账号、认证和账本保留，再在 Playwright 容器内执行 API 集成和浏览器测试，最后仅清理本次测试项目与卷。不会使用本机开发数据库，也不会用 mock / SQLite 替代 MySQL；第三方供应商（汇率、后续通知渠道）一律由测试栈内的 `mock-services` 按公开协议模拟，可注入故障。失败返回非零退出码；trace、截图、JSON 和 HTML 报告在 `test-results/`、`playwright-report/`。
 
 `pnpm test:integration` 运行真实 MySQL 集成套件（需要 `DATABASE_URL`，`test:e2e` 在隔离 Docker 栈内自动执行）；`pnpm test:api` 是针对已有运行环境的 Playwright API 测试入口；完整验证以 `test:e2e` 为准。单元测试覆盖权限 / 版本 / Origin 规则、输入校验、主题算法、分页游标签名、幂等指纹、OpenAPI 生成与路由匹配、破坏性变更检测；端到端契约测试用 ajv 按 openapi.json 校验真实响应（状态码必须在该操作中声明），并用生成的 SDK 访问真实服务；数据库事务和认证库通过真实 MySQL API 集成验证，不用 mock 的单元覆盖率冒充系统覆盖率。
 

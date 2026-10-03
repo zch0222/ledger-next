@@ -1,0 +1,43 @@
+# Repository scripts with only Docker on the host (no local Node.js / pnpm). The checkout is mounted at /work and the
+# engine socket is shared, so the e2e / perf / ops stacks start on the host engine exactly as `pnpm test:*` would:
+#   docker compose -f compose.tools.yaml run --rm setup-env    # = node scripts/setup-env.mjs
+#   docker compose -f compose.tools.yaml run --rm e2e          # = pnpm test:e2e (also: perf, ops)
+#   docker compose -f compose.tools.yaml run --rm tools node scripts/progress.mjs status
+# LEDGER_BUILD_CA must be a path inside the checkout (relative to it) when used from here.
+name: ledger-next-tools
+x-tools: &tools
+  build: { context: ., target: toolbox }
+  image: ledger-next-toolbox
+  pull_policy: build
+  init: true
+  working_dir: /work
+  volumes:
+    - .:/work
+    - /var/run/docker.sock:/var/run/docker.sock
+  environment: &tools-env
+    LEDGER_BUILD_CA: ${LEDGER_BUILD_CA:-}
+    LEDGER_HOST_DIR: ${LEDGER_HOST_DIR:-}
+services:
+  tools: *tools
+  setup-env:
+    <<: *tools
+    command: ["node", "scripts/setup-env.mjs"]
+  e2e:
+    <<: *tools
+    command: ["node", "--import", "./scripts/toolbox-host.mjs", "scripts/docker-test.mjs"]
+  perf:
+    <<: *tools
+    command: ["node", "--import", "./scripts/toolbox-host.mjs", "scripts/perf-test.mjs"]
+    environment:
+      <<: *tools-env
+      PERF_USERS: ${PERF_USERS:-}
+      PERF_BIG_TX: ${PERF_BIG_TX:-}
+      PERF_VUS: ${PERF_VUS:-}
+      PERF_SECONDS: ${PERF_SECONDS:-}
+      PERF_USER_SECONDS: ${PERF_USER_SECONDS:-}
+      PERF_THINK_MS: ${PERF_THINK_MS:-}
+      PERF_COLD_RUNS: ${PERF_COLD_RUNS:-}
+      PERF_VITALS_RUNS: ${PERF_VITALS_RUNS:-}
+  ops:
+    <<: *tools
+    command: ["node", "--import", "./scripts/toolbox-host.mjs", "scripts/ops-drill.mjs"]

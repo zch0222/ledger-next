@@ -32,6 +32,6 @@ services:
       web: { condition: service_healthy }
       worker: { condition: service_healthy }
     volumes:
-      - ./test-results:/app/test-results
+      - ${LEDGER_HOST_DIR:-.}/test-results:/app/test-results
     init: true
     shm_size: 1gb

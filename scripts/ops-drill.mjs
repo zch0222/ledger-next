@@ -15,7 +15,7 @@ import path from 'node:path';
 // RTO is measured from "empty server started" to "web ready". Results: test-results/ops/drill.json.
 const docker = process.env.LEDGER_DOCKER || 'docker';
 const env = { ...process.env, MYSQL_DATABASE: 'ledger_ops', MYSQL_USER: 'ledger_ops', MYSQL_PASSWORD: randomBytes(24).toString('hex'), MYSQL_ROOT_PASSWORD: randomBytes(24).toString('hex'), BETTER_AUTH_SECRET: randomBytes(48).toString('hex'), LEDGER_ENCRYPTION_KEYS: `ops:${randomBytes(32).toString('base64')}`, APP_URL: 'http://web:3000' };
-const project = `ledger-ops-${process.pid}`;
+const project = `ledger-ops-${process.pid}-${randomBytes(3).toString('hex')}`;
 const args = ['compose', '-p', project, '-f', 'compose.yaml', '-f', 'compose.mock.yaml', '-f', 'compose.ops.yaml'];
 if (process.env.LEDGER_BUILD_CA) {
   const overlay = path.join(mkdtempSync(path.join(tmpdir(), 'ledger-ops-')), 'compose.build-ca.tests.yaml');

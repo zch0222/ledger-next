@@ -1,0 +1,2 @@
+# Files are built and run in Linux containers (also from Windows checkouts): keep LF in every working tree.
+* text=auto eol=lf
