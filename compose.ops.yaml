@@ -3,28 +3,28 @@
 services:
   web:
     ports: !override []
-    restart: "no"
+    restart: 'no'
   mysql:
-    restart: "no"
+    restart: 'no'
   redis:
-    restart: "no"
+    restart: 'no'
   worker:
-    restart: "no"
+    restart: 'no'
   mock-services:
-    restart: "no"
+    restart: 'no'
   mysql-replica:
     image: mysql:8.4@sha256:6ea90827b1100f8f2ae306a539f86d2c264a26ed435a2a9f75551dd5c3aeb242
-    command: ["--server-id=2", "--read-only=ON", "--relay-log=relay"]
+    command: ['--server-id=2', '--read-only=ON', '--relay-log=relay']
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     healthcheck:
-      test: ["CMD-SHELL", "MYSQL_PWD=$$MYSQL_ROOT_PASSWORD mysql -uroot -e 'SELECT 1' >/dev/null 2>&1"]
+      test: ['CMD-SHELL', "MYSQL_PWD=$$MYSQL_ROOT_PASSWORD mysql -uroot -e 'SELECT 1' >/dev/null 2>&1"]
       interval: 5s
       timeout: 5s
       retries: 30
     volumes:
       - mysql-replica-data:/var/lib/mysql
-    restart: "no"
+    restart: 'no'
   tests:
     build: { context: ., target: tests }
     environment:

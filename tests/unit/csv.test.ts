@@ -1,16 +1,39 @@
 import { describe, expect, it } from 'vitest';
-import { CsvError, csvLine, escapeFormula, normalizeAmountCell, normalizeDateCell, normalizeKindCell, parseCsv, unescapeFormula } from '../../packages/domain/src/csv';
+import {
+  CsvError,
+  csvLine,
+  escapeFormula,
+  normalizeAmountCell,
+  normalizeDateCell,
+  normalizeKindCell,
+  parseCsv,
+  unescapeFormula,
+} from '../../packages/domain/src/csv';
 
 describe('CSV reading', () => {
   it('handles BOM, quotes, escaped quotes, embedded newlines and CRLF', () => {
     const text = '﻿日期,备注,金额\r\n2026-10-02,"午餐, 同事 ""请客""",-28.50\r\n2026-10-03,"多行\n备注",12\n\n';
-    expect(parseCsv(text)).toEqual([['日期', '备注', '金额'], ['2026-10-02', '午餐, 同事 "请客"', '-28.50'], ['2026-10-03', '多行\n备注', '12']]);
+    expect(parseCsv(text)).toEqual([
+      ['日期', '备注', '金额'],
+      ['2026-10-02', '午餐, 同事 "请客"', '-28.50'],
+      ['2026-10-03', '多行\n备注', '12'],
+    ]);
     expect(parseCsv('a,b')).toEqual([['a', 'b']]);
-    expect(parseCsv('a,\n,b\r')).toEqual([['a', ''], ['', 'b']]);
+    expect(parseCsv('a,\n,b\r')).toEqual([
+      ['a', ''],
+      ['', 'b'],
+    ]);
     expect(parseCsv('')).toEqual([]);
   });
   it('reports malformed input with a line number and enforces the row limit', () => {
-    const error = (text: string, max?: number) => { try { parseCsv(text, max); return null; } catch (e) { return e as CsvError; } };
+    const error = (text: string, max?: number) => {
+      try {
+        parseCsv(text, max);
+        return null;
+      } catch (e) {
+        return e as CsvError;
+      }
+    };
     expect(error('a,"b\nc')).toMatchObject({ row: 2, message: '引号未闭合' });
     expect(error('a,"b"x\n')).toMatchObject({ row: 1, message: '引号字段后存在多余字符' });
     expect(error('a,b"c\n')).toMatchObject({ message: '未加引号的字段中出现引号' });
@@ -27,7 +50,9 @@ describe('CSV writing', () => {
     expect(escapeFormula('午餐')).toBe('午餐');
     expect(unescapeFormula("'=SUM(A1)")).toBe('=SUM(A1)');
     expect(unescapeFormula("'quoted")).toBe("'quoted");
-    expect(csvLine(['2026-10-02', '=HYPERLINK("x")', 'a,b', null, 'line\nbreak', '12.00'])).toBe(`2026-10-02,"'=HYPERLINK(""x"")","a,b",,"line\nbreak",12.00`);
+    expect(csvLine(['2026-10-02', '=HYPERLINK("x")', 'a,b', null, 'line\nbreak', '12.00'])).toBe(
+      `2026-10-02,"'=HYPERLINK(""x"")","a,b",,"line\nbreak",12.00`,
+    );
     // Round trip: what we write parses back to the escaped text, and unescaping restores the original.
     expect(parseCsv(csvLine(['@cmd', '"q"']))[0].map(unescapeFormula)).toEqual(['@cmd', '"q"']);
   });

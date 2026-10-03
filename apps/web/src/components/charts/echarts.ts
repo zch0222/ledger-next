@@ -5,5 +5,14 @@ import { AriaComponent, GridComponent, TitleComponent, TooltipComponent } from '
 import * as echarts from 'echarts/core';
 import { SVGRenderer } from 'echarts/renderers';
 
-echarts.use([LineChart, BarChart, PieChart, GridComponent, TooltipComponent, AriaComponent, TitleComponent, SVGRenderer]);
+echarts.use([
+  LineChart,
+  BarChart,
+  PieChart,
+  GridComponent,
+  TooltipComponent,
+  AriaComponent,
+  TitleComponent,
+  SVGRenderer,
+]);
 export default echarts;

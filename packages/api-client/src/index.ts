@@ -24,8 +24,11 @@ export function createLedgerClient(options: LedgerClientOptions) {
 }
 
 /** A fresh key per user intent; reuse the same key only when retrying that intent. */
-export function idempotencyKey() { return crypto.randomUUID(); }
+export function idempotencyKey() {
+  return crypto.randomUUID();
+}
 
 /** Header value for If-Match from a resource version. */
-export function ifMatch(version: number) { return `"v${version}"`; }
-
+export function ifMatch(version: number) {
+  return `"v${version}"`;
+}

@@ -8,9 +8,13 @@ let instance: ReturnType<typeof createAuth> | undefined;
 function createAuth() {
   const baseURL = process.env.APP_URL;
   const secret = process.env.BETTER_AUTH_SECRET;
-  if (!baseURL || !secret || secret.length < 32) throw new Error('APP_URL and BETTER_AUTH_SECRET (32+ characters) are required');
+  if (!baseURL || !secret || secret.length < 32) {
+    throw new Error('APP_URL and BETTER_AUTH_SECRET (32+ characters) are required');
+  }
   return betterAuth({
-    appName: 'Ledger Next', baseURL, secret,
+    appName: 'Ledger Next',
+    baseURL,
+    secret,
     trustedOrigins: [new URL(baseURL).origin],
     database: drizzleAdapter(database(), { provider: 'mysql', schema, transaction: true }),
     emailAndPassword: { enabled: true, minPasswordLength: 12, maxPasswordLength: 128 },
@@ -21,4 +25,6 @@ function createAuth() {
     rateLimit: { enabled: true, window: 60, max: 60, customStorage: authRateLimitStorage() },
   });
 }
-export function auth() { return instance ??= createAuth(); }
+export function auth() {
+  return (instance ??= createAuth());
+}

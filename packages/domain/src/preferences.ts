@@ -11,15 +11,32 @@ export const PALETTE_VERSION = 1;
 export type Appearance = { mode: 'system' | 'light' | 'dark'; accent: string; custom: string | null };
 type Row = typeof userPreferences.$inferSelect;
 
-const toAppearance = (row: Row | undefined): Appearance => sanitize(row ? { mode: row.themeMode, accent: row.accentType === 'custom' ? 'custom' : row.accentValue, custom: row.accentType === 'custom' ? row.accentValue : null } : null) as Appearance;
+const toAppearance = (row: Row | undefined): Appearance =>
+  sanitize(
+    row
+      ? {
+          mode: row.themeMode,
+          accent: row.accentType === 'custom' ? 'custom' : row.accentValue,
+          custom: row.accentType === 'custom' ? row.accentValue : null,
+        }
+      : null,
+  ) as Appearance;
 /** Server-generated palette: the client preview is never trusted. */
 export function present(appearance: Appearance, version: number) {
   const p = palette(appearance);
-  const mode = (m: 'light' | 'dark') => ({ accent: p[m], onAccent: p.report[m].onAccent, minContrast: p.report[m].min.toFixed(2), adjusted: m === 'light' ? p.lightAdjusted : p.darkAdjusted });
+  const mode = (m: 'light' | 'dark') => ({
+    accent: p[m],
+    onAccent: p.report[m].onAccent,
+    minContrast: p.report[m].min.toFixed(2),
+    adjusted: m === 'light' ? p.lightAdjusted : p.darkAdjusted,
+  });
   return {
     appearance: {
       themeMode: appearance.mode,
-      accent: appearance.accent === 'custom' ? { type: 'custom' as const, value: appearance.custom!.toUpperCase() } : { type: 'preset' as const, value: appearance.accent as 'teal' },
+      accent:
+        appearance.accent === 'custom'
+          ? { type: 'custom' as const, value: appearance.custom!.toUpperCase() }
+          : { type: 'preset' as const, value: appearance.accent as 'teal' },
       palette: { version: PALETTE_VERSION, light: mode('light'), dark: mode('dark') },
     },
     version,
@@ -42,7 +59,14 @@ export async function updatePreferences(userId: string, input: unknown, etag: st
       accent: data.accent ? (data.accent.type === 'custom' ? 'custom' : data.accent.value) : current.accent,
       custom: data.accent ? (data.accent.type === 'custom' ? data.accent.value : null) : current.custom,
     }) as Appearance;
-    const values = { themeMode: next.mode, accentType: next.accent === 'custom' ? 'custom' as const : 'preset' as const, accentValue: next.accent === 'custom' ? next.custom! : next.accent, paletteVersion: PALETTE_VERSION, version: version + 1, updatedAt: new Date() };
+    const values = {
+      themeMode: next.mode,
+      accentType: next.accent === 'custom' ? ('custom' as const) : ('preset' as const),
+      accentValue: next.accent === 'custom' ? next.custom! : next.accent,
+      paletteVersion: PALETTE_VERSION,
+      version: version + 1,
+      updatedAt: new Date(),
+    };
     if (row) await tx.update(userPreferences).set(values).where(eq(userPreferences.userId, userId));
     else await tx.insert(userPreferences).values({ userId, ...values });
     return { appearance: next, version: version + 1 };

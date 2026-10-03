@@ -7,6 +7,29 @@ export const dynamic = 'force-dynamic';
 export default async function More({ params }: LedgerPageProps) {
   const { ledgerId } = await params;
   await requireLedger(ledgerId);
-  const items = [['analytics', '◴', '预算与分析'], ['accounts', '▤', '账户'], ['reminders', '♧', '提醒中心'], ['settings', '⚙', '账本设置'], ['settings/currencies', '¤', '币种与汇率'], ['settings/data', '⇅', '导入导出'], ['settings/channels', '✉', '提醒渠道'], ['settings/appearance', '◐', '外观'], ['agents', '⌘', 'Agent 接入']];
-  return <><PageHeading title="更多" /><nav className="panel more-list" aria-label="更多页面">{items.map(([href, icon, name]) => <Link key={href} href={`/ledgers/${ledgerId}/${href}`}><span aria-hidden="true">{icon}</span>{name}<span aria-hidden="true">›</span></Link>)}</nav></>;
+  const items = [
+    ['analytics', '◴', '预算与分析'],
+    ['accounts', '▤', '账户'],
+    ['reminders', '♧', '提醒中心'],
+    ['settings', '⚙', '账本设置'],
+    ['settings/currencies', '¤', '币种与汇率'],
+    ['settings/data', '⇅', '导入导出'],
+    ['settings/channels', '✉', '提醒渠道'],
+    ['settings/appearance', '◐', '外观'],
+    ['agents', '⌘', 'Agent 接入'],
+  ];
+  return (
+    <>
+      <PageHeading title="更多" />
+      <nav className="panel more-list" aria-label="更多页面">
+        {items.map(([href, icon, name]) => (
+          <Link key={href} href={`/ledgers/${ledgerId}/${href}`}>
+            <span aria-hidden="true">{icon}</span>
+            {name}
+            <span aria-hidden="true">›</span>
+          </Link>
+        ))}
+      </nav>
+    </>
+  );
 }

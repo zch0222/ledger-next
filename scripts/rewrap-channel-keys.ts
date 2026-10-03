@@ -3,5 +3,8 @@
 import { databasePool } from '../packages/db/src/index';
 import { rewrapChannelKeys } from '../packages/domain/src/notify-channels';
 
-try { console.log(JSON.stringify(await rewrapChannelKeys())); }
-finally { await databasePool().end(); }
+try {
+  console.log(JSON.stringify(await rewrapChannelKeys()));
+} finally {
+  await databasePool().end();
+}

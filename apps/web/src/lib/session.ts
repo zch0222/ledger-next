@@ -16,11 +16,19 @@ export const ledgersOf = cache(async () => listLedgers((await requireUser()).ctx
 /** The ledger in the URL, authorized for the current user; anything else is a 404 (no existence leak). */
 export const requireLedger = cache(async (ledgerId: string) => {
   const { ctx, user } = await requireUser();
-  try { return { ctx, user, ledger: await getLedger(ctx, ledgerId) }; } catch (error) {
+  try {
+    return { ctx, user, ledger: await getLedger(ctx, ledgerId) };
+  } catch (error) {
     if (error instanceof DomainError && error.status === 404) notFound();
     throw error;
   }
 });
-export type LedgerPageProps = { params: Promise<{ ledgerId: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> };
+export type LedgerPageProps = {
+  params: Promise<{ ledgerId: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
 /** First value of a search parameter. */
-export const param = (params: Record<string, string | string[] | undefined>, name: string) => { const v = params[name]; return Array.isArray(v) ? v[0] : v; };
+export const param = (params: Record<string, string | string[] | undefined>, name: string) => {
+  const v = params[name];
+  return Array.isArray(v) ? v[0] : v;
+};

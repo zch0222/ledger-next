@@ -22,13 +22,13 @@ services:
   setup-env:
     <<: *tools
     # An entrypoint, so `run --rm setup-env --app-url https://…` appends the options instead of replacing the command.
-    entrypoint: ["sh", "scripts/setup-env.sh"]
+    entrypoint: ['sh', 'scripts/setup-env.sh']
   e2e:
     <<: *tools
-    command: ["node", "--import", "./scripts/toolbox-host.mjs", "scripts/docker-test.mjs"]
+    command: ['node', '--import', './scripts/toolbox-host.mjs', 'scripts/docker-test.mjs']
   perf:
     <<: *tools
-    command: ["node", "--import", "./scripts/toolbox-host.mjs", "scripts/perf-test.mjs"]
+    command: ['node', '--import', './scripts/toolbox-host.mjs', 'scripts/perf-test.mjs']
     environment:
       <<: *tools-env
       PERF_USERS: ${PERF_USERS:-}
@@ -41,4 +41,4 @@ services:
       PERF_VITALS_RUNS: ${PERF_VITALS_RUNS:-}
   ops:
     <<: *tools
-    command: ["node", "--import", "./scripts/toolbox-host.mjs", "scripts/ops-drill.mjs"]
+    command: ['node', '--import', './scripts/toolbox-host.mjs', 'scripts/ops-drill.mjs']

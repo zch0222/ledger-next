@@ -15,9 +15,21 @@ it('round-trips an opaque position', () => {
 it('rejects tampered payloads, signatures and malformed cursors', () => {
   const cursor = codec.encode(scope, position);
   const [payload, signature] = cursor.split('.');
-  const forged = Buffer.from(JSON.stringify({ v: 1, s: 'x', p: ['2099-01-01T00:00:00.000Z', 'id'] })).toString('base64url');
-  for (const bad of [`${forged}.${signature}`, `${payload}.${signature.slice(1)}x`, `${payload}.`, payload, `${cursor}.extra`, '', '..', '%%%.###'])
+  const forged = Buffer.from(JSON.stringify({ v: 1, s: 'x', p: ['2099-01-01T00:00:00.000Z', 'id'] })).toString(
+    'base64url',
+  );
+  for (const bad of [
+    `${forged}.${signature}`,
+    `${payload}.${signature.slice(1)}x`,
+    `${payload}.`,
+    payload,
+    `${cursor}.extra`,
+    '',
+    '..',
+    '%%%.###',
+  ]) {
     expect(() => codec.decode(scope, bad)).toThrow(rejected);
+  }
 });
 it('binds cursors to scope and secret', () => {
   const cursor = codec.encode(scope, position);
@@ -28,15 +40,41 @@ it('binds cursors to scope and secret', () => {
 it('rejects a correctly signed body with the wrong version or shape', () => {
   // Mirrors the codec's key derivation so only the body checks can fail.
   const key = createHmac('sha256', 'test-secret-at-least-32-characters-long').update('ledger-next/cursor/v1').digest();
-  const signed = (raw: string) => { const payload = Buffer.from(raw).toString('base64url'); return `${payload}.${createHmac('sha256', key).update(payload).digest('base64url')}`; };
+  const signed = (raw: string) => {
+    const payload = Buffer.from(raw).toString('base64url');
+    return `${payload}.${createHmac('sha256', key).update(payload).digest('base64url')}`;
+  };
   const s = JSON.parse(Buffer.from(codec.encode(scope, position).split('.')[0], 'base64url').toString()).s;
   expect(codec.decode(scope, signed(JSON.stringify({ v: 1, s, p: position })))).toEqual(position);
-  for (const raw of [JSON.stringify({ v: 2, s, p: position }), JSON.stringify({ v: 1, s, p: 'x' }), JSON.stringify(null), 'not json'])
+  for (const raw of [
+    JSON.stringify({ v: 2, s, p: position }),
+    JSON.stringify({ v: 1, s, p: 'x' }),
+    JSON.stringify(null),
+    'not json',
+  ]) {
     expect(() => codec.decode(scope, signed(raw))).toThrow(rejected);
+  }
 });
 it('pages limit + 1 rows into data, hasMore and a cursor for the last row', () => {
   const rows = [1, 2, 3].map(n => ({ id: `id-${n}` }));
-  expect(pageOf(rows, 2, r => [r.id], p => `c:${p[0]}`)).toEqual({ data: rows.slice(0, 2), page: { hasMore: true, nextCursor: 'c:id-2' } });
-  expect(pageOf(rows.slice(0, 2), 2, r => [r.id], p => `c:${p[0]}`)).toEqual({ data: rows.slice(0, 2), page: { hasMore: false, nextCursor: null } });
-  expect(pageOf([], 50, (r: { id: string }) => [r.id], String)).toEqual({ data: [], page: { hasMore: false, nextCursor: null } });
+  expect(
+    pageOf(
+      rows,
+      2,
+      r => [r.id],
+      p => `c:${p[0]}`,
+    ),
+  ).toEqual({ data: rows.slice(0, 2), page: { hasMore: true, nextCursor: 'c:id-2' } });
+  expect(
+    pageOf(
+      rows.slice(0, 2),
+      2,
+      r => [r.id],
+      p => `c:${p[0]}`,
+    ),
+  ).toEqual({ data: rows.slice(0, 2), page: { hasMore: false, nextCursor: null } });
+  expect(pageOf([], 50, (r: { id: string }) => [r.id], String)).toEqual({
+    data: [],
+    page: { hasMore: false, nextCursor: null },
+  });
 });

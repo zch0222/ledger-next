@@ -7,7 +7,20 @@ export const dynamic = 'force-dynamic';
 export default async function Onboarding() {
   const { user } = await requireUser();
   const books = await ledgersOf();
-  return <main className="auth-page onboarding"><div className="brand auth-brand"><span className="mark" aria-hidden="true">↗</span><div>Ledger<small>YOUR MONEY, CLEARLY.</small></div></div>
-    <CreateLedger additional={books.length > 0} />
-    <div className="setup-account"><AccountMenu name={user.name} compact={false} /></div></main>;
+  return (
+    <main className="auth-page onboarding">
+      <div className="brand auth-brand">
+        <span className="mark" aria-hidden="true">
+          ↗
+        </span>
+        <div>
+          Ledger<small>YOUR MONEY, CLEARLY.</small>
+        </div>
+      </div>
+      <CreateLedger additional={books.length > 0} />
+      <div className="setup-account">
+        <AccountMenu name={user.name} compact={false} />
+      </div>
+    </main>
+  );
 }

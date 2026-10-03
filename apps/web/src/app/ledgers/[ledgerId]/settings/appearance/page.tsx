@@ -10,6 +10,17 @@ export default async function AppearancePage({ params }: LedgerPageProps) {
   const { ledgerId } = await params;
   const { user } = await requireLedger(ledgerId);
   const appearance = await currentAppearance();
-  return <><PageHeading title="外观" description="浅色 / 深色 / 跟随系统与主题色；只改变显示方式，不影响任何账目数据。" /><SettingsTabs ledgerId={ledgerId} current="appearance" />
-    <Appearance initial={appearance.value} version={appearance.version} pending={appearance.pending} userId={user.id} inline /></>;
+  return (
+    <>
+      <PageHeading title="外观" description="浅色 / 深色 / 跟随系统与主题色；只改变显示方式，不影响任何账目数据。" />
+      <SettingsTabs ledgerId={ledgerId} current="appearance" />
+      <Appearance
+        initial={appearance.value}
+        version={appearance.version}
+        pending={appearance.pending}
+        userId={user.id}
+        inline
+      />
+    </>
+  );
 }

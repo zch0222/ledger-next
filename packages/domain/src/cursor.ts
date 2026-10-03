@@ -18,10 +18,15 @@ export function cursorCodec(secret: string) {
     decode(scope: string, cursor: string): Position {
       const [payload, signature, ...rest] = cursor.split('.');
       if (!payload || !signature || rest.length) throw invalid();
-      const expected = Buffer.from(sign(payload)), given = Buffer.from(signature);
+      const expected = Buffer.from(sign(payload));
+      const given = Buffer.from(signature);
       if (expected.length !== given.length || !timingSafeEqual(expected, given)) throw invalid();
       let body: { v?: unknown; s?: unknown; p?: unknown };
-      try { body = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8')); } catch { throw invalid(); }
+      try {
+        body = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
+      } catch {
+        throw invalid();
+      }
       if (body?.v !== 1 || body.s !== digest(scope) || !Array.isArray(body.p)) throw invalid();
       return body.p as Position;
     },
@@ -29,7 +34,13 @@ export function cursorCodec(secret: string) {
 }
 
 /** Builds a page from limit+1 fetched rows. */
-export function pageOf<T>(rows: T[], limit: number, position: (row: T) => Position, encode: (position: Position) => string) {
-  const data = rows.slice(0, limit), hasMore = rows.length > limit;
+export function pageOf<T>(
+  rows: T[],
+  limit: number,
+  position: (row: T) => Position,
+  encode: (position: Position) => string,
+) {
+  const data = rows.slice(0, limit);
+  const hasMore = rows.length > limit;
   return { data, page: { hasMore, nextCursor: hasMore ? encode(position(data[data.length - 1])) : null } };
 }

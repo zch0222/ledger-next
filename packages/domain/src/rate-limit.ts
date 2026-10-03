@@ -8,7 +8,10 @@ import { DomainError } from './policy';
  * idempotency and approvals, and availability of the ledger does not depend on the cache.
  */
 export type Limit = { name: string; limit: number; windowSeconds: number };
-const env = (name: string, fallback: number) => { const value = Number(process.env[name]); return Number.isInteger(value) && value > 0 ? value : fallback; };
+const env = (name: string, fallback: number) => {
+  const value = Number(process.env[name]);
+  return Number.isInteger(value) && value > 0 ? value : fallback;
+};
 export const LIMITS = {
   actor: (): Limit => ({ name: 'actor', limit: env('API_RATE_LIMIT', 600), windowSeconds: 60 }),
   authFailure: (): Limit => ({ name: 'auth-fail', limit: env('API_AUTH_FAILURE_LIMIT', 30), windowSeconds: 60 }),
@@ -16,7 +19,16 @@ export const LIMITS = {
   agentMoney: (): Limit => ({ name: 'agent-money', limit: env('AGENT_WRITE_RATE_LIMIT', 30), windowSeconds: 60 }),
 };
 /** Operations that move money or bulk-change a ledger. */
-export const MONEY_WRITES = new Set(['createTransaction', 'updateTransaction', 'voidTransaction', 'createRefund', 'createBillPayment', 'createImportJob', 'createImportCommit', 'createImportReversal']);
+export const MONEY_WRITES = new Set([
+  'createTransaction',
+  'updateTransaction',
+  'voidTransaction',
+  'createRefund',
+  'createBillPayment',
+  'createImportJob',
+  'createImportCommit',
+  'createImportReversal',
+]);
 
 export type Verdict = { allowed: boolean; count: number; retryAfter: number };
 const windowOf = (limit: Limit, now: number) => {
@@ -27,25 +39,38 @@ const keyOf = (limit: Limit, id: string, index: number) => `rl:${limit.name}:${i
 
 /** Counts one request and says whether it is within the limit. */
 export async function hit(limit: Limit, id: string, now = Date.now()): Promise<Verdict> {
-  const { index, retryAfter } = windowOf(limit, now), key = keyOf(limit, id, index), client = await readyRedis();
+  const { index, retryAfter } = windowOf(limit, now);
+  const key = keyOf(limit, id, index);
+  const client = await readyRedis();
   if (!client) return { allowed: true, count: 0, retryAfter };
   try {
-    const result = await client.multi().incr(key).expire(key, limit.windowSeconds + 5).exec();
+    const result = await client
+      .multi()
+      .incr(key)
+      .expire(key, limit.windowSeconds + 5)
+      .exec();
     const count = Number(result?.[0]?.[1] ?? 0);
     return { allowed: count <= limit.limit, count, retryAfter };
-  } catch { return { allowed: true, count: 0, retryAfter }; }
+  } catch {
+    return { allowed: true, count: 0, retryAfter };
+  }
 }
 /** Whether the limit is already used up, without counting this request. */
 export async function exhausted(limit: Limit, id: string, now = Date.now()): Promise<Verdict> {
-  const { index, retryAfter } = windowOf(limit, now), client = await readyRedis();
+  const { index, retryAfter } = windowOf(limit, now);
+  const client = await readyRedis();
   if (!client) return { allowed: true, count: 0, retryAfter };
   try {
-    const count = Number(await client.get(keyOf(limit, id, index)) ?? 0);
+    const count = Number((await client.get(keyOf(limit, id, index))) ?? 0);
     return { allowed: count < limit.limit, count, retryAfter };
-  } catch { return { allowed: true, count: 0, retryAfter }; }
+  } catch {
+    return { allowed: true, count: 0, retryAfter };
+  }
 }
 export const tooMany = (verdict: Verdict, what = '请求过于频繁') =>
-  new DomainError(429, 'RATE_LIMITED', `${what}，请 ${verdict.retryAfter} 秒后再试`, { 'Retry-After': String(verdict.retryAfter) });
+  new DomainError(429, 'RATE_LIMITED', `${what}，请 ${verdict.retryAfter} 秒后再试`, {
+    'Retry-After': String(verdict.retryAfter),
+  });
 export async function enforce(limit: Limit, id: string, what?: string, now = Date.now()) {
   const verdict = await hit(limit, id, now);
   if (!verdict.allowed) throw tooMany(verdict, what);
@@ -74,11 +99,20 @@ export function authRateLimitStorage() {
           if (count <= rule.max) return { allowed: true, retryAfter: null };
           const ttl = await client.ttl(redisKey);
           return { allowed: false, retryAfter: ttl > 0 ? ttl : rule.window };
-        } catch { /* fall back to memory below */ }
+        } catch {
+          /* fall back to memory below */
+        }
       }
-      const now = Date.now(), entry = memory.get(key);
-      if (!entry || entry.until <= now) { memory.set(key, { count: 1, until: now + rule.window * 1000 }); return { allowed: true, retryAfter: null }; }
-      if (entry.count < rule.max) { entry.count++; return { allowed: true, retryAfter: null }; }
+      const now = Date.now();
+      const entry = memory.get(key);
+      if (!entry || entry.until <= now) {
+        memory.set(key, { count: 1, until: now + rule.window * 1000 });
+        return { allowed: true, retryAfter: null };
+      }
+      if (entry.count < rule.max) {
+        entry.count++;
+        return { allowed: true, retryAfter: null };
+      }
       return { allowed: false, retryAfter: Math.ceil((entry.until - now) / 1000) };
     },
   };

@@ -1,7 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import { clientConfigs } from '../../packages/mcp/src/clients';
 import { TOOL_NAMES } from '../../packages/mcp/src/server';
-import { buildPackages, frontmatter, lineDiff, lintSkill, planInstall, renderToolsReference, sha256sums, verifySums } from '../../packages/mcp/src/skill';
+import {
+  buildPackages,
+  frontmatter,
+  lineDiff,
+  lintSkill,
+  planInstall,
+  renderToolsReference,
+  sha256sums,
+  verifySums,
+} from '../../packages/mcp/src/skill';
 import { skillFiles } from '../../scripts/skill';
 
 // M6-SKILL: the formal ledger-service Skill never names a tool, scope or link that does not exist, carries no secret,
@@ -29,11 +38,16 @@ describe('the shipped Skill', () => {
     expect(Object.keys(packages.qoder)).toContain('.qoder/skills/ledger-service/SKILL.md');
     expect(packages.codex['mcp/ledger.toml']).toContain('bearer_token_env_var = "LEDGER_API_TOKEN"');
     expect(packages['claude-code']['mcp/ledger.json']).toContain('Bearer ${LEDGER_API_TOKEN}');
-    expect(packages.dsh['mcp/ledger.yaml']).toContain("!!js \"'Bearer ' + process.env.LEDGER_API_TOKEN\"");
+    expect(packages.dsh['mcp/ledger.yaml']).toContain('!!js "\'Bearer \' + process.env.LEDGER_API_TOKEN"');
     expect(packages.qoder['INSTALL.md']).toContain('pnpm skill:install --client qoder');
     for (const files of Object.values(packages)) {
       expect(verifySums(files)).toEqual([]);
-      expect(lintSkill(Object.fromEntries(Object.entries(files).map(([p, c]) => [p.replace(/^.*ledger-service\//, ''), c])), TOOL_NAMES).filter(p => p.includes('凭据'))).toEqual([]);
+      expect(
+        lintSkill(
+          Object.fromEntries(Object.entries(files).map(([p, c]) => [p.replace(/^.*ledger-service\//, ''), c])),
+          TOOL_NAMES,
+        ).filter(p => p.includes('凭据')),
+      ).toEqual([]);
     }
     const tampered = { ...packages.codex, 'INSTALL.md': `${packages.codex['INSTALL.md']}x`, extra: '1' };
     expect(verifySums(tampered).sort()).toEqual(['INSTALL.md', 'extra']);
@@ -43,24 +57,48 @@ describe('the shipped Skill', () => {
 });
 
 describe('Skill lint', () => {
-  const good = { 'SKILL.md': '---\nname: ledger-service\ndescription: 用账本\n---\n# x\n见 [w](references/w.md) 与 [外链](https://example.com)。', 'references/w.md': '[返回](../SKILL.md)' };
+  const good = {
+    'SKILL.md':
+      '---\nname: ledger-service\ndescription: 用账本\n---\n# x\n见 [w](references/w.md) 与 [外链](https://example.com)。',
+    'references/w.md': '[返回](../SKILL.md)',
+  };
   it('reports invented tools and scopes, broken links, bad frontmatter, secrets and undocumented tools', () => {
     expect(lintSkill(good, [])).toEqual([]);
     expect(lintSkill({}, [])).toEqual(['缺少 SKILL.md']);
     expect(lintSkill({ 'SKILL.md': '# 没有 frontmatter' }, [])).toEqual(['SKILL.md 缺少 frontmatter']);
-    expect(lintSkill({ ...good, 'SKILL.md': good['SKILL.md'].replace('ledger-service', 'Ledger Service') }, [])).toContain('name 应为 ledger-service');
-    expect(lintSkill({ ...good, 'SKILL.md': good['SKILL.md'].replace('description: 用账本', 'description: ') }, [])).toContain('description 为空或超过 1024 字符');
-    expect(lintSkill({ ...good, 'references/w.md': '调用 ledger_delete_everything，需要 money:write' }, ['ledger_get_context'])).toEqual([
-      'references/w.md: 引用了不存在的工具 ledger_delete_everything', 'references/w.md: 引用了不存在的作用域 money:write', '没有任何文件说明工具 ledger_get_context',
+    expect(
+      lintSkill({ ...good, 'SKILL.md': good['SKILL.md'].replace('ledger-service', 'Ledger Service') }, []),
+    ).toContain('name 应为 ledger-service');
+    expect(
+      lintSkill({ ...good, 'SKILL.md': good['SKILL.md'].replace('description: 用账本', 'description: ') }, []),
+    ).toContain('description 为空或超过 1024 字符');
+    expect(
+      lintSkill({ ...good, 'references/w.md': '调用 ledger_delete_everything，需要 money:write' }, [
+        'ledger_get_context',
+      ]),
+    ).toEqual([
+      'references/w.md: 引用了不存在的工具 ledger_delete_everything',
+      'references/w.md: 引用了不存在的作用域 money:write',
+      '没有任何文件说明工具 ledger_get_context',
     ]);
-    expect(lintSkill({ ...good, 'references/w.md': '[坏链](./nope.md) [上一级](../../x.md)' }, [])).toEqual(['references/w.md: 链接 ./nope.md 不存在', 'references/w.md: 链接 ../../x.md 不存在']);
-    for (const secret of [`lnp_${'a'.repeat(43)}`, 'Authorization: Bearer abcdefghijklmnopqrstuvwxyz012345', '123456789:AAHdqTcvCH1vGWJxfSeofSAs0K5PALDsaw']) {
+    expect(lintSkill({ ...good, 'references/w.md': '[坏链](./nope.md) [上一级](../../x.md)' }, [])).toEqual([
+      'references/w.md: 链接 ./nope.md 不存在',
+      'references/w.md: 链接 ../../x.md 不存在',
+    ]);
+    for (const secret of [
+      `lnp_${'a'.repeat(43)}`,
+      'Authorization: Bearer abcdefghijklmnopqrstuvwxyz012345',
+      '123456789:AAHdqTcvCH1vGWJxfSeofSAs0K5PALDsaw',
+    ]) {
       expect(lintSkill({ ...good, 'references/w.md': secret }, [])).toEqual(['references/w.md: 疑似包含真实凭据']);
     }
     expect(lintSkill({ ...good, 'references/w.md': 'Bearer ${LEDGER_API_TOKEN} 或 Bearer <令牌>' }, [])).toEqual([]);
   });
   it('reads frontmatter fields and ignores unknown lines', () => {
-    expect(frontmatter('---\nname: a\nextra line\ndescription: b c\n---\nbody')).toEqual({ name: 'a', description: 'b c' });
+    expect(frontmatter('---\nname: a\nextra line\ndescription: b c\n---\nbody')).toEqual({
+      name: 'a',
+      description: 'b c',
+    });
     expect(frontmatter('---\nfoo: 1\n---\n')).toEqual({ name: '', description: '' });
   });
 });
@@ -90,13 +128,26 @@ describe('install plan', () => {
 describe('tools reference and client configs', () => {
   it('renders kinds, required fields and scopes from a tool list', () => {
     const md = renderToolsReference([
-      { name: 'ledger_get_context', title: '上下文', description: 'd', inputSchema: {}, annotations: { readOnlyHint: true } },
-      { name: 'ledger_update_transaction', description: 'u', inputSchema: { properties: { a: {}, b: {} }, required: ['a'] }, annotations: { destructiveHint: true, idempotentHint: true } },
+      {
+        name: 'ledger_get_context',
+        title: '上下文',
+        description: 'd',
+        inputSchema: {},
+        annotations: { readOnlyHint: true },
+      },
+      {
+        name: 'ledger_update_transaction',
+        description: 'u',
+        inputSchema: { properties: { a: {}, b: {} }, required: ['a'] },
+        annotations: { destructiveHint: true, idempotentHint: true },
+      },
       { name: 'ledger_preview_reminder', inputSchema: { properties: {} } },
       { name: 'ledger_unknown', inputSchema: {} },
     ]);
     expect(md).toContain('- 类型：只读\n- 作用域：基础只读\n- 参数：无');
-    expect(md).toContain('- 类型：写入（修改既有记录）；同一 idempotencyKey 重试安全\n- 作用域：transactions:write\n- 参数：`a`（必填）、`b`');
+    expect(md).toContain(
+      '- 类型：写入（修改既有记录）；同一 idempotencyKey 重试安全\n- 作用域：transactions:write\n- 参数：`a`（必填）、`b`',
+    );
     expect(md).toContain('## ledger_preview_reminder\n\n：\n\n- 类型：预览（不改账）');
     expect(md).toContain('## ledger_unknown\n\n：\n\n- 类型：写入\n- 作用域：—');
   });
@@ -104,6 +155,9 @@ describe('tools reference and client configs', () => {
     const configs = clientConfigs('https://books.example/', 'C:/ledger/stdio.js');
     expect(configs.map(c => c.id)).toEqual(['codex', 'claude-code', 'dsh', 'qoder']);
     expect(configs[0].content).toContain('url = "https://books.example/mcp"');
-    expect(JSON.parse(configs[3].content).mcpServers.ledger).toMatchObject({ args: ['C:/ledger/stdio.js'], env: { LEDGER_API_URL: 'https://books.example/api/v1' } });
+    expect(JSON.parse(configs[3].content).mcpServers.ledger).toMatchObject({
+      args: ['C:/ledger/stdio.js'],
+      env: { LEDGER_API_URL: 'https://books.example/api/v1' },
+    });
   });
 });

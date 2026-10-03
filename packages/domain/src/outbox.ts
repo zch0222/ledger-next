@@ -12,17 +12,36 @@ export type OutboxEvent = { id: string; ledgerId: string | null; type: string; p
  */
 export async function dispatchOutbox(publish: (events: OutboxEvent[]) => Promise<void>, limit = 100, now = new Date()) {
   return database().transaction(async tx => {
-    const rows = await tx.select().from(outboxEvents).where(and(eq(outboxEvents.dispatchStatus, 'pending'), lte(outboxEvents.availableAt, now)))
-      .orderBy(asc(outboxEvents.availableAt), asc(outboxEvents.id)).limit(limit).for('update', { skipLocked: true });
+    const rows = await tx
+      .select()
+      .from(outboxEvents)
+      .where(and(eq(outboxEvents.dispatchStatus, 'pending'), lte(outboxEvents.availableAt, now)))
+      .orderBy(asc(outboxEvents.availableAt), asc(outboxEvents.id))
+      .limit(limit)
+      .for('update', { skipLocked: true });
     if (!rows.length) return 0;
-    await publish(rows.map(r => ({ id: r.id, ledgerId: r.ledgerId, type: r.type, payload: r.payload as Record<string, unknown> })));
-    for (const row of rows) await tx.update(outboxEvents).set({ dispatchStatus: 'dispatched', dispatchedAt: new Date(), attempts: row.attempts + 1 }).where(eq(outboxEvents.id, row.id));
+    await publish(
+      rows.map(r => ({ id: r.id, ledgerId: r.ledgerId, type: r.type, payload: r.payload as Record<string, unknown> })),
+    );
+    for (const row of rows) {
+      await tx
+        .update(outboxEvents)
+        .set({ dispatchStatus: 'dispatched', dispatchedAt: new Date(), attempts: row.attempts + 1 })
+        .where(eq(outboxEvents.id, row.id));
+    }
     return rows.length;
   });
 }
 
 /** A standalone event (not part of a business transaction), e.g. the sweeper re-queueing stalled work. */
-export async function enqueueEvent(ledgerId: string | null, type: string, payload: Record<string, unknown>, availableAt = new Date()) {
+export async function enqueueEvent(
+  ledgerId: string | null,
+  type: string,
+  payload: Record<string, unknown>,
+  availableAt = new Date(),
+) {
   const now = new Date();
-  await database().insert(outboxEvents).values({ id: randomUUID(), ledgerId, type, payload, availableAt, createdAt: now });
+  await database()
+    .insert(outboxEvents)
+    .values({ id: randomUUID(), ledgerId, type, payload, availableAt, createdAt: now });
 }
