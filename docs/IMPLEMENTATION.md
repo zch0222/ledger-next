@@ -34,13 +34,13 @@
 前置：本机只需 Docker Engine / Docker Desktop（Linux 容器）、Compose ≥2.24.4。依赖安装与构建都在 Dockerfile 多阶段内完成（构建上下文排除本机 `node_modules`）；生成 `.env`、质量检查和 e2e / perf / ops 编排也都有容器入口，不需要本机 Node.js / pnpm。本机装有 Node 24 与 pnpm 11.19.0 时，`pnpm` 命令照常可用。Compose 的 `!override` 用于清除测试栈的端口映射。仓库 `.gitattributes` 固定 LF 换行，Windows 检出送进 Linux 镜像的文件与 CI 一致。
 
 ```powershell
-docker compose -f compose.tools.yaml run --rm setup-env   # 本机有 Node 时也可 node scripts/setup-env.mjs
+docker compose -f compose.tools.yaml run --rm setup-env   # 有 sh 时也可 sh scripts/setup-env.sh
 docker compose up -d --build --wait
 # 本地演示汇率等第三方功能（全部为本地 mock，不连接真实服务）：
 docker compose -f compose.yaml -f compose.mock.yaml up -d --build --wait
 ```
 
-打开 http://localhost:3000，创建账号后创建首个账本。`setup-env` 生成随机本地密钥，不输出秘密，已有 `.env` 时拒绝覆盖。连接 URL 的密码应使用 URL 安全字符（生成值为十六进制）。MySQL / Redis 默认只开放给容器网络。
+打开 http://localhost:3000，创建账号后创建首个账本。`setup-env`（[scripts/setup-env.sh](../scripts/setup-env.sh)）按 [.env.example](../.env.example) 生成随机密钥，不输出秘密，已有 `.env` 时拒绝覆盖。连接 URL 的密码应使用 URL 安全字符（生成值为十六进制）。全部变量见 [README「环境变量」](../README.md#环境变量)；`compose.yaml` 只在 `.env` 设置了可选调优项时才传给容器，e2e / perf / ops 测试栈用空的 `--env-file`，不读本机 `.env`。MySQL / Redis 默认只开放给容器网络。
 
 ```powershell
 docker compose ps

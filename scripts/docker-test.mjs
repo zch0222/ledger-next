@@ -11,7 +11,10 @@ const env = { ...process.env, MYSQL_DATABASE: 'ledger_test', MYSQL_USER: 'ledger
 // names unique inside the toolbox container, where the process id is the same on every run.
 const project = `ledger-e2e-${process.pid}-${randomBytes(3).toString('hex')}`;
 const LATEST_MIGRATION = readdirSync('packages/db/migrations').filter(f => f.endsWith('.sql')).sort().at(-1);
-const args = ['compose', '-p', project, '-f', 'compose.yaml', '-f', 'compose.mock.yaml', '-f', 'compose.test.yaml'];
+// An empty env file: the stack gets only the values set here, never the tuning in a developer's .env.
+const emptyEnv = path.join(mkdtempSync(path.join(tmpdir(), 'ledger-e2e-')), 'empty.env');
+writeFileSync(emptyEnv, '');
+const args = ['compose', '-p', project, '--env-file', emptyEnv, '-f', 'compose.yaml', '-f', 'compose.mock.yaml', '-f', 'compose.test.yaml'];
 mkdirSync('test-results', { recursive: true }); mkdirSync('playwright-report', { recursive: true });
 // Behind a TLS-intercepting proxy, LEDGER_BUILD_CA names a CA bundle trusted only while installing packages.
 if (process.env.LEDGER_BUILD_CA) {

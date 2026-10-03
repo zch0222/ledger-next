@@ -16,7 +16,10 @@ import path from 'node:path';
 const docker = process.env.LEDGER_DOCKER || 'docker';
 const env = { ...process.env, MYSQL_DATABASE: 'ledger_ops', MYSQL_USER: 'ledger_ops', MYSQL_PASSWORD: randomBytes(24).toString('hex'), MYSQL_ROOT_PASSWORD: randomBytes(24).toString('hex'), BETTER_AUTH_SECRET: randomBytes(48).toString('hex'), LEDGER_ENCRYPTION_KEYS: `ops:${randomBytes(32).toString('base64')}`, APP_URL: 'http://web:3000' };
 const project = `ledger-ops-${process.pid}-${randomBytes(3).toString('hex')}`;
-const args = ['compose', '-p', project, '-f', 'compose.yaml', '-f', 'compose.mock.yaml', '-f', 'compose.ops.yaml'];
+// An empty env file: the stack gets only the values set here, never the tuning in a developer's .env.
+const emptyEnv = path.join(mkdtempSync(path.join(tmpdir(), 'ledger-ops-')), 'empty.env');
+writeFileSync(emptyEnv, '');
+const args = ['compose', '-p', project, '--env-file', emptyEnv, '-f', 'compose.yaml', '-f', 'compose.mock.yaml', '-f', 'compose.ops.yaml'];
 if (process.env.LEDGER_BUILD_CA) {
   const overlay = path.join(mkdtempSync(path.join(tmpdir(), 'ledger-ops-')), 'compose.build-ca.tests.yaml');
   writeFileSync(overlay, 'services:\n  tests: { build: { secrets: [build_ca] } }\n  mock-services: { build: { secrets: [build_ca] } }\n');
