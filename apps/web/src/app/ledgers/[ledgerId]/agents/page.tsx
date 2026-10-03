@@ -30,7 +30,7 @@ export default async function Agents({ params, searchParams }: LedgerPageProps) 
       <section className="panel"><h2>权限从最小范围开始</h2>
         <div className="budget"><h3>默认只读</h3><p className="small muted">账目、汇总、订阅、提醒与汇率查询。</p><span className="pill">限定所选账本</span></div>
         <div className="budget"><h3>按需写入</h3><p className="small muted">先预览金额和账户，再提交同一意图；超时重试沿用同一幂等键，不会重复入账。</p></div>
-        <div className="budget"><h3>高影响操作需要你批准</h3><p className="small muted">作废、撤销导入、成员变更，以及单笔达到 {process.env.AGENT_APPROVAL_AMOUNT ?? '10000'} {ledger.baseCurrency} 的写入，只能由所有者在本页批准；批准只对那一次请求有效。</p></div>
+        <div className="budget"><h3>高影响操作需要你批准</h3><p className="small muted">作废、撤销导入、成员变更，以及单笔达到 {process.env.AGENT_APPROVAL_AMOUNT || '10000'} {ledger.baseCurrency} 的写入，只能由所有者在本页批准；批准只对那一次请求有效。</p></div>
         <div className="budget"><h3>随时撤销</h3><p className="small muted">撤销在下一次请求立即生效。</p></div>
       </section>
     </div>

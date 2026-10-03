@@ -15,6 +15,20 @@ x-app-env: &app-env
   # Private-network webhook receivers need an explicit allowlist (host or host:port); empty means public HTTPS only.
   WEBHOOK_ALLOWLIST: ${WEBHOOK_ALLOWLIST:-}
   CHANNEL_ENDPOINT_OVERRIDES: ${CHANNEL_ENDPOINT_OVERRIDES:-}
+  # Optional tuning (README "环境变量"): passed on only when set in .env or the shell; unset keeps the built-in default.
+  FX_PROVIDER:
+  FX_POLL_SECONDS:
+  AGENT_APPROVAL_AMOUNT:
+  MCP_ALLOWED_HOSTS:
+  MCP_ALLOWED_ORIGINS:
+  API_RATE_LIMIT:
+  API_WRITE_RATE_LIMIT:
+  AGENT_WRITE_RATE_LIMIT:
+  API_AUTH_FAILURE_LIMIT:
+  WEB_CONCURRENCY:
+  NOTIFY_TICK_SECONDS:
+  SUBSCRIPTION_TICK_SECONDS:
+  CHANNEL_TIMEOUT_MS:
 services:
   mysql:
     image: mysql:8.4@sha256:6ea90827b1100f8f2ae306a539f86d2c264a26ed435a2a9f75551dd5c3aeb242 # 8.4.11 LTS, multi-platform index

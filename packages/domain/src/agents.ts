@@ -163,7 +163,7 @@ export async function approvalReason(operationId: string, ledgerId: string | und
   const [ledger] = await database().select({ base: ledgers.baseCurrency }).from(ledgers).where(eq(ledgers.id, ledgerId));
   const main = (preview.computed as { main?: { kind?: string; settlement?: { amount: string; currency: string }; base?: { amount?: string } } })?.main;
   const amount = main?.base?.amount;
-  const limit = process.env.AGENT_APPROVAL_AMOUNT ?? '10000';
+  const limit = process.env.AGENT_APPROVAL_AMOUNT || '10000';
   if (!amount || !sum([amount]).abs().greaterThanOrEqualTo(limit)) return null;
   // The approver sees what the money is, not only that a threshold was crossed.
   const what = main?.settlement ? `${KIND_LABEL[main.kind ?? ''] ?? '金额'} ${main.settlement.amount} ${main.settlement.currency}${main.settlement.currency === ledger.base ? '' : `（折合 ${amount} ${ledger.base}）`}：` : '';

@@ -13,7 +13,7 @@ docker compose -f compose.tools.yaml run --rm setup-env
 docker compose up -d --build --wait
 ```
 
-第一条命令在容器里生成 `.env`（随机本地密钥）。访问 http://localhost:3000 创建账号和账本。详见[实现状态与运行说明](docs/IMPLEMENTATION.md)。
+第一条命令在容器里运行 [scripts/setup-env.sh](scripts/setup-env.sh)，按 [.env.example](.env.example) 生成带随机密钥的 `.env`（有 sh 的环境也可直接 `sh scripts/setup-env.sh`），各变量见[环境变量](#环境变量)。访问 http://localhost:3000 创建账号和账本。详见[实现状态与运行说明](docs/IMPLEMENTATION.md)。
 
 ```powershell
 docker build --target verify .
@@ -33,13 +33,13 @@ docker compose -f compose.tools.yaml run --rm e2e
    git checkout <发布标签或提交>
    ```
 
-2. 生成 `.env`（随机密钥，权限 600，已存在时拒绝覆盖），再按[运行手册 §2](docs/RUNBOOK.md#2-首次部署)填写：
+2. 生成 `.env`，同时写入对外 HTTPS 地址（密钥随机生成且不输出，权限 600，已存在时拒绝覆盖）：
 
    ```bash
-   docker compose -f compose.tools.yaml run --rm setup-env
+   sh scripts/setup-env.sh --app-url https://ledger.example
    ```
 
-   至少把 `APP_URL` 改成对外 HTTPS 地址（例如 `https://ledger.example`），Cookie Secure、CSRF 和 MCP Host 校验都以它为准；按需配置 `FX_PROVIDER_URL` / `FX_PROVIDER_KEY`、`SMTP_URL`、`LEDGER_ADMIN_EMAILS`。`LEDGER_ENCRYPTION_KEYS` 和 `BETTER_AUTH_SECRET` 要与数据库备份分开保存：主密钥丢失后渠道凭据无法解密。
+   主机上没有 sh 时用 `docker compose -f compose.tools.yaml run --rm setup-env --app-url https://ledger.example`。再按[环境变量](#环境变量)按需配置汇率、邮件等第三方服务；`BETTER_AUTH_SECRET` 和 `LEDGER_ENCRYPTION_KEYS` 要与数据库备份分开保存：主密钥丢失后渠道凭据无法解密。
 
 3. 构建镜像并启动。依赖安装和构建都在镜像内完成；`migrate` 先执行迁移，成功后才启动 web / worker：
 
@@ -70,6 +70,84 @@ docker compose up -d --build --wait
 ```
 
 迁移只做向后兼容的新增，应用回滚只需切回上一个版本并重新构建；数据库回滚与从备份恢复见[运行手册 §5–6](docs/RUNBOOK.md#5-恢复)。构建机处在 TLS 被代理重签的网络里时，用 `LEDGER_BUILD_CA` 叠加 `compose.build-ca.yaml`，见[运行说明](docs/IMPLEMENTATION.md#运行)。
+
+## 环境变量
+
+配置写在仓库根目录的 `.env`，由 Docker Compose 读取。模板是 [.env.example](.env.example)，不要手工复制，用 [scripts/setup-env.sh](scripts/setup-env.sh) 生成：
+
+```bash
+sh scripts/setup-env.sh [--app-url https://ledger.example] [--output .env]
+```
+
+只有 Docker 时：`docker compose -f compose.tools.yaml run --rm setup-env [同样的参数]`。脚本行为：
+
+- 从 `/dev/urandom` 生成 `MYSQL_PASSWORD`、`MYSQL_ROOT_PASSWORD`、`BETTER_AUTH_SECRET`（各 32 字节，64 位十六进制，可直接放进连接 URL）和 `LEDGER_ENCRYPTION_KEYS`（`k1:` + 32 字节 base64），每次运行都不同。
+- 密钥不输出到终端；文件以 `umask 077` 独占创建，权限 600。
+- 目标文件已存在时拒绝执行、不做任何修改。重新生成会使已初始化的 MySQL 账号和已加密的渠道凭据失效；确需重建时先备份并移走旧文件，或用 `--output` 生成到新文件后手工合并。
+- 其余变量原样取自模板。
+
+安全要求：`.env` 已被 `.gitignore` 排除，不要提交，也不要贴到聊天或工单里。`BETTER_AUTH_SECRET`、`LEDGER_ENCRYPTION_KEYS` 与数据库备份分开保存（例如密码管理器 + 对象存储）。修改 `.env` 后执行 `docker compose up -d --wait`，变更的容器会重建。模板里以 `# KEY=默认值` 注释的是可选项：取消注释即生效；不用时删除整行，不要留成空的 `KEY=`。
+
+**数据库**（MySQL 容器；账号密码在数据卷首次初始化时写入，之后改 `.env` 需同步在 MySQL 中 `ALTER USER`）
+
+| 变量 | 默认值 | 说明 |
+| --- | --- | --- |
+| `MYSQL_DATABASE` | `ledger` | 库名 |
+| `MYSQL_USER` | `ledger` | 应用账号 |
+| `MYSQL_PASSWORD` | 必填，脚本生成 | 应用账号密码 |
+| `MYSQL_ROOT_PASSWORD` | 必填，脚本生成 | root 密码，备份 / 恢复命令使用 |
+
+**Web 与密钥**
+
+| 变量 | 默认值 | 说明 |
+| --- | --- | --- |
+| `APP_URL` | `http://localhost:3000` | 对外访问地址，生产必须是 `https://`。Cookie Secure、CSRF Origin、审批链接和 MCP Host 校验都以它为准 |
+| `WEB_PORT` | `3000` | 宿主机端口，只绑定 `127.0.0.1`，由反向代理对外 |
+| `WEB_CONCURRENCY` | CPU 数，最多 4 | web 进程数（Node cluster 共享端口）；MySQL / worker 同机时可设为 CPU 数 − 1 |
+| `BETTER_AUTH_SECRET` | 必填，脚本生成 | 会话签名密钥；更换会使全部会话失效 |
+| `LEDGER_ENCRYPTION_KEYS` | 必填，脚本生成 | 渠道凭据主密钥环 `id:base64(32 字节)`，逗号分隔，第一个用于加密。轮换：新密钥放到第一位、保留旧密钥，重启后执行 `docker compose run --rm migrate node --import tsx scripts/rewrap-channel-keys.ts`，确认后再移除旧密钥。丢失则渠道凭据不可恢复 |
+
+**汇率**
+
+| 变量 | 默认值 | 说明 |
+| --- | --- | --- |
+| `FX_PROVIDER_URL` | 空（不抓取） | Fixer 兼容汇率接口地址 |
+| `FX_PROVIDER_KEY` | 空 | 汇率接口密钥 |
+| `FX_PROVIDER` | `fixer` | 供应商名称，记录在汇率批次上 |
+| `FX_POLL_SECONDS` | `60` | worker 抓取最新汇率的间隔（秒） |
+| `LEDGER_ADMIN_EMAILS` | 空 | 可手动触发汇率刷新的管理员邮箱，逗号分隔 |
+
+**提醒与通知渠道**
+
+| 变量 | 默认值 | 说明 |
+| --- | --- | --- |
+| `SMTP_URL` | 空（停用邮件渠道） | 发信服务器，例如 `smtps://user:password@smtp.example.com:465` |
+| `SMTP_FROM` | `Ledger Next <no-reply@example.com>` | 发件人，改成自己的域名 |
+| `WEBHOOK_ALLOWLIST` | 空（只允许公网 HTTPS） | 允许的内网 Webhook 接收方，`host` 或 `host:port`，逗号分隔 |
+| `NOTIFY_TICK_SECONDS` | `10` | 提醒调度间隔（秒） |
+| `SUBSCRIPTION_TICK_SECONDS` | `600` | 订阅续期维护间隔（秒） |
+| `CHANNEL_TIMEOUT_MS` | `10000` | 调用通知渠道（含 SMTP）的超时（毫秒） |
+
+**Agent、MCP 与限流**（限额均为每分钟次数）
+
+| 变量 | 默认值 | 说明 |
+| --- | --- | --- |
+| `AGENT_APPROVAL_AMOUNT` | `10000` | Agent 单笔写入达到该金额（基准币）时需所有者在网页批准 |
+| `MCP_ALLOWED_HOSTS` | 空 | 反向代理改写 Host 时追加允许的 Host，逗号分隔 |
+| `MCP_ALLOWED_ORIGINS` | 空 | 浏览器内 MCP 客户端的 Origin，逗号分隔 |
+| `API_RATE_LIMIT` | `600` | 每个会话或令牌的请求数 |
+| `API_WRITE_RATE_LIMIT` | `120` | 资金写入，每账本（网页会话） |
+| `AGENT_WRITE_RATE_LIMIT` | `30` | 资金写入，每账本（Agent 令牌） |
+| `API_AUTH_FAILURE_LIMIT` | `30` | 认证失败，每个来源地址 |
+
+**仅本机开发**（在宿主机直接运行 `pnpm dev` / `pnpm test:integration` 时使用；Compose 内的服务使用自己的内部地址）
+
+| 变量 | 默认值 | 说明 |
+| --- | --- | --- |
+| `DATABASE_URL` | 脚本生成 | `mysql://<用户>:<密码>@localhost:3306/<库名>`，与上面的 MySQL 账号一致 |
+| `REDIS_URL` | `redis://localhost:6379` | Redis 地址 |
+
+构建与测试用的 `LEDGER_BUILD_CA`、`LEDGER_HOST_DIR`、`LEDGER_DOCKER`、`PERF_*` 是执行命令时的 shell 环境变量，不写入 `.env`，见[运行说明](docs/IMPLEMENTATION.md)。`pnpm test:e2e` / `test:perf` / `test:ops` 的独立测试栈不读取 `.env`，本机配置不会影响测试。
 
 ## 从这里开始
 

@@ -17,20 +17,7 @@
 ## 2. 首次部署
 
 1. 主机：Linux，4 vCPU / 8 GB 起；Docker Engine + Compose v2；时间同步（chrony）。
-2. `docker compose -f compose.tools.yaml run --rm setup-env` 生成 `.env`（权限 600，属主为仓库目录属主；主机不需要 Node.js），再按下表填写：
-
-| 变量 | 说明 |
-| --- | --- |
-| `APP_URL` | 对外 HTTPS 地址，例如 `https://ledger.example`；Cookie Secure、CSRF Origin、审批链接、MCP Host 校验都以它为准 |
-| `BETTER_AUTH_SECRET` | 会话签名密钥；更换会使全部会话失效 |
-| `LEDGER_ENCRYPTION_KEYS` | 渠道凭据主密钥环 `id:base64(32 字节)`，逗号分隔，第一个用于加密。**与数据库分开备份**，丢失则渠道凭据不可恢复（只能让用户重新填写） |
-| `FX_PROVIDER` / `FX_PROVIDER_URL` / `FX_PROVIDER_KEY` | 汇率供应商（D09） |
-| `SMTP_URL` | 邮件渠道发信服务器 |
-| `WEBHOOK_ALLOWLIST` | 可选：允许的外部 Webhook 主机 |
-| `AGENT_APPROVAL_AMOUNT` | Agent 单笔写入需网页批准的门槛（基准币，默认 10000） |
-| `API_RATE_LIMIT` / `API_WRITE_RATE_LIMIT` / `AGENT_WRITE_RATE_LIMIT` / `API_AUTH_FAILURE_LIMIT` | 每分钟限额：每个会话或令牌 600；资金写入每账本 120（会话）/ 30（令牌）；每个来源地址认证失败 30 |
-| `MCP_ALLOWED_HOSTS` / `MCP_ALLOWED_ORIGINS` | 可选：反向代理改写 Host 或浏览器内 MCP 客户端时追加 |
-| `WEB_CONCURRENCY` | web 进程数（Node cluster 共享端口），默认 CPU 数且最多 4；MySQL / worker 同机时可设为 CPU 数 − 1 |
+2. `sh scripts/setup-env.sh --app-url https://ledger.example` 生成 `.env`：密钥随机生成且不输出，权限 600，已存在时拒绝覆盖。主机没有 sh 时用 `docker compose -f compose.tools.yaml run --rm setup-env --app-url https://ledger.example`，文件属主为仓库目录属主。再按 [README「环境变量」](../README.md#环境变量) 配置汇率供应商（D09）、SMTP、Webhook 白名单、Agent 审批门槛、限流与 `WEB_CONCURRENCY`。`LEDGER_ENCRYPTION_KEYS` **与数据库分开备份**，丢失则渠道凭据不可恢复（只能让用户重新填写）。
 
 3. 反向代理（Caddy / Nginx）终止 HTTPS，转发到 `127.0.0.1:${WEB_PORT}`：
    - 必须设置 `X-Forwarded-For`（限流按第一个地址计数）并保留 `Host`；

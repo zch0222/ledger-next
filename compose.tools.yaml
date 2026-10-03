@@ -1,6 +1,6 @@
 # Repository scripts with only Docker on the host (no local Node.js / pnpm). The checkout is mounted at /work and the
 # engine socket is shared, so the e2e / perf / ops stacks start on the host engine exactly as `pnpm test:*` would:
-#   docker compose -f compose.tools.yaml run --rm setup-env    # = node scripts/setup-env.mjs
+#   docker compose -f compose.tools.yaml run --rm setup-env    # = sh scripts/setup-env.sh (options are passed on)
 #   docker compose -f compose.tools.yaml run --rm e2e          # = pnpm test:e2e (also: perf, ops)
 #   docker compose -f compose.tools.yaml run --rm tools node scripts/progress.mjs status
 # LEDGER_BUILD_CA must be a path inside the checkout (relative to it) when used from here.
@@ -21,7 +21,8 @@ services:
   tools: *tools
   setup-env:
     <<: *tools
-    command: ["node", "scripts/setup-env.mjs"]
+    # An entrypoint, so `run --rm setup-env --app-url https://…` appends the options instead of replacing the command.
+    entrypoint: ["sh", "scripts/setup-env.sh"]
   e2e:
     <<: *tools
     command: ["node", "--import", "./scripts/toolbox-host.mjs", "scripts/docker-test.mjs"]

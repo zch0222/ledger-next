@@ -122,7 +122,7 @@ export async function deliver(id: string, now = () => new Date()) {
     let config;
     try { config = channelConfig(channel); } catch { config = null; }
     result = config && config.type !== 'in_app'
-      ? await sendMessage(config, { eventId: row.eventId, eventType: row.eventType, title: message.title, body: message.body, link: message.link, createdAt: row.createdAt.toISOString() }, Number(process.env.CHANNEL_TIMEOUT_MS ?? 10_000))
+      ? await sendMessage(config, { eventId: row.eventId, eventType: row.eventType, title: message.title, body: message.body, link: message.link, createdAt: row.createdAt.toISOString() }, Number(process.env.CHANNEL_TIMEOUT_MS || 10_000))
       : { outcome: 'failed', responseClass: 'credential_error', error: '渠道配置无法解密（加密密钥缺失或已轮换）' };
   }
   const done = now();

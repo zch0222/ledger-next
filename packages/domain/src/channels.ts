@@ -198,7 +198,7 @@ async function transport() {
   if (mailer?.url !== url) {
     const mod = await import('nodemailer');
     const createTransport = mod.createTransport ?? (mod as unknown as { default: typeof mod }).default.createTransport;
-    const timeout = Number(process.env.CHANNEL_TIMEOUT_MS ?? 10_000);
+    const timeout = Number(process.env.CHANNEL_TIMEOUT_MS || 10_000);
     // Timeouts belong to the transport options; a second argument would only be message defaults (and be ignored).
     mailer = { url, transport: createTransport({ url, connectionTimeout: timeout, greetingTimeout: timeout, socketTimeout: timeout } as Parameters<typeof createTransport>[0]) as unknown as Mailer };
   }
