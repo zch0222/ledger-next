@@ -1,9 +1,9 @@
 import { randomUUID } from 'node:crypto';
 import { and, asc, desc, eq, gt, lt, or } from 'drizzle-orm';
-import { database, type Executor } from '../../db/src/index';
-import { auditLogs, ledgers, memberships, user } from '../../db/src/schema';
+import { database, type Executor } from '@ledger/db/index';
+import { auditLogs, ledgers, memberships, user } from '@ledger/db/schema';
 import { audit } from './audit';
-import { ledgerInput, ledgerPatch, memberInput, memberPatch } from '../../contracts/src/identity';
+import { ledgerInput, ledgerPatch, memberInput, memberPatch } from '@ledger/contracts/identity';
 import { DomainError, protectLastOwner, requireRole, requireVersion, type Role } from './policy';
 
 export type AuthContext = { userId: string; requestId: string };

@@ -1,6 +1,6 @@
 import Link from 'next/link';
-import { PageHeading } from '../../../../components/ui/page';
-import { requireLedger, type LedgerPageProps } from '../../../../lib/session';
+import { PageHeading } from '@/components/ui/page';
+import { requireLedger, type LedgerPageProps } from '@/lib/session';
 
 export const dynamic = 'force-dynamic';
 /** Mobile "更多": everything the bottom bar has no room for (UI_SPEC §1). */

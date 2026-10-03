@@ -6,7 +6,7 @@
 import assert from 'node:assert/strict';
 import { randomBytes, randomUUID } from 'node:crypto';
 import { eq, like } from 'drizzle-orm';
-import { database, databasePool } from '../../packages/db/src/index';
+import { database, databasePool } from '@ledger/db/index';
 import {
   ledgers,
   memberships,
@@ -14,9 +14,9 @@ import {
   notificationChannels,
   notificationDeliveries,
   user,
-} from '../../packages/db/src/schema';
-import { createChannel } from '../../packages/domain/src/notify-channels';
-import { insertDelivery } from '../../packages/domain/src/notify-store';
+} from '@ledger/db/schema';
+import { createChannel } from '@ledger/domain/notify-channels';
+import { insertDelivery } from '@ledger/domain/notify-store';
 
 const MOCK = process.env.MOCK_URL!;
 const MARK = 'chaos-drill';

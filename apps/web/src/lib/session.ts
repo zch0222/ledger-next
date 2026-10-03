@@ -2,8 +2,8 @@ import { cache } from 'react';
 import { headers } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
 import { auth } from './auth';
-import { getLedger, listLedgers } from '../../../../packages/domain/src/identity';
-import { DomainError } from '../../../../packages/domain/src/policy';
+import { getLedger, listLedgers } from '@ledger/domain/identity';
+import { DomainError } from '@ledger/domain/policy';
 
 // SSR reads call the domain layer directly with an AuthContext (TECHNICAL_DESIGN §3); cache() dedupes per request.
 export const currentSession = cache(async () => auth().api.getSession({ headers: await headers() }));

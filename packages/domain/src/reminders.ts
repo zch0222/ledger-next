@@ -1,8 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import { and, asc, eq, gt, gte, inArray, isNull, lt, lte, ne, notInArray, or } from 'drizzle-orm';
-import { PreviewSubmit } from '../../contracts/src/finance';
-import { ReminderPreviewCreate, ReminderRuleUpdate } from '../../contracts/src/platform';
-import { database, type Executor, type Tx } from '../../db/src/index';
+import { PreviewSubmit } from '@ledger/contracts/finance';
+import { ReminderPreviewCreate, ReminderRuleUpdate } from '@ledger/contracts/platform';
+import { database, type Executor, type Tx } from '@ledger/db/index';
 import {
   billOccurrences,
   budgets,
@@ -11,7 +11,7 @@ import {
   reminderPreviews,
   reminderRules,
   subscriptions,
-} from '../../db/src/schema';
+} from '@ledger/db/schema';
 import { ledgerAccess } from './access';
 import { audit } from './audit';
 import { addDays, localDate } from './dates';

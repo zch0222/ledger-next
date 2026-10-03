@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { api, intent } from '../lib/client';
+import { api, intent } from '@/lib/client';
 type Member = { id: string; name: string; email: string; role: 'owner' | 'editor' | 'viewer'; version: number };
 const names = { owner: '所有者', editor: '可编辑', viewer: '仅查看' };
 export function Members({ ledgerId, initial }: { ledgerId: string; initial: Member[] }) {

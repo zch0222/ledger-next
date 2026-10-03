@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { DomainError } from '../../../../../packages/domain/src/policy';
+import { DomainError } from '@ledger/domain/policy';
 
 /** Page title block from the prototype: kicker, h1, one-line description, optional action. */
 export function PageHeading({

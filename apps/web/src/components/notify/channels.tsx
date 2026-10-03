@@ -1,14 +1,14 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ApiError, api, intent, randomKey } from '../../lib/client';
+import { ApiError, api, intent, randomKey } from '@/lib/client';
 import {
   CHANNEL_STATUS,
   CHANNEL_TYPES,
   DELIVERY_STATUS,
   type ChannelTypeId,
   type ChannelView,
-} from '../../lib/notify-labels';
+} from '@/lib/notify-labels';
 
 type Field = {
   key: string;

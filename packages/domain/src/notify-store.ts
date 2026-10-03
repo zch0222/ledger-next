@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { and, eq, inArray, isNull, sql, type SQL } from 'drizzle-orm';
-import { database, type Executor, type Tx } from '../../db/src/index';
-import { notificationChannels, notificationDeliveries } from '../../db/src/schema';
+import { database, type Executor, type Tx } from '@ledger/db/index';
+import { notificationChannels, notificationDeliveries } from '@ledger/db/schema';
 import type { ChannelConfig } from './channels';
 import { open } from './secrets';
 

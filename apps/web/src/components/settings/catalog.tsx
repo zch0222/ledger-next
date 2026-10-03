@@ -1,8 +1,8 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { api, intent } from '../../lib/client';
-import { useLedgerUI } from '../ledger-ui';
+import { api, intent } from '@/lib/client';
+import { useLedgerUI } from '@/components/ledger-ui';
 
 type Category = {
   id: string;

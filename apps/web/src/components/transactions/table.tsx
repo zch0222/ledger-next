@@ -1,6 +1,6 @@
 import Link from 'next/link';
-import { formatDate, formatMoney, KIND_LABELS } from '../../../../../packages/ui/src/format';
-import type { TransactionView } from '../../lib/types';
+import { formatDate, formatMoney, KIND_LABELS } from '@ledger/ui/format';
+import type { TransactionView } from '@/lib/types';
 
 type Names = { accounts: Map<string, string>; categories: Map<string, string> };
 const signOf = (t: TransactionView) =>

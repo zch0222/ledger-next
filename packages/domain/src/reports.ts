@@ -9,9 +9,9 @@ import {
   CashFlowQuery,
   CategoryBreakdownQuery,
   ReportQuery,
-} from '../../contracts/src/planning';
-import { database, type Executor, type Tx } from '../../db/src/index';
-import { cacheGet, cacheSet, redis } from '../../db/src/redis';
+} from '@ledger/contracts/planning';
+import { database, type Executor, type Tx } from '@ledger/db/index';
+import { cacheGet, cacheSet, redis } from '@ledger/db/redis';
 import {
   accountPostings,
   accounts,
@@ -21,7 +21,7 @@ import {
   ledgerDataVersions,
   transactionAmounts,
   transactions,
-} from '../../db/src/schema';
+} from '@ledger/db/schema';
 import { ledgerAccess } from './access';
 import { audit, emit } from './audit';
 import { addDays, localDate, zonedInstant } from './dates';

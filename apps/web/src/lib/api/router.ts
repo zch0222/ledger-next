@@ -1,21 +1,13 @@
 import { createHash, randomUUID } from 'node:crypto';
-import { uuid } from '../../../../../packages/contracts/src/common';
-import { matchOperation, pathParams, type StableOperationId } from '../../../../../packages/contracts/src/operations';
-import { validateIdempotencyKey } from '../../../../../packages/domain/src/idempotency';
-import { hasIdempotencyRecord, withIdempotency } from '../../../../../packages/domain/src/idempotent';
-import { approvalReason, consumeApproval, createApproval } from '../../../../../packages/domain/src/agents';
-import { DomainError } from '../../../../../packages/domain/src/policy';
-import {
-  clientAddress,
-  enforce,
-  exhausted,
-  hit,
-  LIMITS,
-  MONEY_WRITES,
-  tooMany,
-} from '../../../../../packages/domain/src/rate-limit';
-import { IMPORT_MAX_BYTES } from '../../../../../packages/domain/src/imports';
-import { attachment, body, context, failure, json, upload, writeGuard } from '../http';
+import { uuid } from '@ledger/contracts/common';
+import { matchOperation, pathParams, type StableOperationId } from '@ledger/contracts/operations';
+import { validateIdempotencyKey } from '@ledger/domain/idempotency';
+import { hasIdempotencyRecord, withIdempotency } from '@ledger/domain/idempotent';
+import { approvalReason, consumeApproval, createApproval } from '@ledger/domain/agents';
+import { DomainError } from '@ledger/domain/policy';
+import { clientAddress, enforce, exhausted, hit, LIMITS, MONEY_WRITES, tooMany } from '@ledger/domain/rate-limit';
+import { IMPORT_MAX_BYTES } from '@ledger/domain/imports';
+import { attachment, body, context, failure, json, upload, writeGuard } from '@/lib/http';
 import { handlers } from './handlers';
 
 // REST order (TECHNICAL_DESIGN §3): authenticate → match the contract → validate → use case → DTO.

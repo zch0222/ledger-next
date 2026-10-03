@@ -1,7 +1,7 @@
 import Link from 'next/link';
-import { listCategories } from '../../../../../../../packages/domain/src/catalog';
-import { addDays } from '../../../../../../../packages/domain/src/dates';
-import { formatAmount, sum } from '../../../../../../../packages/domain/src/money';
+import { listCategories } from '@ledger/domain/catalog';
+import { addDays } from '@ledger/domain/dates';
+import { formatAmount, sum } from '@ledger/domain/money';
 import {
   budgetProgress,
   cashFlow,
@@ -9,16 +9,16 @@ import {
   listBudgets,
   presentBudget,
   reportSummary,
-} from '../../../../../../../packages/domain/src/reports';
-import { formatMoney, formatPercent } from '../../../../../../../packages/ui/src/format';
-import { BudgetForm } from '../../../../components/budgets/budget-form';
-import { CategoryPanel } from '../../../../components/reports/category-panel';
-import { MonthNav } from '../../../../components/reports/month-nav';
-import { TrendPanel } from '../../../../components/reports/trend-panel';
-import { EmptyState, Note, PageHeading, PanelError, attempt } from '../../../../components/ui/page';
-import { monthRange, withParams } from '../../../../lib/period';
-import { param, requireLedger, type LedgerPageProps } from '../../../../lib/session';
-import { today as todayIn } from '../../../../lib/time';
+} from '@ledger/domain/reports';
+import { formatMoney, formatPercent } from '@ledger/ui/format';
+import { BudgetForm } from '@/components/budgets/budget-form';
+import { CategoryPanel } from '@/components/reports/category-panel';
+import { MonthNav } from '@/components/reports/month-nav';
+import { TrendPanel } from '@/components/reports/trend-panel';
+import { EmptyState, Note, PageHeading, PanelError, attempt } from '@/components/ui/page';
+import { monthRange, withParams } from '@/lib/period';
+import { param, requireLedger, type LedgerPageProps } from '@/lib/session';
+import { today as todayIn } from '@/lib/time';
 
 export const dynamic = 'force-dynamic';
 

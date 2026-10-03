@@ -1,7 +1,7 @@
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { auth } from '../../lib/auth';
-import { LoginForm } from '../../components/login-form';
+import { auth } from '@/lib/auth';
+import { LoginForm } from '@/components/login-form';
 export const dynamic = 'force-dynamic';
 export default async function Login() {
   const session = await auth().api.getSession({ headers: await headers() });

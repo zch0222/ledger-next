@@ -1,10 +1,10 @@
-import { listAccounts } from '../../../../../../../packages/domain/src/accounts';
-import { accountBalances } from '../../../../../../../packages/domain/src/reports';
-import { formatAmount } from '../../../../../../../packages/domain/src/money';
-import { ACCOUNT_TYPE_LABELS, FRESHNESS_LABELS, formatMoney } from '../../../../../../../packages/ui/src/format';
-import { AccountActions, NewAccount } from '../../../../components/accounts/account-form';
-import { EmptyState, Note, PageHeading, PanelError, attempt } from '../../../../components/ui/page';
-import { param, requireLedger, type LedgerPageProps } from '../../../../lib/session';
+import { listAccounts } from '@ledger/domain/accounts';
+import { accountBalances } from '@ledger/domain/reports';
+import { formatAmount } from '@ledger/domain/money';
+import { ACCOUNT_TYPE_LABELS, FRESHNESS_LABELS, formatMoney } from '@ledger/ui/format';
+import { AccountActions, NewAccount } from '@/components/accounts/account-form';
+import { EmptyState, Note, PageHeading, PanelError, attempt } from '@/components/ui/page';
+import { param, requireLedger, type LedgerPageProps } from '@/lib/session';
 
 export const dynamic = 'force-dynamic';
 

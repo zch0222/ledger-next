@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { checksum, normalize, statements } from '../../packages/db/src/migrate-files';
+import { checksum, normalize, statements } from '@ledger/db/migrate-files';
 
 it('hashes migrations identically on LF and CRLF checkouts', () => {
   const lf = 'CREATE TABLE a (id INT);\n--> statement-breakpoint\nCREATE TABLE b (id INT);\n';
@@ -16,7 +16,7 @@ it('splits on statement breakpoints and drops empty fragments', () => {
 });
 it('the readiness check expects exactly the newest migration file', async () => {
   const { readdirSync } = await import('node:fs');
-  const { EXPECTED_MIGRATION } = await import('../../packages/db/src/schema-version');
+  const { EXPECTED_MIGRATION } = await import('@ledger/db/schema-version');
   expect(EXPECTED_MIGRATION).toBe(
     readdirSync('packages/db/migrations')
       .filter(f => f.endsWith('.sql'))

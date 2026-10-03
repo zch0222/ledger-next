@@ -1,10 +1,10 @@
 import { McpServer, ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CallToolResult, ReadResourceResult } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
-import { Currency, LocalDate, Timestamp, uuid } from '../../contracts/src/common';
-import { TransactionKind, TransactionPreviewCreate } from '../../contracts/src/finance';
-import { BillStatus, SubscriptionPreviewCreate, SubscriptionStatus } from '../../contracts/src/planning';
-import { DeliveryStatus, ReminderPreviewCreate } from '../../contracts/src/platform';
+import { Currency, LocalDate, Timestamp, uuid } from '@ledger/contracts/common';
+import { TransactionKind, TransactionPreviewCreate } from '@ledger/contracts/finance';
+import { BillStatus, SubscriptionPreviewCreate, SubscriptionStatus } from '@ledger/contracts/planning';
+import { DeliveryStatus, ReminderPreviewCreate } from '@ledger/contracts/platform';
 import type { Problem, Rest, RestResult } from './rest';
 
 /**

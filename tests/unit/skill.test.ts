@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { clientConfigs } from '../../packages/mcp/src/clients';
-import { TOOL_NAMES } from '../../packages/mcp/src/server';
+import { clientConfigs } from '@ledger/mcp/clients';
+import { TOOL_NAMES } from '@ledger/mcp/server';
 import {
   buildPackages,
   frontmatter,
@@ -10,7 +10,7 @@ import {
   renderToolsReference,
   sha256sums,
   verifySums,
-} from '../../packages/mcp/src/skill';
+} from '@ledger/mcp/skill';
 import { skillFiles } from '../../scripts/skill';
 
 // M6-SKILL: the formal ledger-service Skill never names a tool, scope or link that does not exist, carries no secret,

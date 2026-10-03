@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { buildOpenApi } from '../../packages/contracts/src/openapi';
-import { matchOperation, operations, pathParams } from '../../packages/contracts/src/operations';
+import { buildOpenApi } from '@ledger/contracts/openapi';
+import { matchOperation, operations, pathParams } from '@ledger/contracts/operations';
 
 const doc = buildOpenApi() as unknown as {
   paths: Record<string, Record<string, Record<string, unknown>>>;

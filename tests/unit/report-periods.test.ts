@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { bucketOf, buckets, nextMonth, periodOf } from '../../packages/domain/src/report-periods';
+import { bucketOf, buckets, nextMonth, periodOf } from '@ledger/domain/report-periods';
 
 it('buckets business dates by day, Monday week and month', () => {
   expect(bucketOf('2026-10-02', 'day')).toBe('2026-10-02');

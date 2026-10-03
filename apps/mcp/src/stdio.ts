@@ -1,6 +1,6 @@
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { restClient } from '../../../packages/mcp/src/rest';
-import { createLedgerMcpServer, SERVER_INFO } from '../../../packages/mcp/src/server';
+import { restClient } from '@ledger/mcp/rest';
+import { createLedgerMcpServer, SERVER_INFO } from '@ledger/mcp/server';
 
 // ledger-mcp over stdio (API_AGENT_CONTRACT §4.1, Qoder / local fallback): stdout carries protocol messages only,
 // every log line goes to stderr. The token comes from the environment and is never echoed.

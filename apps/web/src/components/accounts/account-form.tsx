@@ -1,9 +1,9 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ACCOUNT_TYPE_LABELS } from '../../../../../packages/ui/src/format';
-import { ApiError, api, intent } from '../../lib/client';
-import { useLedgerUI } from '../ledger-ui';
+import { ACCOUNT_TYPE_LABELS } from '@ledger/ui/format';
+import { ApiError, api, intent } from '@/lib/client';
+import { useLedgerUI } from '@/components/ledger-ui';
 
 /** New account (P06 / onboarding step 2). Opening balance is not income; currency is fixed after creation. */
 export function NewAccount({ open: initiallyOpen = false, first = false }: { open?: boolean; first?: boolean }) {

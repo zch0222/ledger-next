@@ -1,7 +1,7 @@
 import { cache } from 'react';
 import { cookies } from 'next/headers';
-import { getPreferences, type Appearance } from '../../../../packages/domain/src/preferences';
-import { sanitize } from '../../../../packages/ui/src/theme.mjs';
+import { getPreferences, type Appearance } from '@ledger/domain/preferences';
+import { sanitize } from '@ledger/ui/theme.mjs';
 import { currentSession } from './session';
 
 /**

@@ -1,5 +1,5 @@
 import DecimalJs from 'decimal.js';
-import { CURRENCY_TABLE, type CurrencyCode } from '../../contracts/src/common';
+import { CURRENCY_TABLE, type CurrencyCode } from '@ledger/contracts/common';
 import { DomainError } from './policy';
 
 // All money arithmetic goes through this module. JS numbers never hold amounts: values travel as decimal strings

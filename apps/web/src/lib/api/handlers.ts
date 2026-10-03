@@ -1,9 +1,9 @@
 import { z } from 'zod';
-import { SCOPES } from '../../../../../packages/contracts/src/common';
-import type { StableOperationId } from '../../../../../packages/contracts/src/operations';
-import { database, type Executor } from '../../../../../packages/db/src/index';
-import { cursorCodec, pageOf, type Position } from '../../../../../packages/domain/src/cursor';
-import { DomainError } from '../../../../../packages/domain/src/policy';
+import { SCOPES } from '@ledger/contracts/common';
+import type { StableOperationId } from '@ledger/contracts/operations';
+import { database, type Executor } from '@ledger/db/index';
+import { cursorCodec, pageOf, type Position } from '@ledger/domain/cursor';
+import { DomainError } from '@ledger/domain/policy';
 import {
   addMember,
   changeMember,
@@ -15,7 +15,7 @@ import {
   updateLedger,
   type AuthContext,
   type Keyset,
-} from '../../../../../packages/domain/src/identity';
+} from '@ledger/domain/identity';
 import {
   archiveAccount,
   createAccount,
@@ -23,7 +23,7 @@ import {
   listAccounts,
   presentAccount,
   updateAccount,
-} from '../../../../../packages/domain/src/accounts';
+} from '@ledger/domain/accounts';
 import {
   archiveCategory,
   archiveTag,
@@ -35,7 +35,7 @@ import {
   presentTag,
   updateCategory,
   updateTag,
-} from '../../../../../packages/domain/src/catalog';
+} from '@ledger/domain/catalog';
 import {
   correctTransaction,
   createPreview,
@@ -44,20 +44,15 @@ import {
   getTransaction,
   listTransactions,
   voidTransaction,
-} from '../../../../../packages/domain/src/transactions';
+} from '@ledger/domain/transactions';
 import {
   createImportJob,
   getImportJob,
   listImportJobs,
   requestImportCommit,
   requestImportReversal,
-} from '../../../../../packages/domain/src/imports';
-import {
-  createExportJob,
-  downloadExport,
-  getExportJob,
-  listExportJobs,
-} from '../../../../../packages/domain/src/exports';
+} from '@ledger/domain/imports';
+import { createExportJob, downloadExport, getExportJob, listExportJobs } from '@ledger/domain/exports';
 import {
   accountBalances,
   archiveBudget,
@@ -69,13 +64,13 @@ import {
   presentBudget,
   reportSummary,
   updateBudget,
-} from '../../../../../packages/domain/src/reports';
+} from '@ledger/domain/reports';
 import {
   appearanceCookie,
   getPreferences,
   present as presentPreferences,
   updatePreferences,
-} from '../../../../../packages/domain/src/preferences';
+} from '@ledger/domain/preferences';
 import {
   createBillPayment,
   createSubscription,
@@ -86,14 +81,14 @@ import {
   listSubscriptions,
   updateBillOccurrence,
   updateSubscription,
-} from '../../../../../packages/domain/src/subscriptions';
+} from '@ledger/domain/subscriptions';
 import {
   createManualRateRecord,
   createRefreshJob,
   getExchangeRates,
   getRefreshJob,
   listManualRateRecords,
-} from '../../../../../packages/domain/src/fx';
+} from '@ledger/domain/fx';
 import {
   createChannel,
   createTestDelivery,
@@ -103,7 +98,7 @@ import {
   presentChannel,
   updateChannel,
   verifyChannel,
-} from '../../../../../packages/domain/src/notify-channels';
+} from '@ledger/domain/notify-channels';
 import {
   createReminderPreview,
   createReminderRule,
@@ -111,7 +106,7 @@ import {
   listReminderRules,
   presentRule,
   updateReminderRule,
-} from '../../../../../packages/domain/src/reminders';
+} from '@ledger/domain/reminders';
 import {
   deliveryStats,
   getDelivery,
@@ -121,8 +116,8 @@ import {
   presentNotification,
   retryDelivery,
   updateNotification,
-} from '../../../../../packages/domain/src/deliveries';
-import { presentDelivery } from '../../../../../packages/domain/src/notify-store';
+} from '@ledger/domain/deliveries';
+import { presentDelivery } from '@ledger/domain/notify-store';
 import {
   createApproval,
   createToken,
@@ -134,7 +129,7 @@ import {
   presentToken,
   revokeToken,
   type Auth,
-} from '../../../../../packages/domain/src/agents';
+} from '@ledger/domain/agents';
 
 export type ApiContext = AuthContext & { user: { name: string; email: string }; auth: Auth };
 export type ApiResult = {

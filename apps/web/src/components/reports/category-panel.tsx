@@ -1,9 +1,9 @@
 'use client';
 import { useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { formatMoney } from '../../../../../packages/ui/src/format';
-import { Chart } from '../charts/chart';
-import { useLedgerUI } from '../ledger-ui';
+import { formatMoney } from '@ledger/ui/format';
+import { Chart } from '@/components/charts/chart';
+import { useLedgerUI } from '@/components/ledger-ui';
 
 export type CategoryRow = { categoryId: string | null; name: string; amount: string; share: string; count: number };
 /** Top six categories, the rest merged into 其他 (UI_SPEC §2); colours stay fixed per position, never per theme. */

@@ -1,8 +1,8 @@
 import { eq } from 'drizzle-orm';
-import { PreferencesUpdate } from '../../contracts/src/platform';
-import { database } from '../../db/src/index';
-import { userPreferences } from '../../db/src/schema';
-import { DEFAULTS, palette, sanitize } from '../../ui/src/theme.mjs';
+import { PreferencesUpdate } from '@ledger/contracts/platform';
+import { database } from '@ledger/db/index';
+import { userPreferences } from '@ledger/db/schema';
+import { DEFAULTS, palette, sanitize } from '@ledger/ui/theme.mjs';
 import { requireVersion } from './policy';
 
 // Appearance is a personal display preference: no ledger, no audit, never part of money data (UI_SPEC §2.2).

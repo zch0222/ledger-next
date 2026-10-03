@@ -1,4 +1,4 @@
-import { nextMonth } from '../../../../packages/domain/src/report-periods';
+import { nextMonth } from '@ledger/domain/report-periods';
 
 /** Month view range from ?month=YYYY-MM (default: the ledger's current month); dateTo is exclusive. */
 export function monthRange(month: string | undefined, today: string) {

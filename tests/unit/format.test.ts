@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { formatDate, formatMoney, formatPercent, groupDigits } from '../../packages/ui/src/format';
-import { monthRange, weekLabel, withParams } from '../../apps/web/src/lib/period';
-import { instantToLocal, localToInstant, nowLocal, today } from '../../apps/web/src/lib/time';
+import { formatDate, formatMoney, formatPercent, groupDigits } from '@ledger/ui/format';
+import { monthRange, weekLabel, withParams } from '@/lib/period';
+import { instantToLocal, localToInstant, nowLocal, today } from '@/lib/time';
 
 describe('money and date display', () => {
   it('groups digits on the text, never through floating point', () => {

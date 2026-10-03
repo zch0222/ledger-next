@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { afterAll, describe, expect, it } from 'vitest';
-import { closeRedis } from '../../packages/db/src/redis';
+import { closeRedis } from '@ledger/db/redis';
 import {
   authRateLimitStorage,
   clientAddress,
@@ -9,7 +9,7 @@ import {
   hit,
   LIMITS,
   MONEY_WRITES,
-} from '../../packages/domain/src/rate-limit';
+} from '@ledger/domain/rate-limit';
 
 // M7-SEC: fixed one-minute windows in Redis, counted per bucket and id, with Retry-After until the window ends.
 afterAll(async () => {

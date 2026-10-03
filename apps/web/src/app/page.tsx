@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { ledgersOf, requireUser } from '../lib/session';
+import { ledgersOf, requireUser } from '@/lib/session';
 export const dynamic = 'force-dynamic';
 
 // Older links (/?ledger=…&view=…) keep working; everything else lands on the first ledger or the onboarding.

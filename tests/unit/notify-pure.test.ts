@@ -1,6 +1,6 @@
 import { randomBytes } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
-import { allowlistFrom, checkOutboundUrl, guardedLookup, isBlockedAddress } from '../../packages/domain/src/net-guard';
+import { allowlistFrom, checkOutboundUrl, guardedLookup, isBlockedAddress } from '@ledger/domain/net-guard';
 import {
   afterDue,
   beforeEvent,
@@ -11,8 +11,8 @@ import {
   localTimeOf,
   nowIn,
   periodic,
-} from '../../packages/domain/src/reminder-schedule';
-import { keyIdOf, keyring, mask, open, parseKeyring, rewrap, seal } from '../../packages/domain/src/secrets';
+} from '@ledger/domain/reminder-schedule';
+import { keyIdOf, keyring, mask, open, parseKeyring, rewrap, seal } from '@ledger/domain/secrets';
 
 const key = () => randomBytes(32).toString('base64');
 

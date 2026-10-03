@@ -1,10 +1,10 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { FRESHNESS_LABELS, KIND_LABELS, formatMoney } from '../../../../../packages/ui/src/format';
-import { ApiError, api } from '../../lib/client';
-import type { TransactionView } from '../../lib/types';
-import { useLedgerUI } from '../ledger-ui';
+import { FRESHNESS_LABELS, KIND_LABELS, formatMoney } from '@ledger/ui/format';
+import { ApiError, api } from '@/lib/client';
+import type { TransactionView } from '@/lib/types';
+import { useLedgerUI } from '@/components/ledger-ui';
 
 /** P03 账目详情: history-preserving actions only — correct (new version), refund (linked), void (reversing postings). */
 export function TransactionDrawer({

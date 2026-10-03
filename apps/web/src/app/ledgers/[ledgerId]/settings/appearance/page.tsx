@@ -1,7 +1,7 @@
-import { Appearance } from '../../../../../components/appearance';
-import { PageHeading, SettingsTabs } from '../../../../../components/ui/page';
-import { currentAppearance } from '../../../../../lib/appearance';
-import { requireLedger, type LedgerPageProps } from '../../../../../lib/session';
+import { Appearance } from '@/components/appearance';
+import { PageHeading, SettingsTabs } from '@/components/ui/page';
+import { currentAppearance } from '@/lib/appearance';
+import { requireLedger, type LedgerPageProps } from '@/lib/session';
 
 export const dynamic = 'force-dynamic';
 

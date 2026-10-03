@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { and, asc, eq, lte } from 'drizzle-orm';
-import { database } from '../../db/src/index';
-import { outboxEvents } from '../../db/src/schema';
+import { database } from '@ledger/db/index';
+import { outboxEvents } from '@ledger/db/schema';
 
 export type OutboxEvent = { id: string; ledgerId: string | null; type: string; payload: Record<string, unknown> };
 

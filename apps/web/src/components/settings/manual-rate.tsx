@@ -1,8 +1,8 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ApiError, api, intent } from '../../lib/client';
-import { useLedgerUI } from '../ledger-ui';
+import { ApiError, api, intent } from '@/lib/client';
+import { useLedgerUI } from '@/components/ledger-ui';
 
 /** P09: a manual rate always needs a reason; reports use it only where the market has no quote. */
 export function ManualRateForm({ currencies, today }: { currencies: readonly string[]; today: string }) {

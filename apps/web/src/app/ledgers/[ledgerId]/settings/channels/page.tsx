@@ -1,8 +1,8 @@
-import { listChannels, presentChannel } from '../../../../../../../../packages/domain/src/notify-channels';
-import { ChannelsPanel } from '../../../../../components/notify/channels';
-import { Note, PageHeading, SettingsTabs } from '../../../../../components/ui/page';
-import type { ChannelView } from '../../../../../lib/notify-labels';
-import { requireLedger, type LedgerPageProps } from '../../../../../lib/session';
+import { listChannels, presentChannel } from '@ledger/domain/notify-channels';
+import { ChannelsPanel } from '@/components/notify/channels';
+import { Note, PageHeading, SettingsTabs } from '@/components/ui/page';
+import type { ChannelView } from '@/lib/notify-labels';
+import { requireLedger, type LedgerPageProps } from '@/lib/session';
 
 export const dynamic = 'force-dynamic';
 /** P08 提醒渠道: personal channels (shared by all of my ledgers). Status follows real test deliveries. */

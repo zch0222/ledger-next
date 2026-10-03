@@ -1,16 +1,10 @@
 import { Queue, Worker, type Job } from 'bullmq';
 import { Redis } from 'ioredis';
-import { expireExports, runExport, stalledExportJobs } from '../../../packages/domain/src/exports';
-import {
-  commitImport,
-  importEventFor,
-  revertImport,
-  stalledImportJobs,
-  validateImport,
-} from '../../../packages/domain/src/imports';
-import { dispatchOutbox, enqueueEvent, type OutboxEvent } from '../../../packages/domain/src/outbox';
-import { deliver } from '../../../packages/domain/src/deliveries';
-import { budgetAlerts, planLedger } from '../../../packages/domain/src/reminders';
+import { expireExports, runExport, stalledExportJobs } from '@ledger/domain/exports';
+import { commitImport, importEventFor, revertImport, stalledImportJobs, validateImport } from '@ledger/domain/imports';
+import { dispatchOutbox, enqueueEvent, type OutboxEvent } from '@ledger/domain/outbox';
+import { deliver } from '@ledger/domain/deliveries';
+import { budgetAlerts, planLedger } from '@ledger/domain/reminders';
 
 // Outbox → BullMQ → handlers (TECHNICAL_DESIGN §2.1). BullMQ job ids are outbox ids, so a re-published event is
 // deduplicated by the queue while it exists; handlers are idempotent for the rest.

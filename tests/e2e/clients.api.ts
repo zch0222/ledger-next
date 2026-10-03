@@ -8,16 +8,9 @@ import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { expect } from '@playwright/test';
-import type { ClientId } from '../../packages/mcp/src/clients';
-import { TOOL_NAMES } from '../../packages/mcp/src/server';
-import {
-  buildPackages,
-  frontmatter,
-  lintSkill,
-  planInstall,
-  verifySums,
-  type Files,
-} from '../../packages/mcp/src/skill';
+import type { ClientId } from '@ledger/mcp/clients';
+import { TOOL_NAMES } from '@ledger/mcp/server';
+import { buildPackages, frontmatter, lintSkill, planInstall, verifySums, type Files } from '@ledger/mcp/skill';
 import { skillFiles } from '../../scripts/skill';
 import { book, ledger, origin, test } from './helpers';
 

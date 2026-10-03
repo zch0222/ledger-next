@@ -6,7 +6,7 @@ import {
   occurrence,
   occurrencesBetween,
   scheduleWarnings,
-} from '../../packages/domain/src/schedule';
+} from '@ledger/domain/schedule';
 
 describe('billing cycles', () => {
   it('keeps the 31st anchor across short months (AC04)', () => {

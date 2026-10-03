@@ -1,9 +1,9 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { parseCsv } from '../../../../../packages/domain/src/csv';
-import { ApiError, api, intent } from '../../lib/client';
-import { useLedgerUI } from '../ledger-ui';
+import { parseCsv } from '@ledger/domain/csv';
+import { ApiError, api, intent } from '@/lib/client';
+import { useLedgerUI } from '@/components/ledger-ui';
 
 type ImportJob = {
   id: string;

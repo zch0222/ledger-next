@@ -1,4 +1,4 @@
-import { readyRedis } from '../../db/src/redis';
+import { readyRedis } from '@ledger/db/redis';
 import { DomainError } from './policy';
 
 /**

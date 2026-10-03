@@ -1,13 +1,13 @@
 import { randomUUID } from 'node:crypto';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { databasePool } from '../../packages/db/src/index';
-import { closeRedis, redis } from '../../packages/db/src/redis';
-import { createAccount } from '../../packages/domain/src/accounts';
-import { createCategory } from '../../packages/domain/src/catalog';
-import { createManualRateRecord, ingestBatch } from '../../packages/domain/src/fx';
-import { fxConfig } from '../../packages/domain/src/fx-provider';
-import type { AuthContext } from '../../packages/domain/src/identity';
-import { sum } from '../../packages/domain/src/money';
+import { databasePool } from '@ledger/db/index';
+import { closeRedis, redis } from '@ledger/db/redis';
+import { createAccount } from '@ledger/domain/accounts';
+import { createCategory } from '@ledger/domain/catalog';
+import { createManualRateRecord, ingestBatch } from '@ledger/domain/fx';
+import { fxConfig } from '@ledger/domain/fx-provider';
+import type { AuthContext } from '@ledger/domain/identity';
+import { sum } from '@ledger/domain/money';
 import {
   accountBalances,
   archiveBudget,
@@ -18,7 +18,7 @@ import {
   listBudgets,
   reportSummary,
   updateBudget,
-} from '../../packages/domain/src/reports';
+} from '@ledger/domain/reports';
 import {
   correctTransaction,
   createPreview,
@@ -26,7 +26,7 @@ import {
   createTransaction,
   listTransactions,
   voidTransaction,
-} from '../../packages/domain/src/transactions';
+} from '@ledger/domain/transactions';
 import { seedLedger, seedUser } from './db';
 
 let ctx: AuthContext;

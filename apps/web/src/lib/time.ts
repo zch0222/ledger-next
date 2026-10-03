@@ -1,4 +1,4 @@
-import { zonedInstant } from '../../../../packages/domain/src/dates';
+import { zonedInstant } from '@ledger/domain/dates';
 
 /** Current wall-clock time in a timezone as a datetime-local value (YYYY-MM-DDTHH:mm). */
 export function nowLocal(timezone: string, at = new Date()) {

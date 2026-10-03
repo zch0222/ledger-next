@@ -1,20 +1,15 @@
 import { randomUUID } from 'node:crypto';
 import { writeFile } from 'node:fs/promises';
 import { Redis } from 'ioredis';
-import { databasePool } from '../../../packages/db/src/index';
-import { closeRedis } from '../../../packages/db/src/redis';
-import {
-  processHistoryRequests,
-  processRefreshJobs,
-  pruneMinuteBatches,
-  refreshLatest,
-} from '../../../packages/domain/src/fx';
-import { fxConfig } from '../../../packages/domain/src/fx-provider';
-import { pruneIdempotencyRecords } from '../../../packages/domain/src/idempotent';
-import { maintainSubscriptions } from '../../../packages/domain/src/subscriptions';
-import { claimDue, sweepStuck } from '../../../packages/domain/src/deliveries';
-import { fxAlerts, planDueRules } from '../../../packages/domain/src/reminders';
-import { pruneExpiredPreviews } from '../../../packages/domain/src/transactions';
+import { databasePool } from '@ledger/db/index';
+import { closeRedis } from '@ledger/db/redis';
+import { processHistoryRequests, processRefreshJobs, pruneMinuteBatches, refreshLatest } from '@ledger/domain/fx';
+import { fxConfig } from '@ledger/domain/fx-provider';
+import { pruneIdempotencyRecords } from '@ledger/domain/idempotent';
+import { maintainSubscriptions } from '@ledger/domain/subscriptions';
+import { claimDue, sweepStuck } from '@ledger/domain/deliveries';
+import { fxAlerts, planDueRules } from '@ledger/domain/reminders';
+import { pruneExpiredPreviews } from '@ledger/domain/transactions';
 import { startQueue } from './queue';
 
 // Background process: infrastructure heartbeat, housekeeping, the FX schedule (M3-FX), reminders (M5) and the outbox queue. It never serves HTTP and

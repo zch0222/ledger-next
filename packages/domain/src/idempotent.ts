@@ -1,6 +1,6 @@
 import { and, eq, lte } from 'drizzle-orm';
-import { database, type Executor } from '../../db/src/index';
-import { idempotencyRecords } from '../../db/src/schema';
+import { database, type Executor } from '@ledger/db/index';
+import { idempotencyRecords } from '@ledger/db/schema';
 import { IDEMPOTENCY_TTL_MS, idempotencyScope, requestFingerprint } from './idempotency';
 import { DomainError } from './policy';
 

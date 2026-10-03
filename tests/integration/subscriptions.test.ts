@@ -1,13 +1,13 @@
 import { randomUUID } from 'node:crypto';
 import { and, eq } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { database, databasePool } from '../../packages/db/src/index';
-import { closeRedis } from '../../packages/db/src/redis';
-import { billOccurrences, memberships, transactions } from '../../packages/db/src/schema';
-import { createAccount } from '../../packages/domain/src/accounts';
-import { createCategory } from '../../packages/domain/src/catalog';
-import type { AuthContext } from '../../packages/domain/src/identity';
-import { reportSummary } from '../../packages/domain/src/reports';
+import { database, databasePool } from '@ledger/db/index';
+import { closeRedis } from '@ledger/db/redis';
+import { billOccurrences, memberships, transactions } from '@ledger/db/schema';
+import { createAccount } from '@ledger/domain/accounts';
+import { createCategory } from '@ledger/domain/catalog';
+import type { AuthContext } from '@ledger/domain/identity';
+import { reportSummary } from '@ledger/domain/reports';
 import {
   createBillPayment,
   createSubscription,
@@ -20,13 +20,8 @@ import {
   monthlyEquivalent,
   updateBillOccurrence,
   updateSubscription,
-} from '../../packages/domain/src/subscriptions';
-import {
-  correctTransaction,
-  createPreview,
-  createTransaction,
-  voidTransaction,
-} from '../../packages/domain/src/transactions';
+} from '@ledger/domain/subscriptions';
+import { correctTransaction, createPreview, createTransaction, voidTransaction } from '@ledger/domain/transactions';
 import { seedLedger, seedUser } from './db';
 
 // "Now" is pinned so schedules are predictable: 2026-10-02 10:00 in Hong Kong.

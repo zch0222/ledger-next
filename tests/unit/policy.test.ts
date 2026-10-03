@@ -6,7 +6,7 @@ import {
   requireRole,
   requireVersion,
   type Role,
-} from '../../packages/domain/src/policy';
+} from '@ledger/domain/policy';
 describe('authorization', () => {
   for (const role of ['owner', 'editor', 'viewer'] as Role[]) {
     for (const required of ['owner', 'editor', 'viewer'] as Role[]) {

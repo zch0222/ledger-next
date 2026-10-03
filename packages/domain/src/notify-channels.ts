@@ -5,9 +5,9 @@ import {
   NotificationChannelCreate,
   NotificationChannelUpdate,
   TestDeliveryCreate,
-} from '../../contracts/src/platform';
-import { database, type Executor } from '../../db/src/index';
-import { notificationChannels, notificationDeliveries } from '../../db/src/schema';
+} from '@ledger/contracts/platform';
+import { database, type Executor } from '@ledger/db/index';
+import { notificationChannels, notificationDeliveries } from '@ledger/db/schema';
 import { checkProviderWebhook, checkWebhookUrl, type ChannelConfig } from './channels';
 import type { AuthContext, Keyset } from './identity';
 import {

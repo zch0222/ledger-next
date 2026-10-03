@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { sql } from 'drizzle-orm';
-import type { Tx } from '../../db/src/index';
-import { auditLogs, ledgerDataVersions, outboxEvents } from '../../db/src/schema';
+import type { Tx } from '@ledger/db/index';
+import { auditLogs, ledgerDataVersions, outboxEvents } from '@ledger/db/schema';
 import type { AuthContext } from './identity';
 
 /** Audit row in the caller's transaction: actor, action, resource and request id; never secrets or full notes. */

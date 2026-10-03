@@ -1,7 +1,7 @@
 import type { RowDataPacket } from 'mysql2';
-import { databasePool } from '../../../../../../../packages/db/src/index';
-import { readyRedis } from '../../../../../../../packages/db/src/redis';
-import { EXPECTED_MIGRATION } from '../../../../../../../packages/db/src/schema-version';
+import { databasePool } from '@ledger/db/index';
+import { readyRedis } from '@ledger/db/redis';
+import { EXPECTED_MIGRATION } from '@ledger/db/schema-version';
 
 export const dynamic = 'force-dynamic';
 const timeout = <T>(promise: Promise<T>, ms: number) =>

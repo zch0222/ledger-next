@@ -1,9 +1,9 @@
 'use client';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { formatMoney } from '../../../../../packages/ui/src/format';
-import { ApiError, api, intent } from '../../lib/client';
-import { useLedgerUI } from '../ledger-ui';
+import { formatMoney } from '@ledger/ui/format';
+import { ApiError, api, intent } from '@/lib/client';
+import { useLedgerUI } from '@/components/ledger-ui';
 
 type Preview = {
   previewId: string;

@@ -1,19 +1,12 @@
 import { randomUUID } from 'node:crypto';
 import { and, eq, inArray } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { database, databasePool } from '../../packages/db/src/index';
-import { closeRedis } from '../../packages/db/src/redis';
-import {
-  exportJobs,
-  importJobs,
-  importRows,
-  memberships,
-  transactionAmounts,
-  transactions,
-} from '../../packages/db/src/schema';
-import { createAccount } from '../../packages/domain/src/accounts';
-import { createCategory } from '../../packages/domain/src/catalog';
-import { parseCsv } from '../../packages/domain/src/csv';
+import { database, databasePool } from '@ledger/db/index';
+import { closeRedis } from '@ledger/db/redis';
+import { exportJobs, importJobs, importRows, memberships, transactionAmounts, transactions } from '@ledger/db/schema';
+import { createAccount } from '@ledger/domain/accounts';
+import { createCategory } from '@ledger/domain/catalog';
+import { parseCsv } from '@ledger/domain/csv';
 import {
   createExportJob,
   downloadExport,
@@ -21,10 +14,10 @@ import {
   getExportJob,
   listExportJobs,
   runExport,
-} from '../../packages/domain/src/exports';
-import { ingestBatch } from '../../packages/domain/src/fx';
-import { fxConfig } from '../../packages/domain/src/fx-provider';
-import type { AuthContext } from '../../packages/domain/src/identity';
+} from '@ledger/domain/exports';
+import { ingestBatch } from '@ledger/domain/fx';
+import { fxConfig } from '@ledger/domain/fx-provider';
+import type { AuthContext } from '@ledger/domain/identity';
 import {
   commitImport,
   createImportJob,
@@ -36,10 +29,10 @@ import {
   revertImport,
   stalledImportJobs,
   validateImport,
-} from '../../packages/domain/src/imports';
-import { sum } from '../../packages/domain/src/money';
-import { verifyBalance } from '../../packages/domain/src/postings';
-import { createPreview, createRefund } from '../../packages/domain/src/transactions';
+} from '@ledger/domain/imports';
+import { sum } from '@ledger/domain/money';
+import { verifyBalance } from '@ledger/domain/postings';
+import { createPreview, createRefund } from '@ledger/domain/transactions';
 import { seedLedger, seedUser } from './db';
 
 let owner: AuthContext;

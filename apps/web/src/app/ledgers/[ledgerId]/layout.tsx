@@ -1,19 +1,19 @@
 import { Suspense } from 'react';
-import { ENABLED_CURRENCIES } from '../../../../../../packages/contracts/src/common';
-import { listAccounts } from '../../../../../../packages/domain/src/accounts';
-import { listCategories } from '../../../../../../packages/domain/src/catalog';
-import { formatAmount } from '../../../../../../packages/domain/src/money';
-import { AccountMenu } from '../../../components/account-menu';
-import { Appearance } from '../../../components/appearance';
-import { LedgerSelect } from '../../../components/ledger-select';
-import { LedgerProvider } from '../../../components/ledger-ui';
-import { AddButton } from '../../../components/shell/add-button';
-import { CurrencySelect } from '../../../components/shell/currency-select';
-import { MobileNav, SideNav } from '../../../components/shell/nav';
-import { currentAppearance } from '../../../lib/appearance';
-import { unreadCount } from '../../../../../../packages/domain/src/deliveries';
+import { ENABLED_CURRENCIES } from '@ledger/contracts/common';
+import { listAccounts } from '@ledger/domain/accounts';
+import { listCategories } from '@ledger/domain/catalog';
+import { formatAmount } from '@ledger/domain/money';
+import { AccountMenu } from '@/components/account-menu';
+import { Appearance } from '@/components/appearance';
+import { LedgerSelect } from '@/components/ledger-select';
+import { LedgerProvider } from '@/components/ledger-ui';
+import { AddButton } from '@/components/shell/add-button';
+import { CurrencySelect } from '@/components/shell/currency-select';
+import { MobileNav, SideNav } from '@/components/shell/nav';
+import { currentAppearance } from '@/lib/appearance';
+import { unreadCount } from '@ledger/domain/deliveries';
 import Link from 'next/link';
-import { ledgersOf, requireLedger } from '../../../lib/session';
+import { ledgersOf, requireLedger } from '@/lib/session';
 
 export const dynamic = 'force-dynamic';
 

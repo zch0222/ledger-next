@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CURRENCY_TABLE, ENABLED_CURRENCIES } from '../../packages/contracts/src/common';
+import { CURRENCY_TABLE, ENABLED_CURRENCIES } from '@ledger/contracts/common';
 import {
   balance,
   compare,
@@ -13,7 +13,7 @@ import {
   signedAmount,
   sum,
   toColumn,
-} from '../../packages/domain/src/money';
+} from '@ledger/domain/money';
 import { accepted, conversions, crossRates, rejected } from '../fixtures/money';
 
 const code = (c: string) => expect.objectContaining({ status: 422, code: c });

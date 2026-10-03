@@ -1,14 +1,5 @@
 import { expect, it } from 'vitest';
-import {
-  PRESETS,
-  DEFAULTS,
-  check,
-  contrast,
-  derive,
-  normalizeHex,
-  palette,
-  sanitize,
-} from '../../packages/ui/src/theme.mjs';
+import { PRESETS, DEFAULTS, check, contrast, derive, normalizeHex, palette, sanitize } from '@ledger/ui/theme.mjs';
 it.each(PRESETS)('$name meets AA in both modes using unchanged prototype colors', p => {
   expect(check(p.light, 'light').min).toBeGreaterThanOrEqual(4.5);
   expect(check(p.dark, 'dark').min).toBeGreaterThanOrEqual(4.5);

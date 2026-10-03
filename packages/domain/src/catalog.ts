@@ -1,8 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import { and, asc, eq, gt, isNull, or } from 'drizzle-orm';
-import { CategoryCreate, CategoryUpdate, TagCreate, TagUpdate } from '../../contracts/src/finance';
-import { database, type Executor, type Tx } from '../../db/src/index';
-import { categories, tags } from '../../db/src/schema';
+import { CategoryCreate, CategoryUpdate, TagCreate, TagUpdate } from '@ledger/contracts/finance';
+import { database, type Executor, type Tx } from '@ledger/db/index';
+import { categories, tags } from '@ledger/db/schema';
 import { ledgerAccess } from './access';
 import { audit } from './audit';
 import type { AuthContext, Keyset } from './identity';

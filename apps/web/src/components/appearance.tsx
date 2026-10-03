@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { PRESETS, SURFACES, TARGET, check, derive, palette, sanitize } from '../../../../packages/ui/src/theme.mjs';
-import { ApiError, api } from '../lib/client';
+import { PRESETS, SURFACES, TARGET, check, derive, palette, sanitize } from '@ledger/ui/theme.mjs';
+import { ApiError, api } from '@/lib/client';
 
 export type AppearanceValue = { mode: string; accent: string; custom: string | null };
 const MODES = [

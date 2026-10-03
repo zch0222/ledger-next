@@ -2,9 +2,9 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { describe, expect, it } from 'vitest';
-import { guardMcpRequest, MCP_MAX_BODY, rpcError } from '../../packages/mcp/src/http';
-import { restClient, type Rest, type RestResult } from '../../packages/mcp/src/rest';
-import { createLedgerMcpServer, DATA_NOTICE, TOOL_NAMES } from '../../packages/mcp/src/server';
+import { guardMcpRequest, MCP_MAX_BODY, rpcError } from '@ledger/mcp/http';
+import { restClient, type Rest, type RestResult } from '@ledger/mcp/rest';
+import { createLedgerMcpServer, DATA_NOTICE, TOOL_NAMES } from '@ledger/mcp/server';
 
 const LEDGER = '0f8fad5b-d9cb-469f-a165-70867728950e';
 const ACCOUNT = '7c9e6679-7425-40de-944b-e07fc1f90ae7';

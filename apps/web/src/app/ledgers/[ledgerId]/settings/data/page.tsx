@@ -1,8 +1,8 @@
-import { listExportJobs } from '../../../../../../../../packages/domain/src/exports';
-import { listImportJobs } from '../../../../../../../../packages/domain/src/imports';
-import { ExportPanel, ImportWizard } from '../../../../../components/settings/data';
-import { PageHeading, SettingsTabs } from '../../../../../components/ui/page';
-import { param, requireLedger, type LedgerPageProps } from '../../../../../lib/session';
+import { listExportJobs } from '@ledger/domain/exports';
+import { listImportJobs } from '@ledger/domain/imports';
+import { ExportPanel, ImportWizard } from '@/components/settings/data';
+import { PageHeading, SettingsTabs } from '@/components/ui/page';
+import { param, requireLedger, type LedgerPageProps } from '@/lib/session';
 
 export const dynamic = 'force-dynamic';
 const strip = <T extends { position: unknown }>({ position, ...rest }: T) => {

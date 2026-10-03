@@ -1,5 +1,5 @@
 'use client';
-import { useLedgerUI } from '../ledger-ui';
+import { useLedgerUI } from '@/components/ledger-ui';
 
 export function AddButton({
   label = '＋ 记一笔',

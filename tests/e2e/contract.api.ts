@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { expect, request } from '@playwright/test';
-import { createLedgerClient, idempotencyKey, ifMatch } from '../../packages/api-client/src/index';
+import { createLedgerClient, idempotencyKey, ifMatch } from '@ledger/api-client';
 import { expectContract } from './contract';
 import { clientIp, ledger, origin, test, user } from './helpers';
 

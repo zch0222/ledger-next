@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { addDays, localDate, zonedInstant } from '../../packages/domain/src/dates';
+import { addDays, localDate, zonedInstant } from '@ledger/domain/dates';
 
 it('uses the business timezone, not the UTC date', () => {
   const at = new Date('2026-10-01T18:30:00Z');

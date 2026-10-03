@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { api } from '../lib/client';
+import { api } from '@/lib/client';
 import { useRouter } from 'next/navigation';
 
 export function LoginForm() {

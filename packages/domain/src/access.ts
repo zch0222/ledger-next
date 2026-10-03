@@ -1,6 +1,6 @@
 import { and, eq } from 'drizzle-orm';
-import type { Executor, Tx } from '../../db/src/index';
-import { ledgers, memberships } from '../../db/src/schema';
+import type { Executor, Tx } from '@ledger/db/index';
+import { ledgers, memberships } from '@ledger/db/schema';
 import type { AuthContext } from './identity';
 import { requireRole, type Role } from './policy';
 

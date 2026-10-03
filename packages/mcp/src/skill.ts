@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { SCOPES } from '../../contracts/src/common';
+import { SCOPES } from '@ledger/contracts/common';
 import { clientConfigs, SKILL_NAME, TOOL_TABLE, type ClientId } from './clients';
 
 /**

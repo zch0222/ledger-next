@@ -1,17 +1,13 @@
 import Link from 'next/link';
-import { addDays } from '../../../../../../../packages/domain/src/dates';
-import { listBillOccurrences, listSubscriptions } from '../../../../../../../packages/domain/src/subscriptions';
-import { formatDate, formatMoney } from '../../../../../../../packages/ui/src/format';
-import {
-  BillActions,
-  ManageSubscription,
-  NewSubscription,
-} from '../../../../components/subscriptions/subscription-form';
-import { MonthNav } from '../../../../components/reports/month-nav';
-import { EmptyState, Note, PageHeading } from '../../../../components/ui/page';
-import { monthRange, withParams } from '../../../../lib/period';
-import { param, requireLedger, type LedgerPageProps } from '../../../../lib/session';
-import { today as todayIn } from '../../../../lib/time';
+import { addDays } from '@ledger/domain/dates';
+import { listBillOccurrences, listSubscriptions } from '@ledger/domain/subscriptions';
+import { formatDate, formatMoney } from '@ledger/ui/format';
+import { BillActions, ManageSubscription, NewSubscription } from '@/components/subscriptions/subscription-form';
+import { MonthNav } from '@/components/reports/month-nav';
+import { EmptyState, Note, PageHeading } from '@/components/ui/page';
+import { monthRange, withParams } from '@/lib/period';
+import { param, requireLedger, type LedgerPageProps } from '@/lib/session';
+import { today as todayIn } from '@/lib/time';
 
 export const dynamic = 'force-dynamic';
 const UNITS = { day: '天', week: '周', month: '月', year: '年' } as const;

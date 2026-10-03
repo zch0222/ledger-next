@@ -1,8 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import { and, eq } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { database, databasePool } from '../../packages/db/src/index';
-import { closeRedis } from '../../packages/db/src/redis';
+import { database, databasePool } from '@ledger/db/index';
+import { closeRedis } from '@ledger/db/redis';
 import {
   fxBatches,
   fxFetchStatus,
@@ -11,9 +11,9 @@ import {
   fxSnapshots,
   memberships,
   transactionAmounts,
-} from '../../packages/db/src/schema';
-import { createAccount } from '../../packages/domain/src/accounts';
-import { createCategory } from '../../packages/domain/src/catalog';
+} from '@ledger/db/schema';
+import { createAccount } from '@ledger/domain/accounts';
+import { createCategory } from '@ledger/domain/catalog';
 import {
   createManualRateRecord,
   createRefreshJob,
@@ -27,10 +27,10 @@ import {
   pruneMinuteBatches,
   quote,
   refreshLatest,
-} from '../../packages/domain/src/fx';
-import { fxConfig, type FxConfig, type ProviderQuote } from '../../packages/domain/src/fx-provider';
-import type { AuthContext } from '../../packages/domain/src/identity';
-import { createPreview, createRefund, createTransaction } from '../../packages/domain/src/transactions';
+} from '@ledger/domain/fx';
+import { fxConfig, type FxConfig, type ProviderQuote } from '@ledger/domain/fx-provider';
+import type { AuthContext } from '@ledger/domain/identity';
+import { createPreview, createRefund, createTransaction } from '@ledger/domain/transactions';
 import { seedLedger, seedUser } from './db';
 
 // Each test owns a provider name, so batches written here never mix with the worker's live "fixer" data.

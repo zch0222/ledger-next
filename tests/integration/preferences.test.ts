@@ -1,6 +1,6 @@
 import { afterAll, expect, it } from 'vitest';
-import { databasePool } from '../../packages/db/src/index';
-import { appearanceCookie, getPreferences, present, updatePreferences } from '../../packages/domain/src/preferences';
+import { databasePool } from '@ledger/db/index';
+import { appearanceCookie, getPreferences, present, updatePreferences } from '@ledger/domain/preferences';
 import { seedUser } from './db';
 
 afterAll(() => databasePool().end());

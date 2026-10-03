@@ -1,9 +1,9 @@
-import { listApprovals, listTokens, presentToken } from '../../../../../../../packages/domain/src/agents';
-import { listAuditEvents } from '../../../../../../../packages/domain/src/identity';
-import { clientConfigs, TOOL_TABLE } from '../../../../../../../packages/mcp/src/clients';
-import { Approvals, ClientPicker, TokenManager } from '../../../../components/agents';
-import { Note, PageHeading } from '../../../../components/ui/page';
-import { ledgersOf, param, requireLedger, type LedgerPageProps } from '../../../../lib/session';
+import { listApprovals, listTokens, presentToken } from '@ledger/domain/agents';
+import { listAuditEvents } from '@ledger/domain/identity';
+import { clientConfigs, TOOL_TABLE } from '@ledger/mcp/clients';
+import { Approvals, ClientPicker, TokenManager } from '@/components/agents';
+import { Note, PageHeading } from '@/components/ui/page';
+import { ledgersOf, param, requireLedger, type LedgerPageProps } from '@/lib/session';
 
 export const dynamic = 'force-dynamic';
 const AUDIT: Record<string, string> = {

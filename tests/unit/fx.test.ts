@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { fetchFixer, fxConfig, parseFixer, ProviderError } from '../../packages/domain/src/fx-provider';
-import { crossFromBatch, historicalFreshness, jumpedCurrency, liveFreshness } from '../../packages/domain/src/fx-pure';
-import { normalizeRate } from '../../packages/domain/src/money';
+import { fetchFixer, fxConfig, parseFixer, ProviderError } from '@ledger/domain/fx-provider';
+import { crossFromBatch, historicalFreshness, jumpedCurrency, liveFreshness } from '@ledger/domain/fx-pure';
+import { normalizeRate } from '@ledger/domain/money';
 
 const ok = (rates: string, extra = '') =>
   `{"success":true,"timestamp":1790899200,"base":"EUR","date":"2026-10-02","rates":${rates}${extra}}`;

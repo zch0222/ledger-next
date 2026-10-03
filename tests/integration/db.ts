@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
-import { database, type Tx } from '../../packages/db/src/index';
-import { accounts, ledgers, memberships, transactions, user } from '../../packages/db/src/schema';
-import { toColumn } from '../../packages/domain/src/money';
+import { database, type Tx } from '@ledger/db/index';
+import { accounts, ledgers, memberships, transactions, user } from '@ledger/db/schema';
+import { toColumn } from '@ledger/domain/money';
 
 // Direct inserts for schema-level tests; business code paths are covered through the domain functions.
 const now = () => new Date();

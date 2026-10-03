@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { and, asc, desc, eq, gte, isNotNull, isNull, lt, lte, or, sql } from 'drizzle-orm';
-import { DeliveryQuery, NotificationQuery, NotificationUpdate } from '../../contracts/src/platform';
-import { database, type Executor, type Tx } from '../../db/src/index';
+import { DeliveryQuery, NotificationQuery, NotificationUpdate } from '@ledger/contracts/platform';
+import { database, type Executor, type Tx } from '@ledger/db/index';
 import {
   ledgers,
   notificationAttempts,
@@ -9,7 +9,7 @@ import {
   notificationDeliveries,
   notifications,
   reminderRules,
-} from '../../db/src/schema';
+} from '@ledger/db/schema';
 import { ledgerAccess } from './access';
 import { sendMessage, type SendResult } from './channels';
 import { addDays, localDate, zonedInstant } from './dates';

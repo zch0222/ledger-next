@@ -1,8 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import { ZodError } from 'zod';
 import { auth } from './auth';
-import { DomainError, requireOrigin } from '../../../../packages/domain/src/policy';
-import { resolveToken, type Auth } from '../../../../packages/domain/src/agents';
+import { DomainError, requireOrigin } from '@ledger/domain/policy';
+import { resolveToken, type Auth } from '@ledger/domain/agents';
 
 /**
  * Caller identity: a Bearer personal access token (Agents, MCP) or the Web session cookie. A token acts as its user,

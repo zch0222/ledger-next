@@ -1,8 +1,8 @@
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from '@better-auth/drizzle-adapter';
-import { database } from '../../../../packages/db/src/index';
-import * as schema from '../../../../packages/db/src/schema';
-import { authRateLimitStorage } from '../../../../packages/domain/src/rate-limit';
+import { database } from '@ledger/db/index';
+import * as schema from '@ledger/db/schema';
+import { authRateLimitStorage } from '@ledger/domain/rate-limit';
 
 let instance: ReturnType<typeof createAuth> | undefined;
 function createAuth() {

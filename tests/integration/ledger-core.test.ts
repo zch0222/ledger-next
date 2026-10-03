@@ -1,8 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import { and, eq } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { CURRENCY_TABLE } from '../../packages/contracts/src/common';
-import { database, databasePool } from '../../packages/db/src/index';
+import { CURRENCY_TABLE } from '@ledger/contracts/common';
+import { database, databasePool } from '@ledger/db/index';
 import {
   accountPostings,
   accounts,
@@ -14,9 +14,9 @@ import {
   transactionAmounts,
   transactionTags,
   transactions,
-} from '../../packages/db/src/schema';
-import { formatAmount, sum, toColumn } from '../../packages/domain/src/money';
-import { appendPostings, verifyBalance } from '../../packages/domain/src/postings';
+} from '@ledger/db/schema';
+import { formatAmount, sum, toColumn } from '@ledger/domain/money';
+import { appendPostings, verifyBalance } from '@ledger/domain/postings';
 import { accepted, crossRates } from '../fixtures/money';
 import { mysqlError, seedAccount, seedLedger, seedTransaction, seedUser, transactionRow } from './db';
 

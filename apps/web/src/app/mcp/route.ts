@@ -1,8 +1,8 @@
 import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js';
-import { guardMcpRequest, MCP_MAX_BODY, unauthorized } from '../../../../../packages/mcp/src/http';
-import { restClient } from '../../../../../packages/mcp/src/rest';
-import { createLedgerMcpServer } from '../../../../../packages/mcp/src/server';
-import { handle } from '../../lib/api/router';
+import { guardMcpRequest, MCP_MAX_BODY, unauthorized } from '@ledger/mcp/http';
+import { restClient } from '@ledger/mcp/rest';
+import { createLedgerMcpServer } from '@ledger/mcp/server';
+import { handle } from '@/lib/api/router';
 
 export const dynamic = 'force-dynamic';
 

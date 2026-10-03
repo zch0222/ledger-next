@@ -7,9 +7,9 @@ import {
   SubscriptionPreviewCreate,
   SubscriptionQuery,
   SubscriptionUpdate,
-} from '../../contracts/src/planning';
-import { PreviewSubmit } from '../../contracts/src/finance';
-import { database, type Executor, type Tx } from '../../db/src/index';
+} from '@ledger/contracts/planning';
+import { PreviewSubmit } from '@ledger/contracts/finance';
+import { database, type Executor, type Tx } from '@ledger/db/index';
 import {
   accounts,
   billOccurrences,
@@ -18,7 +18,7 @@ import {
   subscriptionPreviews,
   subscriptions,
   transactions,
-} from '../../db/src/schema';
+} from '@ledger/db/schema';
 import { ledgerAccess } from './access';
 import { audit, emit } from './audit';
 import { addDays, localDate } from './dates';

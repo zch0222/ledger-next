@@ -2,9 +2,9 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, statSync,
 import path from 'node:path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
-import { clientConfigs, SKILL_NAME, type ClientId } from '../packages/mcp/src/clients';
-import { createLedgerMcpServer, TOOL_NAMES } from '../packages/mcp/src/server';
-import { buildPackages, lintSkill, planInstall, renderToolsReference, type Files } from '../packages/mcp/src/skill';
+import { clientConfigs, SKILL_NAME, type ClientId } from '@ledger/mcp/clients';
+import { createLedgerMcpServer, TOOL_NAMES } from '@ledger/mcp/server';
+import { buildPackages, lintSkill, planInstall, renderToolsReference, type Files } from '@ledger/mcp/skill';
 
 // pnpm skill:build [--origin https://ledger.example] [--out dist/skill]
 // pnpm skill:install --client claude-code --target <project> [--force]

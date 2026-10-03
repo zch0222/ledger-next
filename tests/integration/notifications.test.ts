@@ -1,16 +1,11 @@
 import { randomBytes, randomUUID } from 'node:crypto';
 import { and, eq } from 'drizzle-orm';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
-import { database, databasePool } from '../../packages/db/src/index';
-import { closeRedis } from '../../packages/db/src/redis';
-import {
-  notificationAttempts,
-  notificationChannels,
-  notificationDeliveries,
-  notifications,
-} from '../../packages/db/src/schema';
-import { createAccount } from '../../packages/domain/src/accounts';
-import { createCategory } from '../../packages/domain/src/catalog';
+import { database, databasePool } from '@ledger/db/index';
+import { closeRedis } from '@ledger/db/redis';
+import { notificationAttempts, notificationChannels, notificationDeliveries, notifications } from '@ledger/db/schema';
+import { createAccount } from '@ledger/domain/accounts';
+import { createCategory } from '@ledger/domain/catalog';
 import {
   claimDue,
   deliver,
@@ -20,8 +15,8 @@ import {
   sweepStuck,
   updateNotification,
   unreadCount,
-} from '../../packages/domain/src/deliveries';
-import type { AuthContext } from '../../packages/domain/src/identity';
+} from '@ledger/domain/deliveries';
+import type { AuthContext } from '@ledger/domain/identity';
 import {
   createChannel,
   createTestDelivery,
@@ -32,8 +27,8 @@ import {
   rewrapChannelKeys,
   updateChannel,
   verifyChannel,
-} from '../../packages/domain/src/notify-channels';
-import { channelConfig, insertDelivery } from '../../packages/domain/src/notify-store';
+} from '@ledger/domain/notify-channels';
+import { channelConfig, insertDelivery } from '@ledger/domain/notify-store';
 import {
   budgetAlerts,
   createReminderPreview,
@@ -41,18 +36,18 @@ import {
   deleteReminderRule,
   planRule,
   updateReminderRule,
-} from '../../packages/domain/src/reminders';
-import { createBudget } from '../../packages/domain/src/reports';
-import { parseKeyring } from '../../packages/domain/src/secrets';
+} from '@ledger/domain/reminders';
+import { createBudget } from '@ledger/domain/reports';
+import { parseKeyring } from '@ledger/domain/secrets';
 import {
   createBillPayment,
   createSubscription,
   createSubscriptionPreview,
   listBillOccurrences,
   updateSubscription,
-} from '../../packages/domain/src/subscriptions';
-import { createPreview, createTransaction } from '../../packages/domain/src/transactions';
-import { reminderRules } from '../../packages/db/src/schema';
+} from '@ledger/domain/subscriptions';
+import { createPreview, createTransaction } from '@ledger/domain/transactions';
+import { reminderRules } from '@ledger/db/schema';
 import { seedLedger, seedUser } from './db';
 
 // Reminder engine against the local provider mocks. Time is pinned in the future (2031) so the Docker worker, which

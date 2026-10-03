@@ -1,10 +1,10 @@
-import { listCategories, listTags } from '../../../../../../../packages/domain/src/catalog';
-import { listAuditEvents, listMembers } from '../../../../../../../packages/domain/src/identity';
-import { AccountMenu } from '../../../../components/account-menu';
-import { Members } from '../../../../components/members';
-import { CatalogManager, LedgerName } from '../../../../components/settings/catalog';
-import { PageHeading, SettingsTabs } from '../../../../components/ui/page';
-import { requireLedger, type LedgerPageProps } from '../../../../lib/session';
+import { listCategories, listTags } from '@ledger/domain/catalog';
+import { listAuditEvents, listMembers } from '@ledger/domain/identity';
+import { AccountMenu } from '@/components/account-menu';
+import { Members } from '@/components/members';
+import { CatalogManager, LedgerName } from '@/components/settings/catalog';
+import { PageHeading, SettingsTabs } from '@/components/ui/page';
+import { requireLedger, type LedgerPageProps } from '@/lib/session';
 
 export const dynamic = 'force-dynamic';
 const ACTIONS: Record<string, string> = {

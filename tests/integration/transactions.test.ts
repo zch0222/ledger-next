@@ -1,20 +1,13 @@
 import { randomUUID } from 'node:crypto';
 import { and, eq, inArray } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { database, databasePool } from '../../packages/db/src/index';
-import {
-  accountPostings,
-  auditLogs,
-  memberships,
-  outboxEvents,
-  transactions,
-  writePreviews,
-} from '../../packages/db/src/schema';
-import { createAccount, updateAccount } from '../../packages/domain/src/accounts';
-import { archiveTag, createCategory, createTag } from '../../packages/domain/src/catalog';
-import type { AuthContext } from '../../packages/domain/src/identity';
-import { formatAmount, sum } from '../../packages/domain/src/money';
-import { verifyBalance } from '../../packages/domain/src/postings';
+import { database, databasePool } from '@ledger/db/index';
+import { accountPostings, auditLogs, memberships, outboxEvents, transactions, writePreviews } from '@ledger/db/schema';
+import { createAccount, updateAccount } from '@ledger/domain/accounts';
+import { archiveTag, createCategory, createTag } from '@ledger/domain/catalog';
+import type { AuthContext } from '@ledger/domain/identity';
+import { formatAmount, sum } from '@ledger/domain/money';
+import { verifyBalance } from '@ledger/domain/postings';
 import {
   correctTransaction,
   createPreview,
@@ -22,7 +15,7 @@ import {
   createTransaction,
   getTransaction,
   voidTransaction,
-} from '../../packages/domain/src/transactions';
+} from '@ledger/domain/transactions';
 import { seedLedger, seedUser } from './db';
 
 let ctx: AuthContext;

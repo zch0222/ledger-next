@@ -4,7 +4,7 @@ import {
   idempotencyScope,
   requestFingerprint,
   validateIdempotencyKey,
-} from '../../packages/domain/src/idempotency';
+} from '@ledger/domain/idempotency';
 
 it('accepts UUIDs and opaque keys, rejects missing-when-required and malformed keys', () => {
   expect(validateIdempotencyKey('7a1c3a52-5b0e-4e0e-9f43-8d2d0c7f1e11', 'required')).toBe(

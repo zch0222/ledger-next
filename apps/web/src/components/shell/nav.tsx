@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { useLedgerUI } from '../ledger-ui';
+import { useLedgerUI } from '@/components/ledger-ui';
 
 // Sidebar and mobile bottom bar from the v0.3 prototype. Links keep the display currency across pages.
 export const NAVIGATION = [

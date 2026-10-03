@@ -1,8 +1,8 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ApiError, api, intent } from '../../lib/client';
-import { useLedgerUI } from '../ledger-ui';
+import { ApiError, api, intent } from '@/lib/client';
+import { useLedgerUI } from '@/components/ledger-ui';
 
 type Budget = {
   id: string;

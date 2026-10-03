@@ -1,10 +1,10 @@
 import { randomUUID } from 'node:crypto';
 import { eq } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { database, databasePool } from '../../packages/db/src/index';
-import { closeRedis } from '../../packages/db/src/redis';
-import { apiTokens, approvalRequests, memberships } from '../../packages/db/src/schema';
-import { createAccount } from '../../packages/domain/src/accounts';
+import { database, databasePool } from '@ledger/db/index';
+import { closeRedis } from '@ledger/db/redis';
+import { apiTokens, approvalRequests, memberships } from '@ledger/db/schema';
+import { createAccount } from '@ledger/domain/accounts';
 import {
   approvalReason,
   bodyHash,
@@ -18,10 +18,10 @@ import {
   listTokens,
   resolveToken,
   revokeToken,
-} from '../../packages/domain/src/agents';
-import type { AuthContext } from '../../packages/domain/src/identity';
-import { withIdempotency } from '../../packages/domain/src/idempotent';
-import { createPreview, createTransaction } from '../../packages/domain/src/transactions';
+} from '@ledger/domain/agents';
+import type { AuthContext } from '@ledger/domain/identity';
+import { withIdempotency } from '@ledger/domain/idempotent';
+import { createPreview, createTransaction } from '@ledger/domain/transactions';
 import { seedLedger, seedUser } from './db';
 
 // M6-SERVER: personal access tokens, approvals bound to one exact request, and operation lookup after a timeout.

@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { api, intent } from '../lib/client';
+import { api, intent } from '@/lib/client';
 import { useRouter } from 'next/navigation';
 export function CreateLedger({ additional = false }: { additional?: boolean }) {
   const router = useRouter();

@@ -1,9 +1,9 @@
 'use client';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ApiError, api, intent } from '../../lib/client';
-import { CHANNEL_STATUS, CHANNEL_TYPES, DATED_EVENTS, EVENT_LABELS, type ChannelView } from '../../lib/notify-labels';
-import { useLedgerUI } from '../ledger-ui';
+import { ApiError, api, intent } from '@/lib/client';
+import { CHANNEL_STATUS, CHANNEL_TYPES, DATED_EVENTS, EVENT_LABELS, type ChannelView } from '@/lib/notify-labels';
+import { useLedgerUI } from '@/components/ledger-ui';
 
 type Option = { id: string; name: string };
 export type RuleView = {

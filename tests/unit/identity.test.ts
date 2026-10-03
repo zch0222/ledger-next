@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { ledgerInput, ledgerPatch, memberInput, memberPatch, uuid } from '../../packages/contracts/src/identity';
+import { ledgerInput, ledgerPatch, memberInput, memberPatch, uuid } from '@ledger/contracts/identity';
 const valid = { name: '家庭账本', baseCurrency: 'CNY', timezone: 'Asia/Hong_Kong' };
 it('normalizes names while preserving IANA timezone and ISO currency', () => {
   expect(ledgerInput.parse({ ...valid, name: ' 家庭账本 ' })).toEqual(valid);

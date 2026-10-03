@@ -1,9 +1,9 @@
 'use client';
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { formatMoney } from '../../../../../packages/ui/src/format';
-import { Chart } from '../charts/chart';
-import { useLedgerUI } from '../ledger-ui';
+import { formatMoney } from '@ledger/ui/format';
+import { Chart } from '@/components/charts/chart';
+import { useLedgerUI } from '@/components/ledger-ui';
 
 export type TrendBucket = { start: string; end: string; label: string; income: string; expense: string };
 /** P01 收支趋势: 支出走势 (area line) ↔ 收支对比 (grouped bars) on one chart instance; a bucket drills into its transactions. */

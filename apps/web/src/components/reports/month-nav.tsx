@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { withParams } from '../../lib/period';
+import { withParams } from '@/lib/period';
 
 /** Previous / next month links that keep the other URL filters. */
 export function MonthNav({

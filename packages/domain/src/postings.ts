@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { and, eq, inArray, isNull, sql } from 'drizzle-orm';
-import { database, type Executor, type Tx } from '../../db/src/index';
-import { accountPostings, accounts } from '../../db/src/schema';
+import { database, type Executor, type Tx } from '@ledger/db/index';
+import { accountPostings, accounts } from '@ledger/db/schema';
 import { formatAmount, parseAmount, sum, toColumn } from './money';
 import { DomainError } from './policy';
 

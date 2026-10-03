@@ -5,9 +5,9 @@ import {
   ApprovalQuery,
   ApprovalRequestCreate,
   ApprovalRequestUpdate,
-} from '../../contracts/src/platform';
-import { matchOperation } from '../../contracts/src/operations';
-import { database, type Executor, type Tx } from '../../db/src/index';
+} from '@ledger/contracts/platform';
+import { matchOperation } from '@ledger/contracts/operations';
+import { database, type Executor, type Tx } from '@ledger/db/index';
 import {
   apiTokens,
   approvalRequests,
@@ -16,7 +16,7 @@ import {
   memberships,
   user,
   writePreviews,
-} from '../../db/src/schema';
+} from '@ledger/db/schema';
 import { ledgerAccess } from './access';
 import { audit } from './audit';
 import type { AuthContext, Keyset } from './identity';

@@ -1,10 +1,10 @@
 'use client';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { FRESHNESS_LABELS, KIND_LABELS, formatMoney } from '../../../../packages/ui/src/format';
-import { ApiError, api, intent } from '../lib/client';
-import { instantToLocal, localToInstant, nowLocal } from '../lib/time';
-import type { PreviewView, TransactionView } from '../lib/types';
+import { FRESHNESS_LABELS, KIND_LABELS, formatMoney } from '@ledger/ui/format';
+import { ApiError, api, intent } from '@/lib/client';
+import { instantToLocal, localToInstant, nowLocal } from '@/lib/time';
+import type { PreviewView, TransactionView } from '@/lib/types';
 import { useLedgerUI } from './ledger-ui';
 
 export type EntryInit =

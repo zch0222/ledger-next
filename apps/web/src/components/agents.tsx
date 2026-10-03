@@ -1,8 +1,8 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ApiError, api, intent } from '../lib/client';
-import type { ClientConfig } from '../../../../packages/mcp/src/clients';
+import { ApiError, api, intent } from '@/lib/client';
+import type { ClientConfig } from '@ledger/mcp/clients';
 
 const SCOPE_GROUPS: { title: string; scopes: [string, string][] }[] = [
   {

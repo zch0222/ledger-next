@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import type { EChartsType } from 'echarts/core';
-import { groupDigits } from '../../../../../packages/ui/src/format';
+import { groupDigits } from '@ledger/ui/format';
 
 // Chart models carry decimal strings; numbers are used only to draw. Labels and the data tables below each chart
 // show the server's exact strings.

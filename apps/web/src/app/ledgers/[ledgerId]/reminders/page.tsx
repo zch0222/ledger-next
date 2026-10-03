@@ -1,27 +1,16 @@
 import Link from 'next/link';
-import {
-  deliveryStats,
-  listDeliveries,
-  listNotifications,
-  presentNotification,
-} from '../../../../../../../packages/domain/src/deliveries';
-import { listChannels, presentChannel } from '../../../../../../../packages/domain/src/notify-channels';
-import { presentDelivery } from '../../../../../../../packages/domain/src/notify-store';
-import { listReminderRules, presentRule } from '../../../../../../../packages/domain/src/reminders';
-import { listBudgets } from '../../../../../../../packages/domain/src/reports';
-import { listSubscriptions } from '../../../../../../../packages/domain/src/subscriptions';
-import { database } from '../../../../../../../packages/db/src/index';
-import { MarkRead, NewRule, RetryDelivery, RuleActions, type RuleView } from '../../../../components/notify/reminders';
-import { EmptyState, Note, PageHeading } from '../../../../components/ui/page';
-import {
-  CHANNEL_TYPES,
-  DELIVERY_STATUS,
-  EVENT_LABELS,
-  RESPONSE_CLASS,
-  type ChannelView,
-} from '../../../../lib/notify-labels';
-import { withParams } from '../../../../lib/period';
-import { param, requireLedger, type LedgerPageProps } from '../../../../lib/session';
+import { deliveryStats, listDeliveries, listNotifications, presentNotification } from '@ledger/domain/deliveries';
+import { listChannels, presentChannel } from '@ledger/domain/notify-channels';
+import { presentDelivery } from '@ledger/domain/notify-store';
+import { listReminderRules, presentRule } from '@ledger/domain/reminders';
+import { listBudgets } from '@ledger/domain/reports';
+import { listSubscriptions } from '@ledger/domain/subscriptions';
+import { database } from '@ledger/db/index';
+import { MarkRead, NewRule, RetryDelivery, RuleActions, type RuleView } from '@/components/notify/reminders';
+import { EmptyState, Note, PageHeading } from '@/components/ui/page';
+import { CHANNEL_TYPES, DELIVERY_STATUS, EVENT_LABELS, RESPONSE_CLASS, type ChannelView } from '@/lib/notify-labels';
+import { withParams } from '@/lib/period';
+import { param, requireLedger, type LedgerPageProps } from '@/lib/session';
 
 export const dynamic = 'force-dynamic';
 const time = (iso: string | null, tz: string) =>

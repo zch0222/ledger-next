@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { breakingChanges } from '../../packages/contracts/src/compat';
-import { buildOpenApi } from '../../packages/contracts/src/openapi';
+import { breakingChanges } from '@ledger/contracts/compat';
+import { buildOpenApi } from '@ledger/contracts/openapi';
 
 type Doc = Parameters<typeof breakingChanges>[0] & { components: { schemas: Record<string, Record<string, unknown>> } };
 const base = () =>

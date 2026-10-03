@@ -1,6 +1,6 @@
-import { AccountMenu } from '../../components/account-menu';
-import { CreateLedger } from '../../components/create-ledger';
-import { ledgersOf, requireUser } from '../../lib/session';
+import { AccountMenu } from '@/components/account-menu';
+import { CreateLedger } from '@/components/create-ledger';
+import { ledgersOf, requireUser } from '@/lib/session';
 export const dynamic = 'force-dynamic';
 
 /** P00 first run: create a ledger (base currency, timezone), then its first account (F01). */

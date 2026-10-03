@@ -1,11 +1,11 @@
-import { ENABLED_CURRENCIES } from '../../../../../../../../packages/contracts/src/common';
-import { fxStatus, getExchangeRates, listManualRateRecords } from '../../../../../../../../packages/domain/src/fx';
-import { sum } from '../../../../../../../../packages/domain/src/money';
-import { FRESHNESS_LABELS } from '../../../../../../../../packages/ui/src/format';
-import { ManualRateForm } from '../../../../../components/settings/manual-rate';
-import { Note, PageHeading, PanelError, SettingsTabs, attempt } from '../../../../../components/ui/page';
-import { requireLedger, type LedgerPageProps } from '../../../../../lib/session';
-import { today as todayIn } from '../../../../../lib/time';
+import { ENABLED_CURRENCIES } from '@ledger/contracts/common';
+import { fxStatus, getExchangeRates, listManualRateRecords } from '@ledger/domain/fx';
+import { sum } from '@ledger/domain/money';
+import { FRESHNESS_LABELS } from '@ledger/ui/format';
+import { ManualRateForm } from '@/components/settings/manual-rate';
+import { Note, PageHeading, PanelError, SettingsTabs, attempt } from '@/components/ui/page';
+import { requireLedger, type LedgerPageProps } from '@/lib/session';
+import { today as todayIn } from '@/lib/time';
 
 export const dynamic = 'force-dynamic';
 const time = (iso: string | null, tz: string) =>

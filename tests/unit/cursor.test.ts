@@ -1,6 +1,6 @@
 import { createHmac } from 'node:crypto';
 import { expect, it } from 'vitest';
-import { cursorCodec, pageOf } from '../../packages/domain/src/cursor';
+import { cursorCodec, pageOf } from '@ledger/domain/cursor';
 
 const codec = cursorCodec('test-secret-at-least-32-characters-long');
 const scope = JSON.stringify(['user-1', 'listAuditEvents', 'ledger-1', { action: 'ledger.updated' }]);

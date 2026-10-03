@@ -8,7 +8,7 @@ import {
   normalizeKindCell,
   parseCsv,
   unescapeFormula,
-} from '../../packages/domain/src/csv';
+} from '@ledger/domain/csv';
 
 describe('CSV reading', () => {
   it('handles BOM, quotes, escaped quotes, embedded newlines and CRLF', () => {
