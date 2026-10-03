@@ -1,0 +1,4 @@
+# Formatting-only commits, skipped by `git blame` (GitHub reads this file; locally run once:
+#   git config blame.ignoreRevsFile .git-blame-ignore-revs).
+# Prettier + one-var / curly autofix over the whole codebase.
+3d81df8a772e7a9c9f93894f04620d53b0df4b1b
