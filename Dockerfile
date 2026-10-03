@@ -50,3 +50,21 @@ COPY --from=source /app /app
 ENV CI=1
 # Run Playwright directly: `pnpm run` would re-verify node_modules against the build-time store and reinstall from the registry.
 CMD ["node_modules/.bin/playwright", "test"]
+
+# Lint, typecheck, unit tests, contract and progress checks with only Docker on the host: `docker build --target verify .`
+# (a failing check fails the build). `--target verify-report --output .` also writes coverage/ to the checkout.
+FROM source AS verify
+RUN pnpm lint && pnpm typecheck && pnpm test:unit && pnpm contract:check && node scripts/progress.mjs validate
+
+FROM scratch AS verify-report
+COPY --from=verify /app/coverage /coverage
+
+# Docker CLI with the Compose and Buildx plugins (static binaries) for the toolbox.
+FROM docker:29-cli@sha256:b1805116a6a86cc591b5d5f60a910a0715cdcc9d18d866ad68b1457ead25c35c AS docker-cli
+
+# Repository scripts (setup-env, test:e2e / test:perf / test:ops, progress) without Node.js on the host. compose.tools.yaml
+# mounts the checkout at /work plus the engine socket; the scripts use only Node built-ins, and nested stacks run on the host engine.
+FROM node:24-bookworm-slim@sha256:0e0ff40c39bc087845bfb27465a0df4ea419520094bc35842ff83dd8cbe6f9b6 AS toolbox
+COPY --from=docker-cli /usr/local/bin/docker /usr/local/bin/docker
+COPY --from=docker-cli /usr/local/libexec/docker/cli-plugins /usr/local/libexec/docker/cli-plugins
+WORKDIR /work

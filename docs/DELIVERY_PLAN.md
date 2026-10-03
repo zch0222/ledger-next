@@ -46,7 +46,7 @@ flowchart LR
 
 ## 4. 更新进度
 
-脚本使用 Node.js ≥22，无第三方依赖；在根目录执行。脚本只写任务 JSON 和生成文档，不会安装依赖或调用远程服务。没有 Node 命令时使用系统实际 Node 可执行文件替代命令首项。
+脚本使用 Node.js ≥22，无第三方依赖；在根目录执行。脚本只写任务 JSON 和生成文档，不会安装依赖或调用远程服务。没有 Node 命令时使用系统实际 Node 可执行文件替代命令首项；本机未安装 Node 时在命令前加 `docker compose -f compose.tools.yaml run --rm tools`（只需 Docker）。
 
 ~~~powershell
 # 看当前状态、下一步和单个执行卡

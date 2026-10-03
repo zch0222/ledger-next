@@ -32,7 +32,7 @@ services:
       DATABASE_URL: mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql:3306/${MYSQL_DATABASE}
       MOCK_URL: http://mock-services:4010
     volumes:
-      - ./test-results:/app/test-results
+      - ${LEDGER_HOST_DIR:-.}/test-results:/app/test-results
     init: true
 volumes:
   mysql-replica-data:

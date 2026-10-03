@@ -17,7 +17,7 @@
 ## 2. 首次部署
 
 1. 主机：Linux，4 vCPU / 8 GB 起；Docker Engine + Compose v2；时间同步（chrony）。
-2. `node scripts/setup-env.mjs` 生成 `.env`（权限 600），再按下表填写：
+2. `docker compose -f compose.tools.yaml run --rm setup-env` 生成 `.env`（权限 600，属主为仓库目录属主；主机不需要 Node.js），再按下表填写：
 
 | 变量 | 说明 |
 | --- | --- |
@@ -87,7 +87,7 @@ MySQL 复制到另一台主机上的备库（`--server-id=2 --read-only=ON`）�
 1. 升级前：执行 4.1 全量备份并校验。
 2. `git pull` 后 `docker compose build`，`docker compose up -d --wait`：migrate 先应用新迁移（expand：只新增，旧代码仍可运行），再滚动 web / worker。
 3. 应用回滚：切回上一个镜像标签即可（迁移是向后兼容的）。
-4. 数据库回滚只在新迁移的表仍为空时允许：`LEDGER_ROLLBACK_CONFIRM=<迁移文件名> pnpm db:rollback <迁移文件名>`；表内已有数据时脚本拒绝执行，此时按第 5 节从备份恢复。
+4. 数据库回滚只在新迁移的表仍为空时允许：`docker compose run --rm -e LEDGER_ROLLBACK_CONFIRM=<迁移文件名> migrate node --import tsx packages/db/src/rollback.ts <迁移文件名>`（本机有 pnpm 时等价于 `LEDGER_ROLLBACK_CONFIRM=<迁移文件名> pnpm db:rollback <迁移文件名>`）；表内已有数据时脚本拒绝执行，此时按第 5 节从备份恢复。
 5. 每个版本都在 `pnpm test:e2e` 中演练“最新迁移空表回滚 → 重放 → 有数据时拒绝回滚”。
 
 ## 7. 常见事件
@@ -98,7 +98,7 @@ MySQL 复制到另一台主机上的备库（`--server-id=2 --read-only=ON`）�
 | worker 被杀 | 提醒、导入停止 | 重启 worker；`sending` 超过 `NOTIFY_STUCK_SECONDS` 的投递按有无尝试记录重排或标为未知 |
 | 汇率源故障 | freshness 逐步变为 delayed / stale | 页面照常；外币记账要求用户选择接受过期汇率或填人工汇率；检查供应商额度与密钥 |
 | 渠道凭据失效 | 渠道变“已停用”，站内通知用户 | 用户在「提醒渠道」更新凭据并重新测试 |
-| 主密钥轮换 | — | 新密钥放到 `LEDGER_ENCRYPTION_KEYS` 第一位（旧的保留在后面），重启后执行 `pnpm channels:rewrap`；确认后再移除旧密钥 |
+| 主密钥轮换 | — | 新密钥放到 `LEDGER_ENCRYPTION_KEYS` 第一位（旧的保留在后面），重启后执行 `docker compose run --rm migrate node --import tsx scripts/rewrap-channel-keys.ts`（= `pnpm channels:rewrap`）；确认后再移除旧密钥 |
 | 令牌泄露 | — | 用户在「Agent 接入」撤销，下一次请求即失败；审计中可见签发与撤销 |
 | 疑似暴力尝试 | 大量 401 / 429 | 限流按来源地址生效；在反向代理层封禁来源 |
 
