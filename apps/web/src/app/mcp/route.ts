@@ -1,8 +1,8 @@
 import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js';
-import { guardMcpRequest, MCP_MAX_BODY, unauthorized } from '../../../../../packages/mcp/src/http';
-import { restClient } from '../../../../../packages/mcp/src/rest';
-import { createLedgerMcpServer } from '../../../../../packages/mcp/src/server';
-import { handle } from '../../lib/api/router';
+import { guardMcpRequest, MCP_MAX_BODY, unauthorized } from '@ledger/mcp/http';
+import { restClient } from '@ledger/mcp/rest';
+import { createLedgerMcpServer } from '@ledger/mcp/server';
+import { handle } from '@/lib/api/router';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,7 +17,11 @@ const inProcess = (async (input: RequestInfo | URL, init?: RequestInit) => {
 
 export async function POST(request: Request) {
   const appUrl = process.env.APP_URL!;
-  const guard = guardMcpRequest(request, { appUrl, allowedHosts: process.env.MCP_ALLOWED_HOSTS, allowedOrigins: process.env.MCP_ALLOWED_ORIGINS });
+  const guard = guardMcpRequest(request, {
+    appUrl,
+    allowedHosts: process.env.MCP_ALLOWED_HOSTS,
+    allowedOrigins: process.env.MCP_ALLOWED_ORIGINS,
+  });
   if ('response' in guard) return guard.response;
   const apiBase = `${appUrl.replace(/\/$/, '')}/api/v1`;
   // The caller's address (from the reverse proxy) travels with every in-process REST call, for rate limits.
@@ -27,7 +31,11 @@ export async function POST(request: Request) {
   const me = await rest('GET', '/me');
   if (!me.ok && me.status === 401) return unauthorized('令牌无效、已过期或已撤销', 'invalid_token');
   const server = createLedgerMcpServer(rest, { apiBase });
-  const transport = new WebStandardStreamableHTTPServerTransport({ sessionIdGenerator: undefined, enableJsonResponse: true, maxRequestBodySize: MCP_MAX_BODY });
+  const transport = new WebStandardStreamableHTTPServerTransport({
+    sessionIdGenerator: undefined,
+    enableJsonResponse: true,
+    maxRequestBodySize: MCP_MAX_BODY,
+  });
   await server.connect(transport);
   try {
     return await transport.handleRequest(request);

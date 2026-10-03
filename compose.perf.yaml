@@ -3,15 +3,15 @@
 services:
   web:
     ports: !override []
-    restart: "no"
+    restart: 'no'
   mysql:
-    restart: "no"
+    restart: 'no'
   redis:
-    restart: "no"
+    restart: 'no'
   worker:
-    restart: "no"
+    restart: 'no'
   mock-services:
-    restart: "no"
+    restart: 'no'
   tests:
     build: { context: ., target: tests }
     environment:

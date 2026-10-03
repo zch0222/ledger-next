@@ -1,12 +1,23 @@
 import { expect, it } from 'vitest';
-import { ledgerInput, ledgerPatch, memberInput, memberPatch, uuid } from '../../packages/contracts/src/identity';
+import { ledgerInput, ledgerPatch, memberInput, memberPatch, uuid } from '@ledger/contracts/identity';
 const valid = { name: '家庭账本', baseCurrency: 'CNY', timezone: 'Asia/Hong_Kong' };
 it('normalizes names while preserving IANA timezone and ISO currency', () => {
   expect(ledgerInput.parse({ ...valid, name: ' 家庭账本 ' })).toEqual(valid);
-  for (const timezone of ['UTC', 'America/New_York', 'Asia/Shanghai']) expect(ledgerInput.safeParse({ ...valid, timezone }).success).toBe(true);
+  for (const timezone of ['UTC', 'America/New_York', 'Asia/Shanghai']) {
+    expect(ledgerInput.safeParse({ ...valid, timezone }).success).toBe(true);
+  }
 });
 it('rejects invalid and overlong input and injected authorization', () => {
-  for (const data of [{ ...valid, name: ' ' }, { ...valid, name: 'a'.repeat(81) }, { ...valid, timezone: 'Mars/Test' }, { ...valid, baseCurrency: 'cny' }, { ...valid, userId: 'attacker' }, { ...valid, role: 'owner' }]) expect(ledgerInput.safeParse(data).success).toBe(false);
+  for (const data of [
+    { ...valid, name: ' ' },
+    { ...valid, name: 'a'.repeat(81) },
+    { ...valid, timezone: 'Mars/Test' },
+    { ...valid, baseCurrency: 'cny' },
+    { ...valid, userId: 'attacker' },
+    { ...valid, role: 'owner' },
+  ]) {
+    expect(ledgerInput.safeParse(data).success).toBe(false);
+  }
   expect(ledgerPatch.safeParse({ name: 'changed', baseCurrency: 'USD' }).success).toBe(false);
 });
 it('validates membership input and resource UUIDs', () => {

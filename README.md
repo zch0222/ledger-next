@@ -20,7 +20,7 @@ docker build --target verify .
 docker compose -f compose.tools.yaml run --rm e2e
 ```
 
-`verify` 构建阶段执行 lint、typecheck、单元测试、契约检查与进度校验，任一失败即构建失败；`e2e` 等同 `pnpm test:e2e`，自动创建独立 Docker 项目 / MySQL 测试卷，生成报告后清理测试栈；不会覆盖开发数据。本机装有 Node 24 与 pnpm 11.19.0 时，`pnpm lint`、`pnpm test:e2e` 等命令照常可用。
+`verify` 构建阶段执行 lint、格式检查、typecheck、单元测试、契约检查与进度校验，任一失败即构建失败；代码格式不合规时运行 `docker compose -f compose.tools.yaml run --rm format` 自动修正；`e2e` 等同 `pnpm test:e2e`，自动创建独立 Docker 项目 / MySQL 测试卷，生成报告后清理测试栈；不会覆盖开发数据。本机装有 Node 24 与 pnpm 11.19.0 时，`pnpm lint`、`pnpm test:e2e` 等命令照常可用。
 
 ## 服务器部署
 

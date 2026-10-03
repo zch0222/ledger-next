@@ -4,10 +4,13 @@ import { book, test } from './helpers';
 
 // M4 end-to-end flows. Each runs in the desktop and the mobile project, so phones complete the same tasks.
 const mobile = (info: TestInfo) => info.project.name === 'mobile';
-async function signIn(context: BrowserContext, b: Awaited<ReturnType<typeof book>>) { await context.addCookies((await b.client.storageState()).cookies); }
+async function signIn(context: BrowserContext, b: Awaited<ReturnType<typeof book>>) {
+  await context.addCookies((await b.client.storageState()).cookies);
+}
 async function openEntry(page: Page, info: TestInfo) {
-  if (mobile(info)) await page.getByRole('navigation', { name: '移动导航' }).getByRole('button', { name: '记一笔' }).click();
-  else await page.keyboard.press('n');
+  if (mobile(info)) {
+    await page.getByRole('navigation', { name: '移动导航' }).getByRole('button', { name: '记一笔' }).click();
+  } else await page.keyboard.press('n');
   await expect(page.getByRole('dialog', { name: '记一笔' })).toBeVisible();
 }
 /** Waits for the server preview, then saves; the save button is disabled until a preview exists. */
@@ -17,10 +20,20 @@ async function submit(page: Page, dialog: string, button: string) {
   await d.getByRole('button', { name: button }).click();
   await expect(d).toBeHidden();
 }
-const balances = async (b: Awaited<ReturnType<typeof book>>) => Object.fromEntries((await (await b.client.get(`${b.base}/accounts`)).json()).data.map((a: { name: string; balance: string }) => [a.name, a.balance]));
+const balances = async (b: Awaited<ReturnType<typeof book>>) =>
+  Object.fromEntries(
+    (await (await b.client.get(`${b.base}/accounts`)).json()).data.map((a: { name: string; balance: string }) => [
+      a.name,
+      a.balance,
+    ]),
+  );
 
-test('record, correct, refund and void keep history; filters live in the URL; conflicts never overwrite', async ({ page, context }, info) => {
-  const b = await book('core-ui'); await signIn(context, b);
+test('record, correct, refund and void keep history; filters live in the URL; conflicts never overwrite', async ({
+  page,
+  context,
+}, info) => {
+  const b = await book('core-ui');
+  await signIn(context, b);
   await page.goto(`/ledgers/${b.ledger.id}/transactions`);
   await expect(page.getByText('还没有账目。记下第一笔，之后都会出现在这里。')).toBeVisible();
 
@@ -65,7 +78,13 @@ test('record, correct, refund and void keep history; filters live in the URL; co
   await detail.getByRole('button', { name: '完成' }).click();
 
   // 作废: reversing entries, the voided row stays visible under the status filter.
-  await b.record({ kind: 'expense', accountId: b.cash.id, settlement: { amount: '30.00', currency: 'CNY' }, categoryId: b.traffic.id, merchant: '打车' });
+  await b.record({
+    kind: 'expense',
+    accountId: b.cash.id,
+    settlement: { amount: '30.00', currency: 'CNY' },
+    categoryId: b.traffic.id,
+    merchant: '打车',
+  });
   await page.reload();
   await page.getByRole('link', { name: '打车 支出 详情' }).click();
   const taxi = page.getByRole('dialog', { name: '打车' });
@@ -95,12 +114,33 @@ test('record, correct, refund and void keep history; filters live in the URL; co
   await expect(page.getByLabel('搜索商家或备注')).toHaveValue('午餐');
 
   // 412: another member corrects the same entry while this page still shows the old version.
-  const breakfast = await b.record({ kind: 'expense', accountId: b.cash.id, settlement: { amount: '15.00', currency: 'CNY' }, categoryId: b.food.id, merchant: '早餐' });
+  const breakfast = await b.record({
+    kind: 'expense',
+    accountId: b.cash.id,
+    settlement: { amount: '15.00', currency: 'CNY' },
+    categoryId: b.food.id,
+    merchant: '早餐',
+  });
   await page.goto(`/ledgers/${b.ledger.id}/transactions`);
   await page.getByRole('link', { name: '早餐 支出 详情' }).click();
   await page.getByRole('dialog', { name: '早餐' }).getByRole('button', { name: '更正' }).click();
-  const other = await b.post('/transaction-previews', { kind: 'expense', accountId: b.cash.id, settlement: { amount: '18.00', currency: 'CNY' }, categoryId: b.food.id, merchant: '早餐', occurredAt: new Date().toISOString(), timezone: 'Asia/Hong_Kong' });
-  expect((await b.client.patch(`${b.base}/transactions/${breakfast.id}`, { data: { previewId: other.previewId }, headers: { 'If-Match': `"v${breakfast.version}"`, 'Idempotency-Key': randomUUID() } })).status()).toBe(200);
+  const other = await b.post('/transaction-previews', {
+    kind: 'expense',
+    accountId: b.cash.id,
+    settlement: { amount: '18.00', currency: 'CNY' },
+    categoryId: b.food.id,
+    merchant: '早餐',
+    occurredAt: new Date().toISOString(),
+    timezone: 'Asia/Hong_Kong',
+  });
+  expect(
+    (
+      await b.client.patch(`${b.base}/transactions/${breakfast.id}`, {
+        data: { previewId: other.previewId },
+        headers: { 'If-Match': `"v${breakfast.version}"`, 'Idempotency-Key': randomUUID() },
+      })
+    ).status(),
+  ).toBe(200);
   await correct.getByLabel(/结算金额/).fill('99');
   await expect(correct.getByRole('button', { name: '确认更正' })).toBeEnabled();
   await correct.getByRole('button', { name: '确认更正' }).click();
@@ -113,10 +153,16 @@ test('record, correct, refund and void keep history; filters live in the URL; co
   await b.client.dispose();
 });
 
-test('entry dialog: keyboard, focus return, unsaved-change guard, soft keyboard keeps save reachable', async ({ page, context }, info) => {
-  const b = await book('focus-ui'); await signIn(context, b);
+test('entry dialog: keyboard, focus return, unsaved-change guard, soft keyboard keeps save reachable', async ({
+  page,
+  context,
+}, info) => {
+  const b = await book('focus-ui');
+  await signIn(context, b);
   await page.goto(`/ledgers/${b.ledger.id}/dashboard`);
-  const opener = mobile(info) ? page.getByRole('navigation', { name: '移动导航' }).getByRole('button', { name: '记一笔' }) : page.getByRole('banner').getByRole('button', { name: '＋ 记一笔' });
+  const opener = mobile(info)
+    ? page.getByRole('navigation', { name: '移动导航' }).getByRole('button', { name: '记一笔' })
+    : page.getByRole('banner').getByRole('button', { name: '＋ 记一笔' });
   await opener.focus();
   await page.keyboard.press('Enter');
   const entry = page.getByRole('dialog', { name: '记一笔' });
@@ -153,14 +199,16 @@ test('entry dialog: keyboard, focus return, unsaved-change guard, soft keyboard 
   if (mobile(info)) {
     await page.goto(`/ledgers/${b.ledger.id}/transactions`);
     await page.evaluate(() => scrollTo(0, document.body.scrollHeight));
-    const last = await page.locator('.list-foot').boundingBox(), bar = await page.getByRole('navigation', { name: '移动导航' }).boundingBox();
+    const last = await page.locator('.list-foot').boundingBox();
+    const bar = await page.getByRole('navigation', { name: '移动导航' }).boundingBox();
     expect(last!.y + last!.height).toBeLessThanOrEqual(bar!.y + 1);
   }
   await b.client.dispose();
 });
 
 test('accounts: create, transfer, credit-card liability, archive keeps history', async ({ page, context }, info) => {
-  const b = await book('accounts-ui', '1000'); await signIn(context, b);
+  const b = await book('accounts-ui', '1000');
+  await signIn(context, b);
   await page.goto(`/ledgers/${b.ledger.id}/accounts`);
   await page.getByRole('button', { name: '＋ 新建账户' }).click();
   const form = page.getByRole('dialog', { name: '新建账户' });
@@ -201,12 +249,23 @@ test('accounts: create, transfer, credit-card liability, archive keeps history',
   await b.client.dispose();
 });
 
-test('subscriptions: due is not paid until confirmed, one payment per bill, edits keep paid history', async ({ page, context }) => {
-  const b = await book('subs-ui'); await signIn(context, b);
+test('subscriptions: due is not paid until confirmed, one payment per bill, edits keep paid history', async ({
+  page,
+  context,
+}) => {
+  const b = await book('subs-ui');
+  await signIn(context, b);
   const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Hong_Kong' }).format(new Date());
   const past = new Date(Date.parse(`${today}T00:00:00Z`) - 3 * 86400_000).toISOString().slice(0, 10);
   // Bills are generated from today on (no backlog); overdue needs a passing day and is covered by the integration suite.
-  const preview = await b.post('/subscription-previews', { name: '宽带', amount: { amount: '99.00', currency: 'CNY' }, cycle: { unit: 'month', count: 1 }, anchorDate: today, timezone: 'Asia/Hong_Kong', accountId: b.cash.id });
+  const preview = await b.post('/subscription-previews', {
+    name: '宽带',
+    amount: { amount: '99.00', currency: 'CNY' },
+    cycle: { unit: 'month', count: 1 },
+    anchorDate: today,
+    timezone: 'Asia/Hong_Kong',
+    accountId: b.cash.id,
+  });
   await b.post('/subscriptions', { previewId: preview.previewId }, { 'Idempotency-Key': randomUUID() });
 
   await page.goto(`/ledgers/${b.ledger.id}/subscriptions`);
@@ -238,14 +297,44 @@ test('subscriptions: due is not paid until confirmed, one payment per bill, edit
   await expect(paid.getByRole('button', { name: '确认已付' })).toHaveCount(0);
   expect((await balances(b))['现金']).toBe('980.00');
 
-  const bills = async (extra = '') => (await (await b.client.get(`${b.base}/bill-occurrences?dateFrom=${past}&dateTo=2099-01-01&limit=100${extra}`)).json()).data as { id: string; name: string; status: string; scheduledDate: string; transactionId: string | null; scheduleVersion: number }[];
+  const bills = async (extra = '') =>
+    (
+      await (
+        await b.client.get(`${b.base}/bill-occurrences?dateFrom=${past}&dateTo=2099-01-01&limit=100${extra}`)
+      ).json()
+    ).data as {
+      id: string;
+      name: string;
+      status: string;
+      scheduledDate: string;
+      transactionId: string | null;
+      scheduleVersion: number;
+    }[];
   const cloudPaid = (await bills()).filter(x => x.name === 'Cloud Pro' && x.status === 'paid');
   expect(cloudPaid).toHaveLength(1);
-  const again = await b.post('/transaction-previews', { kind: 'expense', accountId: b.cash.id, settlement: { amount: '20.00', currency: 'CNY' }, occurredAt: new Date().toISOString(), timezone: 'Asia/Hong_Kong' });
-  expect((await b.client.post(`${b.base}/bill-occurrences/${cloudPaid[0].id}/payments`, { data: { previewId: again.previewId }, headers: { 'Idempotency-Key': randomUUID() } })).status()).toBe(409);
+  const again = await b.post('/transaction-previews', {
+    kind: 'expense',
+    accountId: b.cash.id,
+    settlement: { amount: '20.00', currency: 'CNY' },
+    occurredAt: new Date().toISOString(),
+    timezone: 'Asia/Hong_Kong',
+  });
+  expect(
+    (
+      await b.client.post(`${b.base}/bill-occurrences/${cloudPaid[0].id}/payments`, {
+        data: { previewId: again.previewId },
+        headers: { 'Idempotency-Key': randomUUID() },
+      })
+    ).status(),
+  ).toBe(409);
 
   await page.getByRole('tab', { name: '日历' }).click();
-  await expect(page.getByRole('list', { name: /账单日历/ }).getByRole('listitem').filter({ hasText: `${today}，` })).toContainText('Cloud Pro');
+  await expect(
+    page
+      .getByRole('list', { name: /账单日历/ })
+      .getByRole('listitem')
+      .filter({ hasText: `${today}，` }),
+  ).toContainText('Cloud Pro');
 
   // Editing the amount creates schedule v2: unpaid v1 bills are cancelled, the paid one stays.
   await page.getByRole('tab', { name: '卡片' }).click();
@@ -273,12 +362,16 @@ test('subscriptions: due is not paid until confirmed, one payment per bill, edit
 });
 
 test('a slow preview answer for an older input is never what gets saved', async ({ page, context }, info) => {
-  const b = await book('stale-preview'); await signIn(context, b);
+  const b = await book('stale-preview');
+  await signIn(context, b);
   await page.goto(`/ledgers/${b.ledger.id}/transactions`);
   // The first preview answer is held back until after the amount has changed again.
   let first = true;
   await page.route('**/transaction-previews', async route => {
-    if (first) { first = false; await new Promise(r => setTimeout(r, 1500)); }
+    if (first) {
+      first = false;
+      await new Promise(r => setTimeout(r, 1500));
+    }
     await route.continue();
   });
   await openEntry(page, info);

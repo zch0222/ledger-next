@@ -1,8 +1,18 @@
 import { randomBytes } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
-import { allowlistFrom, checkOutboundUrl, guardedLookup, isBlockedAddress } from '../../packages/domain/src/net-guard';
-import { afterDue, beforeEvent, deferQuietHours, endOfDay, fxDecision, inQuietHours, localTimeOf, nowIn, periodic } from '../../packages/domain/src/reminder-schedule';
-import { keyIdOf, keyring, mask, open, parseKeyring, rewrap, seal } from '../../packages/domain/src/secrets';
+import { allowlistFrom, checkOutboundUrl, guardedLookup, isBlockedAddress } from '@ledger/domain/net-guard';
+import {
+  afterDue,
+  beforeEvent,
+  deferQuietHours,
+  endOfDay,
+  fxDecision,
+  inQuietHours,
+  localTimeOf,
+  nowIn,
+  periodic,
+} from '@ledger/domain/reminder-schedule';
+import { keyIdOf, keyring, mask, open, parseKeyring, rewrap, seal } from '@ledger/domain/secrets';
 
 const key = () => randomBytes(32).toString('base64');
 
@@ -13,7 +23,8 @@ describe('envelope encryption', () => {
     expect(sealed).not.toContain('123:abc');
     expect(open(sealed, 'channel-1', ring1)).toEqual({ botToken: '123:abc' });
     expect(() => open(sealed, 'channel-2', ring1)).toThrow();
-    const tampered = JSON.parse(sealed); tampered.data = Buffer.from('x').toString('base64');
+    const tampered = JSON.parse(sealed);
+    tampered.data = Buffer.from('x').toString('base64');
     expect(() => open(JSON.stringify(tampered), 'channel-1', ring1)).toThrow();
     expect(seal({ a: 1 }, 'r', ring1)).not.toBe(seal({ a: 1 }, 'r', ring1)); // fresh data key and IV each time
   });
@@ -49,14 +60,63 @@ describe('envelope encryption', () => {
 
 describe('outbound URL guard', () => {
   it('blocks private, loopback, link-local, metadata and reserved addresses', () => {
-    for (const ip of ['127.0.0.1', '10.1.2.3', '172.16.0.1', '172.31.255.255', '192.168.1.1', '169.254.169.254', '100.64.0.1', '0.0.0.0', '198.18.0.5', '224.0.0.1', '255.255.255.255', '::1', '::', 'fc00::1', 'fd12::3', 'fe80::1', 'ff02::1', '::ffff:127.0.0.1', '::ffff:10.0.0.1', '64:ff9b::a9fe:a9fe', '2001:db8::1', 'not-an-ip'])
+    for (const ip of [
+      '127.0.0.1',
+      '10.1.2.3',
+      '172.16.0.1',
+      '172.31.255.255',
+      '192.168.1.1',
+      '169.254.169.254',
+      '100.64.0.1',
+      '0.0.0.0',
+      '198.18.0.5',
+      '224.0.0.1',
+      '255.255.255.255',
+      '::1',
+      '::',
+      'fc00::1',
+      'fd12::3',
+      'fe80::1',
+      'ff02::1',
+      '::ffff:127.0.0.1',
+      '::ffff:10.0.0.1',
+      '64:ff9b::a9fe:a9fe',
+      '2001:db8::1',
+      'not-an-ip',
+    ]) {
       expect(isBlockedAddress(ip), ip).toBe(true);
-    for (const ip of ['8.8.8.8', '1.1.1.1', '172.32.0.1', '2606:4700:4700::1111', '::ffff:8.8.8.8', '2001:4860::8888']) expect(isBlockedAddress(ip), ip).toBe(false);
+    }
+    for (const ip of [
+      '8.8.8.8',
+      '1.1.1.1',
+      '172.32.0.1',
+      '2606:4700:4700::1111',
+      '::ffff:8.8.8.8',
+      '2001:4860::8888',
+    ]) {
+      expect(isBlockedAddress(ip), ip).toBe(false);
+    }
   });
   it('accepts only HTTPS public URLs unless the host is allowlisted', () => {
     expect(checkOutboundUrl('https://hooks.example.com/x', []).listed).toBe(false);
-    const reasons = ['http://hooks.example.com/x', 'https://user:pw@hooks.example.com/', 'https://localhost/x', 'https://svc.internal/x', 'https://127.0.0.1/x', 'https://[::1]/x', 'https://169.254.169.254/latest', 'ftp://x.example.com', 'not a url']
-      .map(url => { try { checkOutboundUrl(url, []); return 'ok'; } catch (e) { return (e as { errors: { code: string }[] }).errors[0].code; } });
+    const reasons = [
+      'http://hooks.example.com/x',
+      'https://user:pw@hooks.example.com/',
+      'https://localhost/x',
+      'https://svc.internal/x',
+      'https://127.0.0.1/x',
+      'https://[::1]/x',
+      'https://169.254.169.254/latest',
+      'ftp://x.example.com',
+      'not a url',
+    ].map(url => {
+      try {
+        checkOutboundUrl(url, []);
+        return 'ok';
+      } catch (e) {
+        return (e as { errors: { code: string }[] }).errors[0].code;
+      }
+    });
     expect(reasons.every(r => r === 'UNSAFE_URL')).toBe(true);
     const allow = allowlistFrom(' mock-services:4010 , Receiver.LAN ');
     expect(allow).toEqual(['mock-services:4010', 'receiver.lan']);
@@ -65,10 +125,17 @@ describe('outbound URL guard', () => {
     expect(() => checkOutboundUrl('http://mock-services:9999/', allow)).toThrow();
   });
   it('rejects DNS answers that point at blocked addresses at connect time', async () => {
-    const resolve = (allow: boolean, host: string, all = false) => new Promise<unknown>(done => guardedLookup(allow)(host, { all }, (error, address) => done(error ? (error as { code?: string }).code : address)));
+    const resolve = (allow: boolean, host: string, all = false) =>
+      new Promise<unknown>(done =>
+        guardedLookup(allow)(host, { all }, (error, address) =>
+          done(error ? (error as { code?: string }).code : address),
+        ),
+      );
     expect(await resolve(false, 'localhost')).toBe('EBLOCKEDADDRESS');
     expect(await resolve(true, 'localhost')).toMatch(/^(127\.0\.0\.1|::1)$/);
-    expect(await resolve(true, 'localhost', true)).toEqual(expect.arrayContaining([expect.objectContaining({ address: expect.any(String) })]));
+    expect(await resolve(true, 'localhost', true)).toEqual(
+      expect.arrayContaining([expect.objectContaining({ address: expect.any(String) })]),
+    );
     expect(await resolve(false, 'no-such-host.invalid')).toMatch(/ENOTFOUND|EAI_AGAIN/);
   });
 });
@@ -82,35 +149,67 @@ describe('reminder fire times', () => {
     expect(inQuietHours('13:00', { start: '12:00', end: '14:00' })).toBe(true);
     expect(inQuietHours('13:00', null)).toBe(false);
     expect(inQuietHours('13:00', { start: '09:00', end: '09:00' })).toBe(false);
-    expect(deferQuietHours('2026-10-02', '23:30', { start: '22:00', end: '08:00' })).toEqual({ date: '2026-10-03', time: '08:00', deferred: true });
-    expect(deferQuietHours('2026-10-02', '06:00', { start: '22:00', end: '08:00' })).toEqual({ date: '2026-10-02', time: '08:00', deferred: true });
-    expect(deferQuietHours('2026-10-02', '12:30', { start: '12:00', end: '14:00' })).toEqual({ date: '2026-10-02', time: '14:00', deferred: true });
+    expect(deferQuietHours('2026-10-02', '23:30', { start: '22:00', end: '08:00' })).toEqual({
+      date: '2026-10-03',
+      time: '08:00',
+      deferred: true,
+    });
+    expect(deferQuietHours('2026-10-02', '06:00', { start: '22:00', end: '08:00' })).toEqual({
+      date: '2026-10-02',
+      time: '08:00',
+      deferred: true,
+    });
+    expect(deferQuietHours('2026-10-02', '12:30', { start: '12:00', end: '14:00' })).toEqual({
+      date: '2026-10-02',
+      time: '14:00',
+      deferred: true,
+    });
     expect(deferQuietHours('2026-10-02', '09:00', { start: '22:00', end: '08:00' }).deferred).toBe(false);
   });
   it('schedules lead days before an event in the receiver timezone', () => {
     const fires = beforeEvent('2026-10-10', [0, 7, 3, 3], '09:00', tz, null);
-    expect(fires.map(f => f.scheduledAt.toISOString())).toEqual(['2026-10-03T01:00:00.000Z', '2026-10-07T01:00:00.000Z', '2026-10-10T01:00:00.000Z']);
+    expect(fires.map(f => f.scheduledAt.toISOString())).toEqual([
+      '2026-10-03T01:00:00.000Z',
+      '2026-10-07T01:00:00.000Z',
+      '2026-10-10T01:00:00.000Z',
+    ]);
     expect(fires.map(f => f.lead)).toEqual([7, 3, 0]);
     // Each slot expires when the next one starts; the last one at the end of the event day.
-    expect(fires.map(f => f.expiresAt.toISOString())).toEqual(['2026-10-07T01:00:00.000Z', '2026-10-10T01:00:00.000Z', '2026-10-10T16:00:00.000Z']);
+    expect(fires.map(f => f.expiresAt.toISOString())).toEqual([
+      '2026-10-07T01:00:00.000Z',
+      '2026-10-10T01:00:00.000Z',
+      '2026-10-10T16:00:00.000Z',
+    ]);
     const quiet = beforeEvent('2026-10-10', [1], '23:00', tz, { start: '22:00', end: '08:00' })[0];
     expect(quiet).toMatchObject({ localDate: '2026-10-10', localTime: '08:00', deferredByQuietHours: true });
     expect(afterDue('2026-10-10', '09:00', tz, null)).toMatchObject({ localDate: '2026-10-11', localTime: '09:00' });
     expect(endOfDay('2026-03-08', 'America/New_York').toISOString()).toBe('2026-03-09T04:00:00.000Z');
     // DST gap: 02:30 does not exist on 2026-03-08 in New York and moves to 03:00.
-    expect(beforeEvent('2026-03-08', [0], '02:30', 'America/New_York', null)[0].scheduledAt.toISOString()).toBe('2026-03-08T07:00:00.000Z');
+    expect(beforeEvent('2026-03-08', [0], '02:30', 'America/New_York', null)[0].scheduledAt.toISOString()).toBe(
+      '2026-03-08T07:00:00.000Z',
+    );
   });
   it('lists periodic summaries', () => {
-    expect(periodic('daily', '2026-10-02', 2, '21:00', tz, null).map(f => f.localDate)).toEqual(['2026-10-02', '2026-10-03']);
-    expect(periodic('weekly', '2026-10-02', 2, '09:00', tz, null).map(f => f.localDate)).toEqual(['2026-10-05', '2026-10-12']);
-    expect(periodic('monthly', '2026-10-02', 2, '09:00', tz, null).map(f => f.localDate)).toEqual(['2026-11-01', '2026-12-01']);
+    expect(periodic('daily', '2026-10-02', 2, '21:00', tz, null).map(f => f.localDate)).toEqual([
+      '2026-10-02',
+      '2026-10-03',
+    ]);
+    expect(periodic('weekly', '2026-10-02', 2, '09:00', tz, null).map(f => f.localDate)).toEqual([
+      '2026-10-05',
+      '2026-10-12',
+    ]);
+    expect(periodic('monthly', '2026-10-02', 2, '09:00', tz, null).map(f => f.localDate)).toEqual([
+      '2026-11-01',
+      '2026-12-01',
+    ]);
     expect(localTimeOf(new Date('2026-10-02T01:05:00Z'), tz)).toBe('09:05');
     expect(nowIn(tz, new Date('2026-10-02T17:00:00Z'))).toEqual({ date: '2026-10-03', time: '01:00' });
   });
 });
 
 describe('FX threshold decisions', () => {
-  const t0 = new Date('2026-10-02T00:00:00Z'), at = (minutes: number) => new Date(t0.getTime() + minutes * 60_000);
+  const t0 = new Date('2026-10-02T00:00:00Z');
+  const at = (minutes: number) => new Date(t0.getTime() + minutes * 60_000);
   it('fires once when crossing, stays quiet while jittering, re-arms after the hysteresis band and respects the cooldown', () => {
     let d = fxDecision(null, '7.10', '7.20', null, at(0));
     expect(d).toMatchObject({ fire: null, changed: true });
@@ -131,6 +230,8 @@ describe('FX threshold decisions', () => {
     expect(fxDecision(low.next, '6.97', null, '6.95', at(400)).next.below).toBe('armed'); // 6.97 > 6.9639
     const both = fxDecision(null, '7.00', '7.20', '6.95', t0);
     expect(both).toMatchObject({ fire: null, changed: true });
-    expect(fxDecision({ above: 'armed', below: 'armed', lastFiredAt: null }, '7.00', '7.20', '6.95', t0).changed).toBe(false);
+    expect(fxDecision({ above: 'armed', below: 'armed', lastFiredAt: null }, '7.00', '7.20', '6.95', t0).changed).toBe(
+      false,
+    );
   });
 });

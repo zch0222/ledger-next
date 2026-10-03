@@ -4,7 +4,11 @@ import { ledger, password, test, user } from './helpers';
 
 // The radios are visually hidden as in the prototype; users press the visible label.
 async function choose(page: Page, name: string) {
-  await page.getByRole('dialog').locator('label').filter({ hasText: new RegExp(`^${name}$`) }).click();
+  await page
+    .getByRole('dialog')
+    .locator('label')
+    .filter({ hasText: new RegExp(`^${name}$`) })
+    .click();
   await expect(page.getByRole('radio', { name, exact: true })).toBeChecked();
 }
 
@@ -41,9 +45,11 @@ test('registration → new ledger → reload → second ledger → sign out', as
   await expect(page).toHaveURL(/login/);
 });
 test('prototype shell, theme persistence, responsive widths and SSR privacy', async ({ page, context }, testInfo) => {
-  const u = await user('visual'); const book = await ledger(u.client);
+  const u = await user('visual');
+  const book = await ledger(u.client);
   await context.addCookies((await u.client.storageState()).cookies);
-  const errors: string[] = []; page.on('pageerror', e => errors.push(e.message));
+  const errors: string[] = [];
+  page.on('pageerror', e => errors.push(e.message));
   await page.goto(`/ledgers/${book.id}/dashboard`);
   await page.getByRole('button', { name: '外观：显示模式与主题色' }).click();
   await choose(page, '深色');
@@ -52,7 +58,9 @@ test('prototype shell, theme persistence, responsive widths and SSR privacy', as
   await page.reload();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   // The device copy shows first; the account copy catches up (other devices read it on their next page load).
-  await expect.poll(async () => (await (await page.request.get('/api/v1/me/preferences')).json()).data.appearance.themeMode).toBe('dark');
+  await expect
+    .poll(async () => (await (await page.request.get('/api/v1/me/preferences')).json()).data.appearance.themeMode)
+    .toBe('dark');
   await page.screenshot({ path: `test-results/${testInfo.project.name}-dark.png`, fullPage: true });
   await page.getByRole('button', { name: '外观：显示模式与主题色' }).click();
   await page.getByRole('button', { name: '恢复默认' }).click();
@@ -60,7 +68,10 @@ test('prototype shell, theme persistence, responsive widths and SSR privacy', as
   await page.getByRole('button', { name: '完成', exact: true }).click();
   for (const width of [360, 390, 768, 1440, 1920]) {
     await page.setViewportSize({ width, height: 1000 });
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `No page overflow at ${width}px`).toBeTruthy();
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
+      `No page overflow at ${width}px`,
+    ).toBeTruthy();
     if (width >= 1200) {
       expect((await page.locator('.sidebar').boundingBox())?.width).toBe(224);
       expect((await page.locator('.topbar').boundingBox())?.height).toBe(82);
@@ -81,7 +92,9 @@ test('prototype shell, theme persistence, responsive widths and SSR privacy', as
   await u.client.dispose();
 });
 test('member UI enforces last-owner error and persists a new viewer', async ({ page, context }) => {
-  const owner = await user('owner-ui'), viewer = await user('member-ui'); const book = await ledger(owner.client);
+  const owner = await user('owner-ui');
+  const viewer = await user('member-ui');
+  const book = await ledger(owner.client);
   await context.addCookies((await owner.client.storageState()).cookies);
   await page.goto(`/ledgers/${book.id}/settings`);
   await page.getByLabel(`${owner.email} 的角色`).selectOption('viewer');
@@ -91,5 +104,6 @@ test('member UI enforces last-owner error and persists a new viewer', async ({ p
   await expect(page.getByText(viewer.email, { exact: true })).toBeVisible();
   await page.reload();
   await expect(page.getByLabel(`${viewer.email} 的角色`)).toHaveValue('viewer');
-  await owner.client.dispose(); await viewer.client.dispose();
+  await owner.client.dispose();
+  await viewer.client.dispose();
 });

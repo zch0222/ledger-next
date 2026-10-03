@@ -10,9 +10,13 @@ function create() {
   const pool = mysql.createPool({ uri: url, timezone: 'Z', connectionLimit: 10, decimalNumbers: false });
   return { pool, db: drizzle(pool, { schema, mode: 'default' }) };
 }
-export function database() { return (connection ??= create()).db; }
+export function database() {
+  return (connection ??= create()).db;
+}
 /** The pool-level database or a transaction; domain writes accept either so callers can compose transactions. */
 export type Executor = Omit<ReturnType<typeof database>, '$client'>;
-export function databasePool() { return (connection ??= create()).pool; }
+export function databasePool() {
+  return (connection ??= create()).pool;
+}
 /** A transaction handle; functions that take row locks require one. */
 export type Tx = Parameters<Parameters<Executor['transaction']>[0]>[0];

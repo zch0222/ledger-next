@@ -12,7 +12,19 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "isolatedModules": true,
-    "plugins": [{ "name": "next" }]
+    "plugins": [{ "name": "next" }],
+    // Workspace modules by name instead of ../../packages/<name>/src. Read by tsc, Next.js, tsx, esbuild,
+    // Playwright and Vitest (resolve.tsconfigPaths); there are no package.json files behind them.
+    "paths": {
+      "@ledger/api-client": ["./packages/api-client/src/index.ts"],
+      "@ledger/api-client/*": ["./packages/api-client/src/*"],
+      "@ledger/contracts/*": ["./packages/contracts/src/*"],
+      "@ledger/db/*": ["./packages/db/src/*"],
+      "@ledger/domain/*": ["./packages/domain/src/*"],
+      "@ledger/mcp/*": ["./packages/mcp/src/*"],
+      "@ledger/ui/*": ["./packages/ui/src/*"],
+      "@/*": ["./apps/web/src/*"]
+    }
   },
   "include": ["apps/**/*.ts", "apps/**/*.tsx", "packages/**/*.ts", "tests/**/*.ts", "*.ts", "scripts/*.ts"],
   "exclude": ["node_modules", "**/.next/**"]

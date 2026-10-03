@@ -1,13 +1,30 @@
 import { describe, expect, it } from 'vitest';
-import { CURRENCY_TABLE, ENABLED_CURRENCIES } from '../../packages/contracts/src/common';
-import { balance, compare, convert, crossRate, formatAmount, minorUnits, negate, parseAmount, parseRate, signedAmount, sum, toColumn } from '../../packages/domain/src/money';
+import { CURRENCY_TABLE, ENABLED_CURRENCIES } from '@ledger/contracts/common';
+import {
+  balance,
+  compare,
+  convert,
+  crossRate,
+  formatAmount,
+  minorUnits,
+  negate,
+  parseAmount,
+  parseRate,
+  signedAmount,
+  sum,
+  toColumn,
+} from '@ledger/domain/money';
 import { accepted, conversions, crossRates, rejected } from '../fixtures/money';
 
 const code = (c: string) => expect.objectContaining({ status: 422, code: c });
 
 describe('amount parsing', () => {
-  it.each(accepted)('accepts %s %s as %s', (input, currency, canonical) => expect(parseAmount(input, currency)).toBe(canonical));
-  it.each(rejected)('rejects %s %s with %s', (input, currency, error) => expect(() => parseAmount(input, currency)).toThrow(code(error)));
+  it.each(accepted)('accepts %s %s as %s', (input, currency, canonical) =>
+    expect(parseAmount(input, currency)).toBe(canonical),
+  );
+  it.each(rejected)('rejects %s %s with %s', (input, currency, error) =>
+    expect(() => parseAmount(input, currency)).toThrow(code(error)),
+  );
   it('allows zero and negative values only when asked (opening balances, credit cards)', () => {
     expect(parseAmount('0', 'USD', { allowZero: true })).toBe('0.00');
     expect(parseAmount('-0.00', 'USD', { allowZero: true })).toBe('0.00');
@@ -17,7 +34,11 @@ describe('amount parsing', () => {
   });
   it('keeps the currency table consistent with the enabled API currencies', () => {
     expect(ENABLED_CURRENCIES.every(c => CURRENCY_TABLE[c].enabled)).toBe(true);
-    expect(Object.entries(CURRENCY_TABLE).filter(([, v]) => v.enabled).map(([c]) => c)).toEqual([...ENABLED_CURRENCIES]);
+    expect(
+      Object.entries(CURRENCY_TABLE)
+        .filter(([, v]) => v.enabled)
+        .map(([c]) => c),
+    ).toEqual([...ENABLED_CURRENCIES]);
     expect([minorUnits('JPY'), minorUnits('USD'), minorUnits('KWD')]).toEqual([0, 2, 3]);
   });
 });
@@ -52,14 +73,24 @@ describe('arithmetic without floating point', () => {
 });
 
 describe('exchange rates', () => {
-  it.each(conversions)('%s %s × %s → %s %s', (amount, from, rate, to, expected) => expect(convert(amount, from, rate, to)).toBe(expected));
-  it('requires a rate of exactly 1 within one currency', () => expect(() => convert('1.00', 'USD', '1.01', 'USD')).toThrow(code('INVALID_RATE')));
+  it.each(conversions)('%s %s × %s → %s %s', (amount, from, rate, to, expected) =>
+    expect(convert(amount, from, rate, to)).toBe(expected),
+  );
+  it('requires a rate of exactly 1 within one currency', () =>
+    expect(() => convert('1.00', 'USD', '1.01', 'USD')).toThrow(code('INVALID_RATE')));
   it.each(crossRates)('cross rate %s / %s', (from, to, expected) => expect(crossRate(from, to)).toBe(expected));
   it('validates rates and rejects unrepresentable cross rates', () => {
     expect(parseRate('0.000000000000000001')).toBe('0.000000000000000001');
     expect(parseRate('7.200')).toBe('7.2');
-    for (const [rate, error] of [['0', 'INVALID_RATE'], ['-1', 'INVALID_RATE'], ['1e-3', 'INVALID_RATE'], ['0.0000000000000000001', 'RATE_PRECISION'], ['100000000000000000000', 'RATE_OUT_OF_RANGE']] as const)
+    for (const [rate, error] of [
+      ['0', 'INVALID_RATE'],
+      ['-1', 'INVALID_RATE'],
+      ['1e-3', 'INVALID_RATE'],
+      ['0.0000000000000000001', 'RATE_PRECISION'],
+      ['100000000000000000000', 'RATE_OUT_OF_RANGE'],
+    ] as const) {
       expect(() => parseRate(rate), rate).toThrow(code(error));
+    }
     expect(() => crossRate('10000000000000000000', '0.000000000000000001')).toThrow(code('RATE_UNDERFLOW'));
   });
 });

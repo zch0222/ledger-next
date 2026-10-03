@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { formatDate, formatMoney, formatPercent, groupDigits } from '../../packages/ui/src/format';
-import { monthRange, weekLabel, withParams } from '../../apps/web/src/lib/period';
-import { instantToLocal, localToInstant, nowLocal, today } from '../../apps/web/src/lib/time';
+import { formatDate, formatMoney, formatPercent, groupDigits } from '@ledger/ui/format';
+import { monthRange, weekLabel, withParams } from '@/lib/period';
+import { instantToLocal, localToInstant, nowLocal, today } from '@/lib/time';
 
 describe('money and date display', () => {
   it('groups digits on the text, never through floating point', () => {
@@ -30,9 +30,28 @@ describe('money and date display', () => {
 
 describe('page periods and URLs', () => {
   it('derives month ranges with an exclusive end and safe defaults', () => {
-    expect(monthRange(undefined, '2026-10-02')).toEqual({ month: '2026-10', dateFrom: '2026-10-01', dateTo: '2026-11-01', label: '2026 年 10 月', short: '10 月', prev: '2026-09', next: '2026-11', isCurrent: true, isFuture: false });
-    expect(monthRange('2026-01', '2026-10-02')).toMatchObject({ dateFrom: '2026-01-01', dateTo: '2026-02-01', prev: '2025-12', isCurrent: false });
-    expect(monthRange('2026-12', '2026-10-02')).toMatchObject({ dateTo: '2027-01-01', next: '2027-01', isFuture: true });
+    expect(monthRange(undefined, '2026-10-02')).toEqual({
+      month: '2026-10',
+      dateFrom: '2026-10-01',
+      dateTo: '2026-11-01',
+      label: '2026 年 10 月',
+      short: '10 月',
+      prev: '2026-09',
+      next: '2026-11',
+      isCurrent: true,
+      isFuture: false,
+    });
+    expect(monthRange('2026-01', '2026-10-02')).toMatchObject({
+      dateFrom: '2026-01-01',
+      dateTo: '2026-02-01',
+      prev: '2025-12',
+      isCurrent: false,
+    });
+    expect(monthRange('2026-12', '2026-10-02')).toMatchObject({
+      dateTo: '2027-01-01',
+      next: '2027-01',
+      isFuture: true,
+    });
     expect(monthRange('2026-13', '2026-10-02').month).toBe('2026-10'); // invalid input falls back to the current month
     expect(monthRange('bad', '2026-10-02').month).toBe('2026-10');
   });

@@ -7,8 +7,13 @@ import { hostname } from 'node:os';
 if (!process.env.LEDGER_HOST_DIR) {
   const format = `{{range .Mounts}}{{if eq .Destination "${process.cwd()}"}}{{.Source}}{{end}}{{end}}`;
   const source = execFileSync('docker', ['inspect', '--format', format, hostname()], { encoding: 'utf8' }).trim();
-  if (!source) throw new Error(`No host path is mounted at ${process.cwd()}; set LEDGER_HOST_DIR to the checkout's path on the Docker engine`);
+  if (!source)
+    throw new Error(
+      `No host path is mounted at ${process.cwd()}; set LEDGER_HOST_DIR to the checkout's path on the Docker engine`,
+    );
   // Docker Desktop for Windows reports the Windows path (D:\code\ledger-next); its engine sees drives under /run/desktop/mnt/host.
   const drive = /^([A-Za-z]):[\\/]?(.*)$/.exec(source);
-  process.env.LEDGER_HOST_DIR = drive ? `/run/desktop/mnt/host/${drive[1].toLowerCase()}/${drive[2].replaceAll('\\', '/')}` : source;
+  process.env.LEDGER_HOST_DIR = drive
+    ? `/run/desktop/mnt/host/${drive[1].toLowerCase()}/${drive[2].replaceAll('\\', '/')}`
+    : source;
 }

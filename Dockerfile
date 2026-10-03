@@ -51,10 +51,10 @@ ENV CI=1
 # Run Playwright directly: `pnpm run` would re-verify node_modules against the build-time store and reinstall from the registry.
 CMD ["node_modules/.bin/playwright", "test"]
 
-# Lint, typecheck, unit tests, contract and progress checks with only Docker on the host: `docker build --target verify .`
+# Lint, format, typecheck, unit tests, contract and progress checks with only Docker on the host: `docker build --target verify .`
 # (a failing check fails the build). `--target verify-report --output .` also writes coverage/ to the checkout.
 FROM source AS verify
-RUN pnpm lint && pnpm typecheck && pnpm test:unit && pnpm contract:check && node scripts/progress.mjs validate
+RUN pnpm lint && pnpm format:check && pnpm typecheck && pnpm test:unit && pnpm contract:check && node scripts/progress.mjs validate
 
 FROM scratch AS verify-report
 COPY --from=verify /app/coverage /coverage

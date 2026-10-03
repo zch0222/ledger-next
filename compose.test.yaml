@@ -1,28 +1,28 @@
 services:
   web:
     ports: !override []
-    restart: "no"
+    restart: 'no'
     environment:
       LEDGER_ADMIN_EMAILS: admin-e2e@example.test
   mysql:
-    restart: "no"
+    restart: 'no'
   redis:
-    restart: "no"
+    restart: 'no'
   worker:
-    restart: "no"
+    restart: 'no'
     environment:
       # Fast schedule so the suite can observe fetches, failures and recovery within seconds.
-      FX_POLL_SECONDS: "2"
-      FX_STALE_FAILURES: "3"
-      FX_TIMEOUT_MS: "1500"
+      FX_POLL_SECONDS: '2'
+      FX_STALE_FAILURES: '3'
+      FX_TIMEOUT_MS: '1500'
       # Reminders: a short tick and provider timeout so retries, timeouts and recovery are observable quickly.
-      NOTIFY_TICK_SECONDS: "1"
+      NOTIFY_TICK_SECONDS: '1'
       # Long enough that the chaos drill can kill the worker while a request is still waiting for the provider.
-      CHANNEL_TIMEOUT_MS: "10000"
-      NOTIFY_BACKOFF_BASE_MS: "1000"
-      NOTIFY_STUCK_SECONDS: "10"
+      CHANNEL_TIMEOUT_MS: '10000'
+      NOTIFY_BACKOFF_BASE_MS: '1000'
+      NOTIFY_STUCK_SECONDS: '10'
   mock-services:
-    restart: "no"
+    restart: 'no'
   tests:
     build: { context: ., target: tests }
     environment:
@@ -40,8 +40,8 @@ services:
       WEBHOOK_ALLOWLIST: mock-services:4010
       CHANNEL_ENDPOINT_OVERRIDES: https://api.telegram.org=http://mock-services:4010/telegram,https://open.feishu.cn=http://mock-services:4010/feishu,https://qyapi.weixin.qq.com=http://mock-services:4010/wecom,https://www.pushplus.plus=http://mock-services:4010/pushplus
       SMTP_URL: smtp://mock-services:2525
-      CHANNEL_TIMEOUT_MS: "1500"
-      CI: "1"
+      CHANNEL_TIMEOUT_MS: '1500'
+      CI: '1'
       PERSISTENCE_EMAIL: ${PERSISTENCE_EMAIL:-}
       PERSISTENCE_PASSWORD: ${PERSISTENCE_PASSWORD:-}
     depends_on:
