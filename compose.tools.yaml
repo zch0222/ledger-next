@@ -3,6 +3,7 @@
 #   docker compose -f compose.tools.yaml run --rm setup-env    # = sh scripts/setup-env.sh (options are passed on)
 #   docker compose -f compose.tools.yaml run --rm e2e          # = pnpm test:e2e (also: perf, ops)
 #   docker compose -f compose.tools.yaml run --rm tools node scripts/progress.mjs status
+#   docker compose -f compose.tools.yaml run --rm format       # = prettier --write + eslint --fix (rewrites files)
 # LEDGER_BUILD_CA must be a path inside the checkout (relative to it) when used from here.
 name: ledger-next-tools
 x-tools: &tools
@@ -42,3 +43,25 @@ services:
   ops:
     <<: *tools
     command: ['node', '--import', './scripts/toolbox-host.mjs', 'scripts/ops-drill.mjs']
+  # Runs on the dependencies image (Linux node_modules from the lockfile): the checkout is mounted at /app over it,
+  # and the anonymous volumes keep the image's node_modules visible instead of the host's (absent) ones.
+  format:
+    build: { context: ., target: dependencies }
+    image: ledger-next-deps
+    pull_policy: build
+    init: true
+    working_dir: /app
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/apps/web/node_modules
+    # Prettier first so curly sees which bodies wrapped, then again to lay out what ESLint fixed. Exits non-zero when
+    # ESLint is left with errors it cannot fix (the files are formatted anyway). `$$` is a literal `$` for Compose.
+    entrypoint:
+      - sh
+      - -c
+      - |
+        node_modules/.bin/prettier --write . --log-level warn || exit 1
+        node_modules/.bin/eslint apps packages tests --fix
+        lint=$$?
+        node_modules/.bin/prettier --write . --log-level warn && exit $$lint

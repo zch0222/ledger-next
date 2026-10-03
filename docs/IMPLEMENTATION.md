@@ -59,9 +59,10 @@ docker compose down
 只有 Docker 时：
 
 ```powershell
-docker build --target verify .                          # lint + typecheck + test:unit + contract:check + progress validate
+docker build --target verify .                          # lint + format:check + typecheck + test:unit + contract:check + progress validate
 docker build --target verify-report --output . .        # 同上，并把 coverage/ 写回仓库
 docker compose -f compose.tools.yaml run --rm e2e       # = pnpm test:e2e；另有 perf（test:perf）、ops（test:ops）
+docker compose -f compose.tools.yaml run --rm format    # prettier --write + eslint --fix，直接改写工作区文件；修不了的 lint 错误会列出并返回非零
 ```
 
 `verify` 在镜像构建阶段用与生产镜像相同的依赖层执行检查，任一失败即构建失败；结果按输入缓存，源码未变时复用上次通过的结果，需要强制重跑时加 `--no-cache-filter verify`。`compose.tools.yaml` 的 toolbox 容器（Node 24 + Docker CLI / Compose / Buildx）把仓库挂载到 `/work` 并共享 Docker socket，在本机 Docker 引擎上启动与 `pnpm test:*` 完全相同的独立测试栈。测试栈的证据目录是引擎侧的绑定挂载，`scripts/toolbox-host.mjs` 从 toolbox 容器自身的挂载推断仓库在引擎侧的路径（`LEDGER_HOST_DIR`；Docker Desktop for Windows 映射为 `/run/desktop/mnt/host/<盘符>/…`）。推断不对时（例如其他虚拟化方案）手动设置 `LEDGER_HOST_DIR`。
@@ -70,6 +71,7 @@ docker compose -f compose.tools.yaml run --rm e2e       # = pnpm test:e2e；另�
 
 ```powershell
 pnpm lint
+pnpm format                    # prettier --write；pnpm format:check 只检查
 pnpm typecheck
 pnpm test:unit
 pnpm contract:check            # 生成的 OpenAPI / SDK 必须最新；CI 另加 --base-ref 做破坏性变更比较
@@ -79,11 +81,13 @@ node scripts/progress.mjs validate
 
 修改 `packages/contracts/src` 后运行 `pnpm contract:generate` 并提交生成的 `openapi.json` 与 `packages/api-client/src/schema.d.ts`。
 
+代码格式由 Prettier 决定（`.prettierrc.json`：120 列、单引号）；生成文件、Markdown 与 `docs/` 不参与格式化。ESLint 另外要求一条语句只声明一个变量（`one-var`），`if` 体换行时必须加花括号（`curly`）。模块引用走 tsconfig `paths` 别名：跨包写 `@ledger/<包>/<模块>`（如 `@ledger/domain/money`、`@ledger/api-client`），`apps/web/src` 内跨目录写 `@/…`，同目录仍用 `./`；ESLint 拒绝 `../../packages/…` 式相对路径，也不允许 `packages/` 引用 `@/`。只做格式化的提交记在 `.git-blame-ignore-revs`，本地执行一次 `git config blame.ignoreRevsFile .git-blame-ignore-revs` 后 `git blame` 会跳过它们。
+
 `test:e2e` 检查 Docker context 必须指向本机，创建 `ledger-e2e-{pid}-{随机后缀}` 独立项目及随机凭据，构建真实生产 Web 镜像；MySQL 迁移与 worker 就绪后先重放迁移，创建持久化样本，重启 MySQL / Redis / Web / worker 并验证账号、认证和账本保留，再在 Playwright 容器内执行 API 集成和浏览器测试，最后仅清理本次测试项目与卷。不会使用本机开发数据库，也不会用 mock / SQLite 替代 MySQL；第三方供应商（汇率、后续通知渠道）一律由测试栈内的 `mock-services` 按公开协议模拟，可注入故障。失败返回非零退出码；trace、截图、JSON 和 HTML 报告在 `test-results/`、`playwright-report/`。
 
 `pnpm test:integration` 运行真实 MySQL 集成套件（需要 `DATABASE_URL`，`test:e2e` 在隔离 Docker 栈内自动执行）；`pnpm test:api` 是针对已有运行环境的 Playwright API 测试入口；完整验证以 `test:e2e` 为准。单元测试覆盖权限 / 版本 / Origin 规则、输入校验、主题算法、分页游标签名、幂等指纹、OpenAPI 生成与路由匹配、破坏性变更检测；端到端契约测试用 ajv 按 openapi.json 校验真实响应（状态码必须在该操作中声明），并用生成的 SDK 访问真实服务；数据库事务和认证库通过真实 MySQL API 集成验证，不用 mock 的单元覆盖率冒充系统覆盖率。
 
-Windows 不在 PATH 的 Docker 可以通过 `LEDGER_DOCKER` 指定可执行文件；脚本也识别用户目录中的 Docker Desktop。CI 执行相同 lint/typecheck/unit/Docker E2E 并上传证据；仓库工作流配置不等于已经取得远程 CI 结果。
+Windows 不在 PATH 的 Docker 可以通过 `LEDGER_DOCKER` 指定可执行文件；脚本也识别用户目录中的 Docker Desktop。CI 执行相同 lint/format/typecheck/unit/Docker E2E 并上传证据；仓库工作流配置不等于已经取得远程 CI 结果。
 
 ## 迁移和并发
 
