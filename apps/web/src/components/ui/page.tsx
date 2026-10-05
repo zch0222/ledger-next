@@ -3,8 +3,8 @@ import { DomainError } from '@ledger/domain/policy';
 import { Icon, type IconName } from '@/components/ui/icons';
 
 /**
- * Page title block from the prototype: kicker, h1, one-line description, optional action. The kicker names the section
- * (the h1 is often a slogan), so it tells you where you are instead of repeating the brand line on every page.
+ * Page title block: optional kicker, h1, one-line description, optional action. The kicker names the parent section
+ * when the h1 is a sub-page (设置 › 外观).
  */
 export function PageHeading({
   kicker,

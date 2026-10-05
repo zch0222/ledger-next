@@ -25,7 +25,7 @@ test('registration → new ledger → reload → second ledger → sign out', as
   // Onboarding step 2: the first account (can be postponed).
   await expect(page.getByRole('heading', { name: '添加首个账户' })).toBeVisible();
   await page.getByRole('button', { name: '稍后再说' }).click();
-  await expect(page.getByRole('heading', { name: '本月，收支一目了然' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '总览', exact: true })).toBeVisible();
   await page.reload();
   await expect(page.getByLabel('切换账本')).toContainText('我的家庭账本');
   await page.getByLabel('切换账本').click();
@@ -38,7 +38,7 @@ test('registration → new ledger → reload → second ledger → sign out', as
   await page.getByLabel(/期初余额/).fill('100');
   await page.getByRole('button', { name: '保存账户' }).click();
   await expect(page.getByLabel('切换账本')).toContainText('旅行基金');
-  await expect(page.getByRole('heading', { name: '本月，收支一目了然' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '总览', exact: true })).toBeVisible();
   await page.goto(page.url().replace(/\/dashboard.*$/, '/settings'));
   await page.getByRole('button', { name: '退出当前账号' }).click();
   await expect(page.getByRole('heading', { name: '欢迎回来' })).toBeVisible();
@@ -87,7 +87,7 @@ test('prototype shell, theme persistence, responsive widths and SSR privacy', as
   const legacy = await u.client.get(`/?ledger=${book.id}&view=analytics`, { maxRedirects: 0 });
   expect(legacy.headers().location).toContain(`/ledgers/${book.id}/analytics`);
   const html = await u.client.get(`/ledgers/${book.id}/dashboard`);
-  expect(await html.text()).toContain('本月，收支一目了然');
+  expect(await html.text()).toContain('<h1>总览</h1>');
   expect(html.headers()['cache-control']).toContain('private');
   expect(errors).toEqual([]);
   await u.client.dispose();

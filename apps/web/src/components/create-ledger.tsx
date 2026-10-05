@@ -29,9 +29,7 @@ export function CreateLedger({ additional = false }: { additional?: boolean }) {
   }
   return (
     <section className="panel setup-card">
-      <div className="kicker">YOUR MONEY, CLEARLY.</div>
       <h1>{additional ? '新建账本' : '从一本新账本开始'}</h1>
-      <p className="sub">为日常开销和重要计划，留一个清楚的位置。</p>
       <form onSubmit={submit} className="auth-form">
         <div className="field">
           <label htmlFor="ledger-name">账本名称</label>

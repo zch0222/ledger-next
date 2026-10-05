@@ -27,9 +27,8 @@ export function LoginForm() {
   }
   return (
     <section className="panel auth-card">
-      <div className="kicker">YOUR MONEY, CLEARLY.</div>
       <h1>{register ? '创建你的账号' : '欢迎回来'}</h1>
-      <p className="sub">每一笔，都有去处。登录后继续你的账本。</p>
+      <p className="sub">登录后继续你的账本。</p>
       <form onSubmit={submit} className="auth-form">
         {register && (
           <div className="field">
