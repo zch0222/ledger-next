@@ -26,7 +26,7 @@ V1 必须覆盖：登录、账本 / 成员权限、账户、分类、收入 / �
 | 层 | 选择 | 用途与约束 |
 | --- | --- | --- |
 | Web / HTTP API | Next.js 16 稳定系列 + App Router + React + TypeScript strict | 初始化时锁定最新经验证安全补丁和匹配 React 版本，不使用 canary |
-| UI | Tailwind CSS、shadcn/ui / Radix、Lucide | 组件只引用 CSS 变量令牌（浅 / 深两套 + 主题色输入），不硬编码颜色；无必要不引入全局客户端状态 |
+| UI | Base UI（`@base-ui/react`，无样式组件）+ 全局 CSS（`globals.css`）+ 内联线性图标（Lucide 图形） | 交互控件（下拉、菜单、弹窗、复选框）只经 `components/ui/*` 封装使用；样式只引用 CSS 变量令牌（浅 / 深两套 + 主题色输入），不硬编码颜色；无必要不引入全局客户端状态。2026-10-05 起替代原定的 Tailwind / shadcn/ui，见[UI 细节排查](reviews/UI_DETAIL_AUDIT.md) |
 | 可视化 | Apache ECharts 6，使用 echarts/core 按需注册；按页面懒加载 | 统一折线、柱形、环图；SSR 输出摘要和数据表，图表点数上限 366 |
 | 表单 / 契约 | React Hook Form + Zod；OpenAPI 3.1 | 服务端重新校验，生成 REST 客户端；UI 校验仅改善体验 |
 | 数据 | MySQL 8.4 LTS（InnoDB）+ mysql2 + Drizzle ORM / SQL migrations | DECIMAL 字符串运算；外键、唯一约束、CHECK 与事务为一致性基础 |
