@@ -76,8 +76,7 @@ export default async function Transactions({ params, searchParams }: LedgerPageP
   return (
     <>
       <PageHeading
-        kicker="账目"
-        title="每一笔，都清清楚楚"
+        title="账目"
         description="点击金额查看入账详情、更正、退款或作废；作废与更正都会保留历史。"
         action={<AddButton className="primary" />}
       />

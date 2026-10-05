@@ -67,8 +67,7 @@ export default async function Reminders({ params, searchParams }: LedgerPageProp
   return (
     <>
       <PageHeading
-        kicker="提醒中心"
-        title="重要的事，提前知道"
+        title="提醒中心"
         description="每个渠道独立配置，投递结果清楚可查。平台受理 ≠ 用户已读。"
         action={<NewRule channels={channels} subscriptions={subscriptions} budgets={budgetOptions} />}
       />

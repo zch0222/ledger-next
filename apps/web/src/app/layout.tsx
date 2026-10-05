@@ -3,7 +3,7 @@ import type { CSSProperties } from 'react';
 import { currentAppearance } from '@/lib/appearance';
 import { palette } from '@ledger/ui/theme.mjs';
 import './globals.css';
-export const metadata: Metadata = { title: 'Ledger Next · 每一笔，都有去处', description: '个人与家庭账本' };
+export const metadata: Metadata = { title: 'Ledger Next', description: '个人与家庭账本' };
 // Mobile address bar follows the mode: one colour when fixed, both via media queries when following the system.
 export async function generateViewport(): Promise<Viewport> {
   const { value } = await currentAppearance();

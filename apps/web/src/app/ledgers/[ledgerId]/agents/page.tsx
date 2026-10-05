@@ -30,11 +30,7 @@ export default async function Agents({ params, searchParams }: LedgerPageProps) 
   const when = (d: Date) => d.toLocaleString('zh-CN', { hour12: false, timeZone: ledger.timezone });
   return (
     <>
-      <PageHeading
-        kicker="Agent 接入"
-        title="把账本，交给熟悉的 Agent"
-        description="统一 MCP 工具与 REST 服务，用同一套权限管理。"
-      />
+      <PageHeading title="Agent 接入" description="统一 MCP 工具与 REST 服务，用同一套权限管理。" />
       <Note>Agent 通过你签发的个人访问令牌访问账本：权限、账本范围、幂等与审批都由服务端执行，令牌只显示一次。</Note>
       <div className="grid">
         <ClientPicker clients={clientConfigs(origin)} endpoint={`${origin.replace(/\/$/, '')}/mcp`} />

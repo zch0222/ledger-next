@@ -59,8 +59,7 @@ export default async function Analytics({ params, searchParams }: LedgerPageProp
   return (
     <div className="page-enter">
       <PageHeading
-        kicker="预算与分析"
-        title="让预算，变成日常"
+        title="预算与分析"
         description="预算按历史入账统计；转账本金不占用预算，退款抵减支出。"
         action={
           <div className="gap">

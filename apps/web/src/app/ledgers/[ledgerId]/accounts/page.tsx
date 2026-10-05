@@ -24,8 +24,7 @@ export default async function Accounts({ params, searchParams }: LedgerPageProps
   return (
     <>
       <PageHeading
-        kicker="账户"
-        title="账户，各就各位"
+        title="账户"
         description="账户按原币保留余额；汇总时按参考汇率估值，不改变任何记录。"
         action={<NewAccount open={Boolean(param(search, 'new'))} first={param(search, 'new') === 'first'} />}
       />

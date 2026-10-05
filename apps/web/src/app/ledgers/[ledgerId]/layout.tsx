@@ -65,11 +65,6 @@ export default async function LedgerLayout({
           <Suspense>
             <SideNav ledgerId={ledgerId} />
           </Suspense>
-          <div className="sidefoot">
-            <strong>每一笔，都有去处。</strong>个人与家庭账本
-            <br />
-            让生活的收支清楚一点。
-          </div>
         </aside>
         <div className="main">
           <header className="topbar">
