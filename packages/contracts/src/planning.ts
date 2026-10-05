@@ -228,6 +228,18 @@ export const CashFlow = resource(
 export const CashFlowQuery = ReportQuery.extend({
   interval: z.enum(['day', 'week', 'month']).default('week'),
 }).strict();
+export const SubscriptionSpendingQuery = z
+  .object({
+    month: z
+      .string()
+      .regex(/^\d{4}-(0[1-9]|1[0-2])$/)
+      .optional()
+      .meta({ description: '统计本月账单的月份 YYYY-MM，默认账本时区本月' }),
+    currency: Currency.optional(),
+    before: z.number().int().min(0).max(23).default(5).meta({ description: '时间线包含该月之前的月数' }),
+    after: z.number().int().min(0).max(23).default(6).meta({ description: '时间线包含该月之后的月数' }),
+  })
+  .strict();
 export const CategoryBreakdown = resource(
   'CategoryBreakdown',
   z.object({

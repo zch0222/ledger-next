@@ -72,6 +72,22 @@ const PATHS = {
       <path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" stroke="none" />
     </>
   ),
+  calendar: (
+    <>
+      <path d="M8 2v4M16 2v4M3 10h18" />
+      <rect x="3" y="4" width="18" height="18" rx="2" />
+    </>
+  ),
+  trendingDown: <path d="M16 17h6v-6M22 17l-8.5-8.5-5 5L2 7" />,
+  crown: (
+    <path d="M11.6 3.3a.5.5 0 0 1 .8 0l3 5.6a1 1 0 0 0 1.5.3l4.3-3.7a.5.5 0 0 1 .8.5l-2.8 10.3a1 1 0 0 1-1 .7H5.8a1 1 0 0 1-1-.7L2 6a.5.5 0 0 1 .8-.5l4.3 3.7a1 1 0 0 0 1.5-.3zM5 21h14" />
+  ),
+  pause: (
+    <>
+      <rect x="14" y="4" width="4" height="16" rx="1" />
+      <rect x="6" y="4" width="4" height="16" rx="1" />
+    </>
+  ),
 } as const;
 export type IconName = keyof typeof PATHS;
 
