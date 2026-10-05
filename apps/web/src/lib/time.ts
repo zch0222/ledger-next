@@ -23,3 +23,9 @@ export const localToInstant = (value: string, timezone: string) =>
 /** RFC 3339 instant → datetime-local value in the timezone. */
 export const instantToLocal = (iso: string, timezone: string) => nowLocal(timezone, new Date(iso));
 export const today = (timezone: string) => nowLocal(timezone).slice(0, 10);
+/**
+ * RFC 3339 instant for display, e.g. "2026/10/5 18:00:36". Always pass the ledger (or entry) timezone: without it the
+ * server (UTC) and the browser render different text and React reports a hydration mismatch.
+ */
+export const formatInstant = (iso: string, timezone: string) =>
+  new Date(iso).toLocaleString('zh-CN', { hour12: false, timeZone: timezone });

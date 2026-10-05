@@ -31,6 +31,18 @@ export function formatDate(date: string, today?: string) {
   const [y, m, d] = date.split('-').map(Number);
   return `${today && today.slice(0, 4) !== date.slice(0, 4) ? `${y} 年 ` : ''}${m} 月 ${d} 日`;
 }
+/**
+ * Avatar text: the first character of a Chinese (or emoji-led) name, otherwise up to two Latin initials.
+ * Splits by grapheme, so an emoji or a combining sequence is never cut in half.
+ */
+export function initials(name: string) {
+  const text = name.trim();
+  const chars = [...new Intl.Segmenter('zh', { granularity: 'grapheme' }).segment(text)].map(s => s.segment);
+  if (!chars.length) return '?';
+  if (/\p{Script=Han}/u.test(chars[0]) || !/^[\p{L}\p{N}]/u.test(chars[0])) return chars[0];
+  const words = text.split(/\s+/);
+  return (words.length > 1 ? words[0][0] + words[words.length - 1][0] : chars.slice(0, 2).join('')).toUpperCase();
+}
 /** Ratio string "0.8333" → "83%". */
 export const formatPercent = (ratio: string, digits = 0) => `${(Number(ratio) * 100).toFixed(digits)}%`;
 export const KIND_LABELS = { expense: '支出', income: '收入', transfer: '转账', refund: '退款' } as const;

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { formatDate, formatMoney, formatPercent, groupDigits } from '@ledger/ui/format';
+import { formatDate, formatMoney, formatPercent, groupDigits, initials } from '@ledger/ui/format';
 import { monthRange, weekLabel, withParams } from '@/lib/period';
-import { instantToLocal, localToInstant, nowLocal, today } from '@/lib/time';
+import { formatInstant, instantToLocal, localToInstant, nowLocal, today } from '@/lib/time';
 
 describe('money and date display', () => {
   it('groups digits on the text, never through floating point', () => {
@@ -25,6 +25,13 @@ describe('money and date display', () => {
     expect(formatDate('2026-01-05')).toBe('1 月 5 日');
     expect(formatPercent('0.8333')).toBe('83%');
     expect(formatPercent('0.8333', 1)).toBe('83.3%');
+  });
+  it('derives avatar initials without splitting characters', () => {
+    expect(initials('称霸幼儿园')).toBe('称');
+    expect(initials('  Alex  van Wu ')).toBe('AW');
+    expect(initials('zch0222')).toBe('ZC');
+    expect(initials('👩‍💻 Dev')).toBe('👩‍💻');
+    expect(initials('   ')).toBe('?');
   });
 });
 
@@ -67,6 +74,9 @@ describe('page periods and URLs', () => {
     expect(nowLocal('America/New_York', at)).toBe('2026-10-02T00:05');
     expect(localToInstant('2026-10-02T12:05', 'Asia/Hong_Kong')).toBe('2026-10-02T04:05:00.000Z');
     expect(instantToLocal('2026-10-02T04:05:00.000Z', 'Asia/Hong_Kong')).toBe('2026-10-02T12:05');
+    // Same text on the server (UTC) and in any browser timezone: the instant is shown in the given zone.
+    expect(formatInstant('2026-10-05T10:00:36Z', 'Asia/Shanghai')).toBe('2026/10/5 18:00:36');
+    expect(formatInstant('2026-10-05T10:00:36Z', 'UTC')).toBe('2026/10/5 10:00:36');
     expect(today('UTC')).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     // A DST gap moves forward to the first valid time.
     expect(localToInstant('2026-03-08T02:30', 'America/New_York')).toBe('2026-03-08T07:00:00.000Z'); // 03:00 EDT
