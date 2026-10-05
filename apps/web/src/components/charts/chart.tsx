@@ -8,11 +8,26 @@ import { groupDigits } from '@ledger/ui/format';
 /** `future`: the bucket has not started yet; it is left blank instead of being drawn as a zero. */
 export type TrendPoint = { label: string; income: string; expense: string; future?: boolean };
 export type CategoryItem = { name: string; amount: string; colorIndex: number };
+/** One month of subscription bills: paid (booked) and still to pay (open or projected). */
+export type BillPoint = {
+  /** Axis label ("10月"); `title` heads the tooltip ("2026 年 10 月"). */
+  label: string;
+  title: string;
+  paid: string;
+  pending: string;
+  total: string;
+  count: number;
+  current?: boolean;
+};
+/** A ranked subscription: monthly equivalent in `amount`, its own price and cycle in `note`. */
+export type RankItem = CategoryItem & { note: string };
 export type ChartModel =
   | { type: 'trend'; mode: 'expense' | 'compare'; points: TrendPoint[]; currency: string; description: string }
   | { type: 'categories'; items: CategoryItem[]; currency: string; description: string }
+  | { type: 'bills'; points: BillPoint[]; average: string; currency: string; description: string }
+  | { type: 'ranking'; items: RankItem[]; currency: string; description: string }
   | {
-      type: 'composition';
+      type: 'composition' | 'mix';
       items: CategoryItem[];
       currency: string;
       description: string;
@@ -70,6 +85,18 @@ const money = (value: number | string, currency: string) =>
   `${currency} ${groupDigits(Number(value).toFixed(currency === 'JPY' ? 0 : 2))}`;
 const esc = (v: string) =>
   v.replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]!);
+type TooltipRow = {
+  seriesName: string;
+  seriesType: string;
+  name: string;
+  value: number;
+  dataIndex: number;
+  percent: number;
+  color: unknown;
+};
+/** A tooltip line: colour key (when the mark has a plain colour), label, value. */
+const row = (label: string, value: string, color?: unknown, muted = false) =>
+  `<div style="display:flex;gap:20px;align-items:center;justify-content:space-between;${muted ? 'opacity:.72;' : ''}"><span style="display:flex;align-items:center;gap:7px">${typeof color === 'string' ? `<i style="width:8px;height:8px;border-radius:3px;background:${esc(color)}"></i>` : ''}${esc(label)}</span><strong>${esc(value)}</strong></div>`;
 
 function option(model: ChartModel, width: number, reduced: boolean, lib: typeof import('./echarts').default) {
   const c = colors();
@@ -94,9 +121,12 @@ function option(model: ChartModel, width: number, reduced: boolean, lib: typeof 
       transitionDuration: reduced ? 0 : 0.15,
       formatter: (p: unknown) =>
         (Array.isArray(p) ? p : [p])
-          .map(
-            (r: { seriesName: string; seriesType: string; name: string; value: number }) =>
-              `<div style="display:flex;gap:20px;justify-content:space-between"><span>${esc(r.seriesType === 'pie' || r.seriesName === '分类' ? r.name : r.seriesName)}</span><strong>${esc(money(r.value, model.currency))}</strong></div>`,
+          .map((r: TooltipRow) =>
+            row(
+              r.seriesType === 'pie' || r.seriesName === '分类' ? r.name : r.seriesName,
+              money(r.value, model.currency) + (r.seriesType === 'pie' ? ` · ${r.percent.toFixed(1)}%` : ''),
+              r.color,
+            ),
           )
           .join(''),
     },
@@ -168,6 +198,115 @@ function option(model: ChartModel, width: number, reduced: boolean, lib: typeof 
       ],
     };
   }
+  if (model.type === 'bills') {
+    // Paid is solid; still to pay is a tint with stripes, so the split never relies on colour alone.
+    const pending = c.blue + '47';
+    const cap = [6, 6, 0, 0];
+    const average = Number(model.average);
+    return {
+      ...base,
+      grid: { top: 30, right: 14, bottom: 30, left: 62 },
+      tooltip: {
+        ...base.tooltip,
+        trigger: 'axis',
+        // z below the bars: the hover band sits behind the month instead of washing it out.
+        axisPointer: { type: 'shadow', z: 0, shadowStyle: { color: c.soft, opacity: 0.7 } },
+        formatter: (p: unknown) => {
+          const point = model.points[(p as TooltipRow[])[0]?.dataIndex ?? -1];
+          if (!point) return '';
+          return (
+            `<div style="margin-bottom:6px;font-weight:600">${esc(point.title)}</div>` +
+            row('已支付', money(point.paid, model.currency), c.blue) +
+            row('待支付', money(point.pending, model.currency), pending) +
+            `<div style="margin-top:7px;padding-top:7px;border-top:1px solid ${c.line}">` +
+            row(`合计 · ${point.count} 笔`, money(point.total, model.currency)) +
+            '</div>'
+          );
+        },
+      },
+      xAxis: {
+        type: 'category',
+        data: model.points.map(p => p.label),
+        axisLine: { show: false },
+        axisTick: { show: false },
+        axisLabel: {
+          color: c.muted,
+          fontSize: 12,
+          margin: 12,
+          hideOverlap: true,
+          formatter: (v: string, i: number) => (model.points[i]?.current ? `{now|${v}}` : v),
+          rich: { now: { color: c.ink, fontSize: 12, fontWeight: 600 } },
+        },
+      },
+      yAxis: {
+        type: 'value',
+        min: 0,
+        splitNumber: 3,
+        axisLabel: { color: c.muted, fontSize: 12, formatter: (v: number) => v.toLocaleString('zh-CN') },
+        splitLine: { lineStyle: { color: c.line, type: 'dashed' } },
+      },
+      series: [
+        {
+          id: 'paid',
+          name: '已支付',
+          type: 'bar',
+          stack: 'bills',
+          barMaxWidth: 28,
+          barCategoryGap: '36%',
+          itemStyle: { color: c.blue },
+          data: model.points.map(p => ({
+            value: Number(p.paid),
+            itemStyle: { borderRadius: Number(p.pending) > 0 ? 0 : cap },
+          })),
+          emphasis: { focus: 'series' },
+          animationDelay: delay(),
+        },
+        {
+          id: 'pending',
+          name: '待支付',
+          type: 'bar',
+          stack: 'bills',
+          barMaxWidth: 28,
+          itemStyle: {
+            color: pending,
+            borderRadius: cap,
+            decal: {
+              symbol: 'rect',
+              symbolSize: 1,
+              dashArrayX: [1, 0],
+              dashArrayY: [2, 4],
+              rotation: Math.PI / 4,
+              color: c.blue + '80',
+            },
+          },
+          data: model.points.map(p => Number(p.pending)),
+          emphasis: { focus: 'series' },
+          animationDelay: delay(40),
+          markLine:
+            average > 0
+              ? {
+                  silent: true,
+                  symbol: ['none', 'none'],
+                  animation: !reduced,
+                  lineStyle: { color: c.muted, type: [4, 4], width: 1 },
+                  label: {
+                    // Narrow charts keep the value in the HTML legend only, so the label never covers a bar.
+                    show: width >= 560,
+                    position: 'insideEndTop',
+                    color: c.muted,
+                    fontSize: 11,
+                    backgroundColor: c.surface,
+                    padding: [2, 6],
+                    borderRadius: 6,
+                    formatter: `月均 ${money(average, model.currency)}`,
+                  },
+                  data: [{ yAxis: average }],
+                }
+              : undefined,
+        },
+      ],
+    };
+  }
   const items = model.items.map(i => ({
     name: i.name,
     value: Number(i.amount),
@@ -210,6 +349,55 @@ function option(model: ChartModel, width: number, reduced: boolean, lib: typeof 
       ],
     };
   }
+  if (model.type === 'ranking') {
+    const label = (v: number) => `${money(v, model.currency)}/月`;
+    const longest = Math.max(0, ...model.items.map(i => label(Number(i.amount)).length));
+    const narrow = width < 420;
+    return {
+      ...base,
+      tooltip: {
+        ...base.tooltip,
+        formatter: (p: unknown) => {
+          const r = p as TooltipRow;
+          const item = model.items[r.dataIndex];
+          return item ? row(item.name, label(r.value), r.color) + row(item.note, '', undefined, true) : '';
+        },
+      },
+      // Room on the right for the longest money label, so no label is clipped at any width.
+      grid: { left: narrow ? 86 : 128, right: longest * 7 + 22, top: 6, bottom: 6 },
+      xAxis: { type: 'value', show: false, max: (v: { max: number }) => (v.max > 0 ? v.max * 1.02 : 1) },
+      yAxis: {
+        type: 'category',
+        inverse: true,
+        data: model.items.map(i => i.name),
+        axisLine: { show: false },
+        axisTick: { show: false },
+        axisLabel: { color: c.ink, fontSize: 12, width: narrow ? 76 : 116, overflow: 'truncate' },
+      },
+      series: [
+        {
+          id: 'ranking',
+          name: '订阅',
+          type: 'bar',
+          barWidth: 10,
+          showBackground: true,
+          backgroundStyle: { color: c.soft, borderRadius: 6 },
+          label: {
+            show: true,
+            position: 'right',
+            distance: 10,
+            color: c.ink,
+            fontSize: 12,
+            formatter: (p: { value: number }) => label(p.value),
+          },
+          itemStyle: { borderRadius: 6 },
+          data: items,
+          emphasis: { focus: 'self' },
+          animationDelay: delay(),
+        },
+      ],
+    };
+  }
   return {
     ...base,
     title: {
@@ -223,8 +411,8 @@ function option(model: ChartModel, width: number, reduced: boolean, lib: typeof 
     },
     series: [
       {
-        id: 'composition',
-        name: '支出构成',
+        id: model.type,
+        name: model.type === 'mix' ? '订阅构成' : '支出构成',
         type: 'pie',
         radius: ['65%', '84%'],
         center: ['50%', '49%'],

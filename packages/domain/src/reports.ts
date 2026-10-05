@@ -9,6 +9,7 @@ import {
   CashFlowQuery,
   CategoryBreakdownQuery,
   ReportQuery,
+  SubscriptionSpendingQuery,
 } from '@ledger/contracts/planning';
 import { database, type Executor, type Tx } from '@ledger/db/index';
 import { cacheGet, cacheSet, redis } from '@ledger/db/redis';
@@ -19,6 +20,7 @@ import {
   budgets,
   categories,
   ledgerDataVersions,
+  subscriptions,
   transactionAmounts,
   transactions,
 } from '@ledger/db/schema';
@@ -31,8 +33,9 @@ export { bucketOf, buckets, periodOf };
 import { manualRate, quote, type Freshness } from './fx';
 import { canonicalJson } from './idempotency';
 import type { AuthContext, Keyset } from './identity';
-import { convert, formatAmount, parseAmount, sum, toColumn } from './money';
+import { convert, formatAmount, minorUnits, parseAmount, sum, toColumn } from './money';
 import { DomainError, requireVersion } from './policy';
+import { cyclesPerYear, occurrencesBetween } from './schedule';
 
 type Db = Executor | Tx;
 type Ledger = { baseCurrency: string; timezone: string };
@@ -434,6 +437,220 @@ export async function accountBalances(ctx: AuthContext, ledgerId: string, query:
     };
   });
 }
+
+// ---------- subscriptions ----------
+
+type Value = ReturnType<typeof sum>;
+const shiftMonth = (month: string, n: number) => {
+  const [y, m] = month.split('-').map(Number);
+  const total = y * 12 + m - 1 + n;
+  return `${String(Math.floor(total / 12)).padStart(4, '0')}-${String((total % 12) + 1).padStart(2, '0')}`;
+};
+const STATUS_ORDER = { active: 0, paused: 1, cancelled: 2 } as const;
+
+/**
+ * Subscription spending (P01 / P05): a forecast, never mixed into booked spending. Every amount is valued at the
+ * current reference rate (or the ledger's manual rate) in the report currency and rounded per subscription or bill, so
+ * totals equal their rows. Monthly / yearly = amount × cycles per year (÷ 12); "inactive" is what the paused and
+ * cancelled plans would cost if they still ran. The timeline sums each month's bills — paid, still open, and dates past
+ * the materialized horizon projected from the schedule (a paused plan from its resume date); skipped bills drop out.
+ * Subscriptions in a currency without any rate are left out and counted.
+ */
+export async function subscriptionSpending(ctx: AuthContext, ledgerId: string, query: unknown, now = new Date()) {
+  const q = SubscriptionSpendingQuery.parse(query);
+  const ledger = await ledgerAccess(database(), ctx, ledgerId, 'viewer');
+  const currency = q.currency ?? ledger.baseCurrency;
+  const today = localDate(now, ledger.timezone);
+  const month = q.month ?? today.slice(0, 7);
+  return cached(ledgerId, 'subscription-spending', { ...q, month, currency, today }, true, async version => {
+    const db = database();
+    const units = minorUnits(currency);
+    const f = (value: Value) => formatAmount(value.toDecimalPlaces(units), currency);
+    const plans = await db
+      .select()
+      .from(subscriptions)
+      .where(eq(subscriptions.ledgerId, ledgerId))
+      .orderBy(asc(subscriptions.createdAt), asc(subscriptions.id));
+    const categoryNames = new Map(
+      (
+        await db
+          .select({ id: categories.id, name: categories.name })
+          .from(categories)
+          .where(eq(categories.ledgerId, ledgerId))
+      ).map(c => [c.id, c.name]),
+    );
+    const accountNames = new Map(
+      (
+        await db.select({ id: accounts.id, name: accounts.name }).from(accounts).where(eq(accounts.ledgerId, ledgerId))
+      ).map(a => [a.id, a.name]),
+    );
+    const rates = new Map<string, string | null>();
+    let oldest: Date | null = null;
+    async function rate(from: string) {
+      if (!rates.has(from)) {
+        const quoted = await quote(db, from, currency, now, now);
+        if (quoted.freshness !== 'missing') {
+          rates.set(from, quoted.value!);
+          if (quoted.sourceAt && (!oldest || quoted.sourceAt < oldest)) oldest = quoted.sourceAt;
+        } else rates.set(from, (await manualRate(db, ledgerId, from, currency, today))?.value ?? null);
+      }
+      return rates.get(from)!;
+    }
+    const excluded = new Set<string>();
+
+    for (const code of new Set(plans.map(p => p.currency))) await rate(code);
+    const items = plans.map(plan => {
+      const r = rates.get(plan.currency)!;
+      if (r === null) excluded.add(plan.id);
+      const [num, den] = cyclesPerYear({ unit: plan.cycleUnit, count: plan.cycleCount });
+      const yearly = sum([plan.amount]).times(num).dividedBy(den);
+      return {
+        subscriptionId: plan.id,
+        name: plan.name,
+        status: plan.status,
+        amount: { amount: formatAmount(plan.amount, plan.currency), currency: plan.currency },
+        cycle: { unit: plan.cycleUnit, count: plan.cycleCount },
+        categoryId: plan.categoryId,
+        accountId: plan.accountId,
+        monthly: r === null ? null : f(yearly.times(r).dividedBy(12)),
+        yearly: r === null ? null : f(yearly.times(r)),
+      };
+    });
+    items.sort(
+      (a, b) =>
+        STATUS_ORDER[a.status] - STATUS_ORDER[b.status] ||
+        sum([b.monthly ?? '-1']).comparedTo(a.monthly ?? '-1') ||
+        a.name.localeCompare(b.name),
+    );
+    const active = items.filter(i => i.status === 'active');
+    const inactive = items.filter(i => i.status !== 'active');
+    const valued = active.filter(i => i.monthly !== null);
+    const total = (rows: typeof items, key: 'monthly' | 'yearly') => sum(rows.map(i => i[key] ?? '0'));
+    const monthly = total(active, 'monthly');
+    const group = (key: 'categoryId' | 'accountId', names: Map<string, string>, none: string) => {
+      const groups = new Map<string | null, { amount: Value; count: number }>();
+      for (const item of valued) {
+        const g = groups.get(item[key]) ?? { amount: sum([]), count: 0 };
+        g.amount = g.amount.plus(item.monthly!);
+        g.count++;
+        groups.set(item[key], g);
+      }
+      return [...groups]
+        .map(([id, g]) => ({
+          id,
+          name: id ? (names.get(id) ?? '已删除') : none,
+          monthly: f(g.amount),
+          share: monthly.isZero() ? '0' : g.amount.dividedBy(monthly).toDecimalPlaces(4).toFixed(),
+          count: g.count,
+        }))
+        .sort((a, b) => sum([b.monthly]).comparedTo(a.monthly) || a.name.localeCompare(b.name));
+    };
+
+    // Timeline: stored bills in the window, plus schedule dates no bill row covers yet.
+    const first = shiftMonth(month, -q.before);
+    const months = Array.from({ length: q.before + q.after + 1 }, (_, i) => shiftMonth(first, i));
+    const from = `${first}-01`;
+    const to = `${shiftMonth(month, q.after + 1)}-01`;
+    const stored = await db
+      .select({
+        subscriptionId: billOccurrences.subscriptionId,
+        date: billOccurrences.scheduledDate,
+        status: billOccurrences.status,
+        amount: billOccurrences.amount,
+        currency: billOccurrences.currency,
+      })
+      .from(billOccurrences)
+      .where(
+        and(
+          eq(billOccurrences.ledgerId, ledgerId),
+          gte(billOccurrences.scheduledDate, from),
+          lt(billOccurrences.scheduledDate, to),
+          ne(billOccurrences.status, 'cancelled'),
+        ),
+      );
+    const seen = new Set(stored.map(b => `${b.subscriptionId}:${b.date}`));
+    const bills = stored.filter(b => b.status !== 'skipped').map(b => ({ ...b, paid: b.status === 'paid' }));
+    for (const plan of plans) {
+      const start =
+        plan.status === 'active'
+          ? today
+          : plan.status === 'paused' && plan.pausedUntil
+            ? plan.pausedUntil > today
+              ? plan.pausedUntil
+              : today
+            : null;
+      if (!start) continue;
+      const cycle = { unit: plan.cycleUnit, count: plan.cycleCount };
+      for (const date of occurrencesBetween(plan.anchorDate, cycle, start > from ? start : from, to)) {
+        if (plan.endsOn && date > plan.endsOn) break;
+        if (seen.has(`${plan.id}:${date}`)) continue;
+        bills.push({
+          subscriptionId: plan.id,
+          date,
+          status: 'scheduled',
+          amount: plan.amount,
+          currency: plan.currency,
+          paid: false,
+        });
+      }
+    }
+    const byMonth = new Map(months.map(m => [m, { paid: sum([]), pending: sum([]), count: 0, paidCount: 0 }]));
+    for (const bill of bills) {
+      const r = await rate(bill.currency);
+      const bucket = byMonth.get(bill.date.slice(0, 7));
+      if (r === null) excluded.add(bill.subscriptionId);
+      if (r === null || !bucket) continue;
+      const value = convert(sum([bill.amount]).toFixed(), bill.currency, r, currency);
+      if (bill.paid) {
+        bucket.paid = bucket.paid.plus(value);
+        bucket.paidCount++;
+      } else bucket.pending = bucket.pending.plus(value);
+      bucket.count++;
+    }
+    const timeline = months.map(m => {
+      const b = byMonth.get(m)!;
+      return {
+        month: m,
+        paid: f(b.paid),
+        pending: f(b.pending),
+        total: f(b.paid.plus(b.pending)),
+        count: b.count,
+        paidCount: b.paidCount,
+      };
+    });
+    const top = valued[0] ?? null;
+    return {
+      month,
+      today,
+      counts: {
+        active: active.length,
+        paused: items.filter(i => i.status === 'paused').length,
+        cancelled: items.filter(i => i.status === 'cancelled').length,
+      },
+      monthly: f(monthly),
+      yearly: f(total(active, 'yearly')),
+      averageMonthly: f(valued.length ? monthly.dividedBy(valued.length) : sum([])),
+      top: top && { subscriptionId: top.subscriptionId, name: top.name, monthly: top.monthly! },
+      inactive: {
+        count: inactive.length,
+        monthly: f(total(inactive, 'monthly')),
+        yearly: f(total(inactive, 'yearly')),
+      },
+      bills: timeline.find(t => t.month === month)!,
+      timeline,
+      items,
+      byCategory: group('categoryId', categoryNames, '未分类'),
+      byAccount: group('accountId', accountNames, '未指定账户'),
+      currency,
+      valuationMode: 'current' as const,
+      partial: excluded.size > 0,
+      excludedCount: excluded.size,
+      dataVersion: version,
+      sourceAt: (oldest as Date | null)?.toISOString() ?? null,
+    };
+  });
+}
+export type SubscriptionSpending = Awaited<ReturnType<typeof subscriptionSpending>>;
 
 // ---------- budgets ----------
 

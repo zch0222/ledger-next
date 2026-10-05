@@ -9,11 +9,14 @@ import {
   listBudgets,
   presentBudget,
   reportSummary,
+  subscriptionSpending,
 } from '@ledger/domain/reports';
 import { formatMoney, formatPercent } from '@ledger/ui/format';
 import { BudgetForm } from '@/components/budgets/budget-form';
 import { CategoryPanel } from '@/components/reports/category-panel';
 import { MonthNav } from '@/components/reports/month-nav';
+import { SubscriptionBills, SubscriptionMix, SubscriptionRanking } from '@/components/reports/subscription-charts';
+import { SubscriptionStats } from '@/components/reports/subscription-stats';
 import { TrendPanel } from '@/components/reports/trend-panel';
 import { EmptyState, Note, PageHeading, PanelError, attempt } from '@/components/ui/page';
 import { monthRange, withParams } from '@/lib/period';
@@ -22,7 +25,10 @@ import { today as todayIn } from '@/lib/time';
 
 export const dynamic = 'force-dynamic';
 
-/** P05 预算与分析: budget progress for the month, spending composition, six-month trend; historical by default. */
+/**
+ * P05 预算与分析: subscription spending first (eight tiles, bills by month, ranking, composition — forecasts at the
+ * current reference rate), then budget progress, spending composition and the six-month trend; historical by default.
+ */
 export default async function Analytics({ params, searchParams }: LedgerPageProps) {
   const { ledgerId } = await params;
   const search = await searchParams;
@@ -32,7 +38,7 @@ export default async function Analytics({ params, searchParams }: LedgerPageProp
   const currency = param(search, 'currency') ?? ledger.baseCurrency;
   const valuationMode = param(search, 'valuation') === 'current' ? ('current' as const) : ('historical' as const);
   const sixMonthsFrom = `${monthRange(undefined, addDays(range.dateFrom, -150)).month}-01`;
-  const [categories, budgets, progress, composition, trend, summary] = await Promise.all([
+  const [categories, budgets, progress, composition, trend, summary, subs] = await Promise.all([
     listCategories(ctx, ledgerId, { includeArchived: true, limit: 500 }),
     listBudgets(ctx, ledgerId, { limit: 100 }),
     attempt(() => budgetProgress(ctx, ledgerId, { date: range.isCurrent ? today : range.dateFrom })),
@@ -51,6 +57,7 @@ export default async function Analytics({ params, searchParams }: LedgerPageProp
     attempt(() =>
       reportSummary(ctx, ledgerId, { dateFrom: range.dateFrom, dateTo: range.dateTo, currency, valuationMode }),
     ),
+    attempt(() => subscriptionSpending(ctx, ledgerId, { month: range.month, currency })),
   ]);
   const path = `/ledgers/${ledgerId}/analytics`;
   const keep = { month: param(search, 'month'), currency: param(search, 'currency') };
@@ -87,6 +94,35 @@ export default async function Analytics({ params, searchParams }: LedgerPageProp
           {valuationMode === 'historical' ? '历史入账口径' : '按当前参考汇率估值'}
           {summary.value.partial ? ` · ${summary.value.excludedCount} 笔缺汇率未计入` : ''}
         </Note>
+      )}
+      <section className="panel spotlight" aria-labelledby="subscription-spending">
+        <div className="row paneltop chart-head">
+          <div>
+            <h2 id="subscription-spending">订阅支出</h2>
+            <p className="chart-hint">
+              预测 · 按当前参考汇率折算为 {currency}，不受统计口径切换影响
+              {subs.ok && subs.value.partial ? ` · ${subs.value.excludedCount} 个订阅缺汇率未计入` : ''}
+            </p>
+          </div>
+          <Link href={`/ledgers/${ledgerId}/subscriptions`}>管理订阅 →</Link>
+        </div>
+        {subs.ok ? (
+          <>
+            <SubscriptionStats data={subs.value} monthLabel={range.short} variant="full" />
+            <div className="spotlight-part">
+              <h3>每月订阅账单</h3>
+              <SubscriptionBills data={subs.value} ledgerId={ledgerId} />
+            </div>
+          </>
+        ) : (
+          <PanelError error={subs.error} />
+        )}
+      </section>
+      {subs.ok && (
+        <div className="grid top-aligned">
+          <SubscriptionRanking data={subs.value} ledgerId={ledgerId} />
+          <SubscriptionMix data={subs.value} ledgerId={ledgerId} />
+        </div>
       )}
       <div className="grid top-aligned">
         <section className="panel">

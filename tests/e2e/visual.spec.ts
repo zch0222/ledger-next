@@ -105,6 +105,13 @@ test('dashboard: server-rendered numbers, totals match the drilled details, char
   await expect(metric(plain, '本月结余')).toHaveText('¥4,850.00');
   await expect(plain.locator('.chart-data table td').filter({ hasText: '¥150.00' }).first()).toBeAttached();
   await expect(plain.locator('.chart-data .category').filter({ hasText: '餐饮' })).toContainText('¥120.00');
+  // Subscription spending is server-rendered too: tiles, this month's bill and the bills-by-month table.
+  const tile = (p: Page, label: string) => p.locator('.stat-tile').filter({ hasText: label }).locator('.stat-value');
+  await expect(tile(plain, '每月订阅')).toHaveText('¥25.00');
+  await expect(tile(plain, '每年订阅')).toHaveText('¥300.00');
+  await expect(tile(plain, '订阅账单')).toHaveText('¥25.00');
+  await expect(plain.locator('.spotlight .due').filter({ hasText: '视频会员' })).toContainText('CNY 25.00');
+  await expect(plain.locator('.spotlight .chart-data td').filter({ hasText: '¥25.00' }).first()).toBeAttached();
   await noJs.close();
 
   await page.goto(`/ledgers/${b.ledger.id}/dashboard`);
@@ -113,6 +120,18 @@ test('dashboard: server-rendered numbers, totals match the drilled details, char
   await expect(chart(page, 'trend')).toHaveAttribute('data-chart-renders', String(trend.renders + 1));
   expect((await chartState(page, 'trend')).id).toBe(trend.id); // same instance, setOption update
   await expect(page.getByRole('button', { name: '收支对比' })).toHaveAttribute('aria-pressed', 'true');
+
+  // A month of subscription bills opens that month in the subscription calendar.
+  await chartState(page, 'bills');
+  await page.getByText('查看每月账单数据').click();
+  await page
+    .locator('.spotlight .chart-data a')
+    .filter({ hasText: b.today.slice(0, 4) })
+    .first()
+    .click();
+  await expect(page).toHaveURL(/\/subscriptions\?view=calendar&month=\d{4}-\d{2}$/);
+  await page.goBack();
+  await expect(page).toHaveURL(/\/dashboard$/);
 
   // Keyboard drill-down from the accessible category list keeps the period; the list adds up to the category total.
   await page.getByText('查看分类数据与明细').click();
@@ -130,7 +149,7 @@ test('dashboard: server-rendered numbers, totals match the drilled details, char
 
   // Trend data table drills into the bucket's dates.
   await page.getByText('查看数据表与明细').click();
-  await page.locator('.chart-data table a').first().click();
+  await page.locator('.chart-data').filter({ hasText: '查看数据表与明细' }).locator('table a').first().click();
   await expect(page).toHaveURL(/transactions\?dateFrom=\d{4}-\d{2}-\d{2}&dateTo=\d{4}-\d{2}-\d{2}$/);
   await page.goBack();
 
@@ -185,6 +204,17 @@ test('analytics: budget progress, composition and valuation switch with drill-do
   await expect(legend.getByRole('link', { name: /餐饮/ })).toContainText('80.0%');
   await expect(legend.getByRole('link', { name: /交通/ })).toContainText('20.0%');
   await chartState(page, 'composition');
+  // Subscriptions: eight tiles, a ranking and a composition donut that switches dimension on the same instance.
+  await expect(page.locator('.stat-tile')).toHaveCount(8);
+  await expect(page.locator('.stat-tile').filter({ hasText: '最贵订阅' })).toContainText('视频会员');
+  await chartState(page, 'ranking');
+  const mix = await chartState(page, 'mix');
+  await expect(page.getByRole('group', { name: '订阅月均费用按分类' })).toContainText('未分类');
+  await page.getByRole('button', { name: '按支付账户' }).click();
+  await expect(chart(page, 'mix')).toHaveAttribute('data-chart-renders', String(mix.renders + 1));
+  expect((await chartState(page, 'mix')).id).toBe(mix.id);
+  await expect(page.getByRole('group', { name: '订阅月均费用按支付账户' })).toContainText('现金');
+  await expect(page.getByRole('group', { name: '订阅月均费用按支付账户' })).toContainText('¥25.00');
   await page.getByRole('link', { name: '当前估值' }).click();
   await expect(page).toHaveURL(/valuation=current/);
   await expect(page.getByText(/按当前参考汇率估值/)).toBeVisible();

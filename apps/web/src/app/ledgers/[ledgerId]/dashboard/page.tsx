@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { listAccounts } from '@ledger/domain/accounts';
 import { listCategories } from '@ledger/domain/catalog';
-import { cashFlow, categoryBreakdown, reportSummary } from '@ledger/domain/reports';
+import { cashFlow, categoryBreakdown, reportSummary, subscriptionSpending } from '@ledger/domain/reports';
 import { listBillOccurrences } from '@ledger/domain/subscriptions';
 import { listTransactions } from '@ledger/domain/transactions';
 import { addDays } from '@ledger/domain/dates';
@@ -9,6 +9,8 @@ import { formatAmount, sum } from '@ledger/domain/money';
 import { formatDate, formatMoney } from '@ledger/ui/format';
 import { CategoryPanel } from '@/components/reports/category-panel';
 import { MonthNav } from '@/components/reports/month-nav';
+import { SubscriptionBills } from '@/components/reports/subscription-charts';
+import { SubscriptionStats } from '@/components/reports/subscription-stats';
 import { TrendPanel } from '@/components/reports/trend-panel';
 import { AddButton } from '@/components/shell/add-button';
 import { TransactionTable } from '@/components/transactions/table';
@@ -19,8 +21,13 @@ import { today as todayIn } from '@/lib/time';
 import type { TransactionView } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
+const daysUntil = (date: string, today: string) =>
+  Math.round((Date.parse(`${date}T00:00:00Z`) - Date.parse(`${today}T00:00:00Z`)) / 86400_000);
 
-/** P01 总览: KPIs, trend, categories, recent entries and upcoming bills — all readable without chart JavaScript. */
+/**
+ * P01 总览: KPIs, subscription spending (stat tiles, bills by month, upcoming charges), trend, categories and recent
+ * entries — all readable without chart JavaScript.
+ */
 export default async function Dashboard({ params, searchParams }: LedgerPageProps) {
   const { ledgerId } = await params;
   const search = await searchParams;
@@ -29,7 +36,7 @@ export default async function Dashboard({ params, searchParams }: LedgerPageProp
   const range = monthRange(param(search, 'month'), today);
   const currency = param(search, 'currency') ?? ledger.baseCurrency;
   const query = { dateFrom: range.dateFrom, dateTo: range.dateTo, currency };
-  const [summary, flow, categories, recent, bills, accounts, catalog] = await Promise.all([
+  const [summary, flow, categories, recent, bills, subs, accounts, catalog] = await Promise.all([
     attempt(() => reportSummary(ctx, ledgerId, query)),
     attempt(() => cashFlow(ctx, ledgerId, { ...query, interval: 'week' })),
     attempt(() => categoryBreakdown(ctx, ledgerId, query)),
@@ -38,6 +45,7 @@ export default async function Dashboard({ params, searchParams }: LedgerPageProp
       return (await r.present(r.rows.map(x => x.id))) as TransactionView[];
     }),
     attempt(() => listBillOccurrences(ctx, ledgerId, { dateFrom: today, dateTo: addDays(today, 31) }, { limit: 6 })),
+    attempt(() => subscriptionSpending(ctx, ledgerId, { month: range.month, currency, before: 2, after: 3 })),
     listAccounts(ctx, ledgerId, { includeArchived: true, limit: 500 }),
     listCategories(ctx, ledgerId, { includeArchived: true, limit: 500 }),
   ]);
@@ -46,6 +54,8 @@ export default async function Dashboard({ params, searchParams }: LedgerPageProp
     categories: new Map(catalog.map(c => [c.id, c.name])),
   };
   const s = summary.ok ? summary.value : null;
+  // Five rows keep the list level with the bills chart beside it; the full list is one link away.
+  const open = bills.ok ? bills.value.filter(b => b.status !== 'paid' && b.status !== 'skipped').slice(0, 5) : [];
   const netExpense = s ? formatMoney(formatAmount(sum([s.expense]).minus(s.refunds), currency), currency) : '—';
   const kpis: [string, string, string][] = [
     ['本月支出', netExpense, '有效支出 − 退款 · 按历史入账'],
@@ -111,6 +121,75 @@ export default async function Dashboard({ params, searchParams }: LedgerPageProp
       ) : (
         <PanelError error={(summary as { error: unknown }).error} title="汇总暂时无法读取" />
       )}
+      <section className="panel spotlight" aria-labelledby="subscription-spending">
+        <div className="row paneltop chart-head">
+          <div>
+            <h2 id="subscription-spending">订阅支出</h2>
+            <p className="chart-hint">
+              预测 · 按当前参考汇率折算为 {currency}
+              {subs.ok && subs.value.partial ? ` · ${subs.value.excludedCount} 个订阅缺汇率未计入` : ''}
+            </p>
+          </div>
+          <Link href={`/ledgers/${ledgerId}/subscriptions`}>管理订阅 →</Link>
+        </div>
+        {!subs.ok ? (
+          <PanelError error={subs.error} />
+        ) : !subs.value.items.length ? (
+          <EmptyState
+            symbol="subscriptions"
+            action={
+              <Link className="button" href={`/ledgers/${ledgerId}/subscriptions`}>
+                添加订阅
+              </Link>
+            }
+          >
+            还没有订阅。添加会员、云服务等周期账单后，这里会显示每月订阅支出和即将扣款。
+          </EmptyState>
+        ) : (
+          <>
+            <SubscriptionStats data={subs.value} monthLabel={range.short} />
+            <div className="spotlight-grid">
+              <div className="spotlight-part">
+                <h3>每月订阅账单</h3>
+                <SubscriptionBills data={subs.value} ledgerId={ledgerId} />
+              </div>
+              <div className="spotlight-part">
+                <div className="row paneltop">
+                  <h3>即将扣款</h3>
+                  <Link href={`/ledgers/${ledgerId}/subscriptions?view=list`}>账单列表 →</Link>
+                </div>
+                {bills.ok ? (
+                  open.length ? (
+                    open.map(b => (
+                      <div className="due" key={b.id}>
+                        <div className="date">
+                          {Number(b.scheduledDate.slice(5, 7))} 月<b>{b.scheduledDate.slice(8)}</b>
+                        </div>
+                        <div className="detail">
+                          <strong>{b.name}</strong>
+                          <div className="small muted">
+                            {b.status === 'due'
+                              ? '今天到期'
+                              : b.status === 'overdue'
+                                ? '已逾期 · 待确认支付'
+                                : `${formatDate(b.scheduledDate, today)} · ${daysUntil(b.scheduledDate, today)} 天后`}
+                          </div>
+                        </div>
+                        <div className="num">{formatMoney(b.amount.amount, b.amount.currency, { style: 'code' })}</div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="muted">暂无未来账单。</p>
+                  )
+                ) : (
+                  <PanelError error={bills.error} />
+                )}
+                <p className="small muted">到期后先确认支付，再计入实际支出。</p>
+              </div>
+            </div>
+          </>
+        )}
+      </section>
       <div className="grid">
         {flow.ok ? (
           <TrendPanel
@@ -144,65 +223,28 @@ export default async function Dashboard({ params, searchParams }: LedgerPageProp
           )}
         </section>
       </div>
-      <div className="grid">
-        <section className="panel">
-          <div className="row paneltop">
-            <h2>最近账目</h2>
-            <Link href={`/ledgers/${ledgerId}/transactions`}>全部账目 →</Link>
-          </div>
-          {recent.ok ? (
-            recent.value.length ? (
-              <TransactionTable
-                rows={recent.value}
-                names={names}
-                today={today}
-                hrefFor={id => `/ledgers/${ledgerId}/transactions?tx=${id}`}
-              />
-            ) : (
-              <EmptyState action={accounts.length ? <AddButton label="记第一笔" className="primary" /> : null}>
-                还没有账目。
-              </EmptyState>
-            )
+      <section className="panel">
+        <div className="row paneltop">
+          <h2>最近账目</h2>
+          <Link href={`/ledgers/${ledgerId}/transactions`}>全部账目 →</Link>
+        </div>
+        {recent.ok ? (
+          recent.value.length ? (
+            <TransactionTable
+              rows={recent.value}
+              names={names}
+              today={today}
+              hrefFor={id => `/ledgers/${ledgerId}/transactions?tx=${id}`}
+            />
           ) : (
-            <PanelError error={recent.error} />
-          )}
-        </section>
-        <section className="panel">
-          <div className="row paneltop">
-            <h2>接下来的账单</h2>
-            <Link href={`/ledgers/${ledgerId}/subscriptions`}>查看 →</Link>
-          </div>
-          {bills.ok ? (
-            bills.value.filter(b => b.status !== 'paid' && b.status !== 'skipped').length ? (
-              bills.value
-                .filter(b => b.status !== 'paid' && b.status !== 'skipped')
-                .map(b => (
-                  <div className="due" key={b.id}>
-                    <div className="date">
-                      {Number(b.scheduledDate.slice(5, 7))} 月<b>{b.scheduledDate.slice(8)}</b>
-                    </div>
-                    <div className="detail">
-                      <strong>{b.name}</strong>
-                      <div className="small muted">
-                        {b.status === 'due'
-                          ? '今天到期'
-                          : b.status === 'overdue'
-                            ? '已逾期 · 待确认支付'
-                            : formatDate(b.scheduledDate, today)}
-                      </div>
-                    </div>
-                    <div className="num">{formatMoney(b.amount.amount, b.amount.currency, { style: 'code' })}</div>
-                  </div>
-                ))
-            ) : (
-              <p className="muted">暂无未来账单。</p>
-            )
-          ) : (
-            <PanelError error={bills.error} />
-          )}
-          <p className="small muted">到期后先确认支付，再计入实际支出。</p>
-        </section>
-      </div>
+            <EmptyState action={accounts.length ? <AddButton label="记第一笔" className="primary" /> : null}>
+              还没有账目。
+            </EmptyState>
+          )
+        ) : (
+          <PanelError error={recent.error} />
+        )}
+      </section>
     </div>
   );
 }

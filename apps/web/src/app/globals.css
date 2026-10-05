@@ -1622,6 +1622,196 @@ body {
 .chart-legend .inc {
   background: var(--positive);
 }
+/* Subscription spending (P01 / P05): a featured panel with stat tiles, bills by month and upcoming charges. Paid
+   bills use the expense colour; still-to-pay is the same colour striped, so the split never relies on colour alone. */
+.spotlight {
+  margin-bottom: 20px;
+}
+.spotlight > .chart-head {
+  align-items: flex-start;
+  margin-bottom: 18px;
+}
+.spotlight > .chart-head .chart-hint {
+  margin: 4px 0 0;
+}
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 26px;
+}
+.stat-tile {
+  min-width: 0;
+  padding: 16px 18px;
+  border-radius: 14px;
+  background: var(--bg);
+}
+.stat-tile:first-child {
+  background: var(--soft);
+}
+.stat-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.stat-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--accent);
+}
+.stat-value {
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+  margin: 12px 0 6px;
+  overflow-wrap: anywhere;
+}
+.stat-value small {
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+.stat-hint {
+  color: var(--muted);
+  font-size: 12px;
+}
+.stat-tile .track {
+  height: 6px;
+  margin: 0 0 8px;
+  background: color-mix(in srgb, var(--blue) 18%, var(--panel));
+}
+.stat-tile .track > span {
+  background: var(--blue);
+}
+.spotlight-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(260px, 1fr);
+  gap: 28px;
+}
+.spotlight-part {
+  min-width: 0;
+}
+.spotlight-part + .spotlight-part {
+  border-left: 1px solid var(--line);
+  padding-left: 28px;
+}
+.spotlight-part h3 {
+  font-size: 14px;
+  font-weight: 600;
+}
+.spotlight-part > .paneltop {
+  margin-bottom: 4px;
+}
+.bills-chart {
+  height: 264px;
+}
+/* Beside a taller list the bills chart grows to the row height instead of leaving a gap under it. */
+.spotlight-grid > .spotlight-part:first-child {
+  display: flex;
+  flex-direction: column;
+}
+.spotlight-grid .bills-chart {
+  flex: 1;
+  min-height: 264px;
+}
+.chart-legend i.pending {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  background: repeating-linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--blue) 70%, transparent) 0 1.5px,
+    color-mix(in srgb, var(--blue) 26%, transparent) 1.5px 4px
+  );
+}
+.chart-legend i.avg {
+  width: 14px;
+  height: 0;
+  border-radius: 0;
+  background: none;
+  border-top: 1.5px dashed var(--muted);
+  vertical-align: middle;
+}
+.mix-legend {
+  display: grid;
+  gap: 2px;
+  margin: 8px 0 4px;
+}
+.mix-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 4px;
+  min-height: 40px;
+  font-size: 12px;
+  border-radius: 8px;
+}
+.mix-row:hover {
+  background: var(--bg);
+}
+.mix-row .key {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 3px;
+  margin-right: 9px;
+}
+.mix-row .share {
+  color: var(--muted);
+  display: inline-block;
+  min-width: 46px;
+  text-align: right;
+  margin-left: 8px;
+}
+@media (max-width: 1199px) {
+  .stat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .spotlight-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+  }
+  .spotlight-part + .spotlight-part {
+    border-left: 0;
+    padding-left: 0;
+    border-top: 1px solid var(--line);
+    padding-top: 20px;
+  }
+}
+@media (max-width: 767px) {
+  .stat-grid {
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .stat-tile {
+    padding: 14px;
+  }
+  .stat-label {
+    gap: 6px;
+  }
+  .stat-icon {
+    width: 24px;
+    height: 24px;
+  }
+  .stat-value {
+    font-size: 20px;
+    margin: 10px 0 4px;
+  }
+  .bills-chart,
+  .spotlight-grid .bills-chart {
+    height: 240px;
+    min-height: 240px;
+  }
+}
 button {
   transition:
     background-color 160ms,
