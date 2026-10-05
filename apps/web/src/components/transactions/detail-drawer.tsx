@@ -1,10 +1,12 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { FRESHNESS_LABELS, KIND_LABELS, formatMoney } from '@ledger/ui/format';
 import { ApiError, api } from '@/lib/client';
 import type { TransactionView } from '@/lib/types';
 import { useLedgerUI } from '@/components/ledger-ui';
+import { formatInstant } from '@/lib/time';
+import { Modal, ModalHeader } from '@/components/ui/modal';
 
 /** P03 账目详情: history-preserving actions only — correct (new version), refund (linked), void (reversing postings). */
 export function TransactionDrawer({
@@ -22,17 +24,15 @@ export function TransactionDrawer({
   const router = useRouter();
   const pathname = usePathname();
   const search = useSearchParams();
-  const dialog = useRef<HTMLDialogElement>(null);
   const [confirmVoid, setConfirmVoid] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
-  useEffect(() => {
-    dialog.current?.showModal();
-  }, []);
+  // Close at once (not when the URL update lands), so a correction / refund drawer opened next never overlaps it.
+  const [open, setOpen] = useState(true);
   const close = () => {
+    setOpen(false);
     const next = new URLSearchParams(search);
     next.delete('tx');
-    dialog.current?.close();
     router.replace(`${pathname}${next.size ? `?${next}` : ''}`, { scroll: false });
   };
   const link = (id: string) => {
@@ -81,7 +81,7 @@ export function TransactionDrawer({
       ? [
           [
             '汇率',
-            `1 ${t.exchangeRate.base} = ${t.exchangeRate.value} ${t.exchangeRate.quote} · ${FRESHNESS_LABELS[t.exchangeRate.freshness as keyof typeof FRESHNESS_LABELS] ?? t.exchangeRate.freshness} · ${t.exchangeRate.source}${t.exchangeRate.sourceAt ? ` · ${new Date(t.exchangeRate.sourceAt).toLocaleString('zh-CN', { hour12: false })}` : ''}${t.exchangeRate.manualReason ? ` · ${t.exchangeRate.manualReason}` : ''}`,
+            `1 ${t.exchangeRate.base} = ${t.exchangeRate.value} ${t.exchangeRate.quote} · ${FRESHNESS_LABELS[t.exchangeRate.freshness as keyof typeof FRESHNESS_LABELS] ?? t.exchangeRate.freshness} · ${t.exchangeRate.source}${t.exchangeRate.sourceAt ? ` · ${formatInstant(t.exchangeRate.sourceAt, t.timezone)}` : ''}${t.exchangeRate.manualReason ? ` · ${t.exchangeRate.manualReason}` : ''}`,
           ] as [string, React.ReactNode],
         ]
       : []),
@@ -122,21 +122,9 @@ export function TransactionDrawer({
     ],
   ];
   return (
-    <dialog
-      ref={dialog}
-      className="detail-dialog"
-      aria-labelledby="detail-title"
-      onCancel={e => {
-        e.preventDefault();
-        close();
-      }}
-    >
-      <div className="dialoghead">
-        <h2 id="detail-title">{t.merchant ?? KIND_LABELS[t.kind]}</h2>
-        <button onClick={close} aria-label="关闭详情">
-          ✕
-        </button>
-      </div>
+    // Which transaction is shown lives in the URL (?tx=); closing removes it, which unmounts the drawer.
+    <Modal open={open} onOpenChange={next => !next && close()} className="detail-dialog" dismissible>
+      <ModalHeader title={t.merchant ?? KIND_LABELS[t.kind]} closeLabel="关闭详情" />
       <div className="dialogbody">
         <dl className="detail-list">
           {rows.map(([k, v]) => (
@@ -239,6 +227,6 @@ export function TransactionDrawer({
           完成
         </button>
       </div>
-    </dialog>
+    </Modal>
   );
 }

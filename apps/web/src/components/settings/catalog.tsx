@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api, intent } from '@/lib/client';
 import { useLedgerUI } from '@/components/ledger-ui';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Select } from '@/components/ui/select';
 
 type Category = {
   id: string;
@@ -13,6 +15,10 @@ type Category = {
   version: number;
 };
 type Tag = { id: string; name: string; archivedAt: string | null; version: number };
+const STARTER_CATEGORIES = {
+  expense: ['餐饮', '交通', '购物', '居住', '订阅', '娱乐', '医疗', '其他支出'],
+  income: ['工资', '奖金', '其他收入'],
+};
 
 /** P12 分类 / 标签: two levels, archive instead of delete (history keeps pointing at them). */
 export function CatalogManager({ categories, tags }: { categories: Category[]; tags: Tag[] }) {
@@ -121,7 +127,7 @@ export function CatalogManager({ categories, tags }: { categories: Category[]; t
               >
                 改名
               </button>
-              <button className="linkbtn" onClick={() => void archive(path, item)}>
+              <button className="linkbtn danger-text" onClick={() => void archive(path, item)}>
                 归档
               </button>
             </span>
@@ -131,14 +137,36 @@ export function CatalogManager({ categories, tags }: { categories: Category[]; t
     </li>
   );
   const visible = categories.filter(c => showArchived || !c.archivedAt);
+  // A new ledger starts with no categories; offer a common set in one click instead of typing each one.
+  const starter = ui.canWrite && !categories.some(c => !c.archivedAt);
+  const addStarter = () =>
+    run(async () => {
+      for (const [kind, names] of Object.entries(STARTER_CATEGORIES)) {
+        for (const name of names) {
+          await api(`${base}/categories`, { method: 'POST', body: JSON.stringify({ name, kind }) });
+        }
+      }
+    }, '已添加常用分类，可随时改名或归档');
   return (
-    <section className="panel">
+    <section className="panel" id="catalog">
       <div className="row paneltop">
         <h2>分类与标签</h2>
-        <label className="small">
-          <input type="checkbox" checked={showArchived} onChange={e => setShowArchived(e.target.checked)} /> 显示已归档
-        </label>
+        <Checkbox className="check small" checked={showArchived} onCheckedChange={setShowArchived}>
+          显示已归档
+        </Checkbox>
       </div>
+      {starter && (
+        <div className="note starter-note">
+          <span className="dot" />
+          <span>
+            还没有分类，记账和订阅暂时只能选“未分类”。可以先添加一套常用分类：
+            {Object.values(STARTER_CATEGORIES).flat().join('、')}。
+          </span>
+          <button className="primary" disabled={busy} onClick={() => void addStarter()}>
+            添加常用分类
+          </button>
+        </div>
+      )}
       <div className="catalog-grid">
         {(['expense', 'income'] as const).map(kind => (
           <div key={kind}>
@@ -173,23 +201,29 @@ export function CatalogManager({ categories, tags }: { categories: Category[]; t
             </div>
             <div className="field">
               <label htmlFor="new-category-kind">类型</label>
-              <select id="new-category-kind" name="kind" defaultValue="expense">
-                <option value="expense">支出</option>
-                <option value="income">收入</option>
-              </select>
+              <Select
+                id="new-category-kind"
+                name="kind"
+                defaultValue="expense"
+                options={[
+                  { value: 'expense', label: '支出' },
+                  { value: 'income', label: '收入' },
+                ]}
+              />
             </div>
             <div className="field">
               <label htmlFor="new-category-parent">上级（可选）</label>
-              <select id="new-category-parent" name="parentId" defaultValue="">
-                <option value="">无（一级分类）</option>
-                {categories
-                  .filter(c => !c.parentId && !c.archivedAt)
-                  .map(c => (
-                    <option key={c.id} value={c.id}>
-                      {c.kind === 'expense' ? '支出' : '收入'} · {c.name}
-                    </option>
-                  ))}
-              </select>
+              <Select
+                id="new-category-parent"
+                name="parentId"
+                defaultValue=""
+                options={[
+                  { value: '', label: '无（一级分类）' },
+                  ...categories
+                    .filter(c => !c.parentId && !c.archivedAt)
+                    .map(c => ({ value: c.id, label: `${c.kind === 'expense' ? '支出' : '收入'} · ${c.name}` })),
+                ]}
+              />
             </div>
             <button className="primary" disabled={busy}>
               添加分类

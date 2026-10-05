@@ -1,7 +1,7 @@
 import { gzipSync } from 'node:zlib';
 import AxeBuilder from '@axe-core/playwright';
 import { expect, type APIRequestContext, type BrowserContext, type Page, type TestInfo } from '@playwright/test';
-import { book, clientIp, origin, test } from './helpers';
+import { book, choose, clientIp, origin, test } from './helpers';
 
 // M4-DASH / M4-THEME / M4-RESP: charts, appearance and the responsive / accessibility matrix.
 const mobile = (info: TestInfo) => info.project.name === 'mobile';
@@ -122,7 +122,7 @@ test('dashboard: server-rendered numbers, totals match the drilled details, char
   await expect(page).toHaveURL(
     new RegExp(`/transactions\\?dateFrom=${b.today.slice(0, 7)}-01&dateTo=.*categoryId=${b.food.id}`),
   );
-  await expect(page.getByLabel('分类筛选')).toHaveValue(b.food.id);
+  await expect(page.getByLabel('分类筛选')).toContainText('餐饮');
   const amounts = await page.locator('table.transactions .amount').allTextContents();
   expect(sumOfRows(amounts)).toBeCloseTo(-120, 2);
   await page.goBack();
@@ -194,7 +194,7 @@ test('analytics: budget progress, composition and valuation switch with drill-do
   await page.goBack();
   await page.getByRole('button', { name: '＋ 新建预算' }).click();
   const form = page.getByRole('dialog', { name: '新建预算' });
-  await form.getByLabel('范围').selectOption({ label: '交通（含子分类）' });
+  await choose(form.getByLabel('范围'), '交通（含子分类）');
   await form.getByLabel(/金额/).fill('20');
   await form.getByRole('button', { name: '保存' }).click();
   await expect(page.locator('.budget').filter({ hasText: '交通' })).toContainText('已超出');
@@ -425,7 +425,12 @@ test('responsive and accessible: every page × widths × modes, touch targets, r
                         el.matches('input[type=radio], input[type=checkbox]') ? (el.closest('label') ?? el) : el
                       ).getBoundingClientRect();
                       const style = getComputedStyle(el);
-                      if (!box.width || style.visibility === 'hidden' || el.closest('[hidden], dialog:not([open])')) {
+                      // aria-hidden inputs are Base UI's form-value carriers, never something a finger lands on.
+                      if (
+                        !box.width ||
+                        style.visibility === 'hidden' ||
+                        el.closest('[hidden], dialog:not([open]), [aria-hidden="true"]')
+                      ) {
                         continue;
                       }
                       if (box.height < 44 || box.width < 44) {

@@ -1,6 +1,12 @@
 'use client';
 import { createContext, startTransition, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { EntryDrawer, type EntryInit } from './entry-drawer';
+import dynamic from 'next/dynamic';
+import { preloadModal } from '@/components/ui/modal';
+import type { EntryInit } from './entry-drawer';
+
+// The entry form and dialog code load on demand (and on idle, below), not with the first screen (TECHNICAL_DESIGN §7.3).
+const loadEntryDrawer = () => import('./entry-drawer');
+const EntryDrawer = dynamic(() => loadEntryDrawer().then(m => m.EntryDrawer), { ssr: false });
 
 export type LedgerInfo = {
   id: string;
@@ -59,14 +65,30 @@ export function LedgerProvider({
     const onKey = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement | null;
       if (event.key !== 'n' && event.key !== 'N') return;
-      if (event.metaKey || event.ctrlKey || event.altKey || document.querySelector('dialog[open]')) return;
-      if (target && (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName))) return;
+      // An open Base UI dialog carries data-open; an open menu or select marks its trigger with data-popup-open.
+      const popupOpen = document.querySelector('[role="dialog"][data-open], [data-popup-open]');
+      if (event.metaKey || event.ctrlKey || event.altKey || popupOpen) return;
+      // A focused select trigger (role=combobox) uses letters for typeahead.
+      const typing =
+        ['INPUT', 'TEXTAREA', 'SELECT'].includes(target?.tagName ?? '') || target?.getAttribute('role') === 'combobox';
+      if (target && (target.isContentEditable || typing)) return;
       event.preventDefault();
       openEntry();
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, [openEntry]);
+  // Warm the entry form and dialog code once the page is idle, so the first "记一笔" opens without a fetch.
+  useEffect(() => {
+    if (!canWrite) return;
+    const warm = () => void Promise.all([loadEntryDrawer(), preloadModal()]).catch(() => {});
+    if (!('requestIdleCallback' in window)) {
+      const timeout = setTimeout(warm, 1500);
+      return () => clearTimeout(timeout);
+    }
+    const id = requestIdleCallback(warm, { timeout: 3000 });
+    return () => cancelIdleCallback(id);
+  }, [canWrite]);
   const value = useMemo(
     () => ({ ledger, accounts, categories, canWrite, openEntry, toast: showToast }),
     [ledger, accounts, categories, canWrite, openEntry, showToast],

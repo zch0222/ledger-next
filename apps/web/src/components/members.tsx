@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api, intent } from '@/lib/client';
+import { Select, labelOptions } from '@/components/ui/select';
 type Member = { id: string; name: string; email: string; role: 'owner' | 'editor' | 'viewer'; version: number };
 const names = { owner: '所有者', editor: '可编辑', viewer: '仅查看' };
 export function Members({ ledgerId, initial }: { ledgerId: string; initial: Member[] }) {
@@ -65,18 +66,14 @@ export function Members({ ledgerId, initial }: { ledgerId: string; initial: Memb
               <strong>{member.name}</strong>
               <p>{member.email}</p>
             </div>
-            <select
+            <Select
               disabled={busy}
               aria-label={`${member.email} 的角色`}
+              className="compact"
               value={member.role}
-              onChange={e => void change(member, e.target.value)}
-            >
-              {Object.entries(names).map(([id, name]) => (
-                <option key={id} value={id}>
-                  {name}
-                </option>
-              ))}
-            </select>
+              onValueChange={role => void change(member, role)}
+              options={labelOptions(names)}
+            />
             <button disabled={busy} onClick={() => setRemoving(member)}>
               移除
             </button>
@@ -101,13 +98,7 @@ export function Members({ ledgerId, initial }: { ledgerId: string; initial: Memb
           </div>
           <div className="field">
             <label htmlFor="member-role">权限</label>
-            <select id="member-role" name="role" defaultValue="viewer">
-              {Object.entries(names).map(([id, name]) => (
-                <option key={id} value={id}>
-                  {name}
-                </option>
-              ))}
-            </select>
+            <Select id="member-role" name="role" defaultValue="viewer" options={labelOptions(names)} />
           </div>
         </div>
         <button className="primary" disabled={busy}>

@@ -38,7 +38,10 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         } as CSSProperties
       }
     >
-      <body>{children}</body>
+      <body>
+        {/* Own stacking context, so Base UI popups (portalled to <body>) always sit above page content. */}
+        <div className="root">{children}</div>
+      </body>
     </html>
   );
 }

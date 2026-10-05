@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { expect, type BrowserContext, type Page, type TestInfo } from '@playwright/test';
-import { book, test } from './helpers';
+import { book, choose, test } from './helpers';
 
 // M4 end-to-end flows. Each runs in the desktop and the mobile project, so phones complete the same tasks.
 const mobile = (info: TestInfo) => info.project.name === 'mobile';
@@ -10,7 +10,11 @@ async function signIn(context: BrowserContext, b: Awaited<ReturnType<typeof book
 async function openEntry(page: Page, info: TestInfo) {
   if (mobile(info)) {
     await page.getByRole('navigation', { name: '移动导航' }).getByRole('button', { name: '记一笔' }).click();
-  } else await page.keyboard.press('n');
+  } else {
+    // The N shortcut listens once the shell has hydrated, which is when the ledger switcher becomes interactive.
+    await expect(page.getByRole('button', { name: /^切换账本/ })).toBeEnabled();
+    await page.keyboard.press('n');
+  }
   await expect(page.getByRole('dialog', { name: '记一笔' })).toBeVisible();
 }
 /** Waits for the server preview, then saves; the save button is disabled until a preview exists. */
@@ -41,7 +45,7 @@ test('record, correct, refund and void keep history; filters live in the URL; co
   const entry = page.getByRole('dialog', { name: '记一笔' });
   await expect(entry.getByLabel(/结算金额/)).toBeFocused();
   await entry.getByLabel(/结算金额/).fill('128.50');
-  await entry.getByLabel('分类').selectOption({ label: '餐饮' });
+  await choose(entry.getByLabel('分类'), '餐饮');
   await entry.getByLabel('商家 / 说明').fill('午餐');
   await expect(entry.getByText('现金 −¥128.50')).toBeVisible();
   await submit(page, '记一笔', '保存');
@@ -96,11 +100,11 @@ test('record, correct, refund and void keep history; filters live in the URL; co
   await page.keyboard.press('Escape');
   await expect(taxi).toBeHidden();
   await expect(page.getByRole('link', { name: '打车 支出 详情' })).toBeHidden();
-  await page.getByLabel('版本状态').selectOption('voided');
+  await choose(page.getByLabel('版本状态'), '已作废 / 旧版本');
   await expect(page).toHaveURL(/status=voided/);
   await expect(page.getByText('支出 · CNY 30.00 · 已作废')).toBeVisible();
   await page.reload();
-  await expect(page.getByLabel('版本状态')).toHaveValue('voided');
+  await expect(page.getByLabel('版本状态')).toContainText('已作废 / 旧版本');
   await expect(page.getByRole('button', { name: '移除筛选 状态' })).toBeVisible();
   await page.getByRole('button', { name: '清空筛选' }).click();
   await expect(page).not.toHaveURL(/status=/);
@@ -221,7 +225,7 @@ test('accounts: create, transfer, credit-card liability, archive keeps history',
 
   await page.getByRole('button', { name: '＋ 新建账户' }).click();
   await form.getByLabel('账户名称').fill('信用卡');
-  await form.getByLabel('类型').selectOption('credit_card');
+  await choose(form.getByLabel('类型'), '信用卡');
   await form.getByLabel(/期初余额/).fill('-300');
   await form.getByRole('button', { name: '保存账户' }).click();
   await expect(page.getByRole('region', { name: '信用卡' })).toContainText('负债');
@@ -231,13 +235,14 @@ test('accounts: create, transfer, credit-card liability, archive keeps history',
   const transfer = page.getByRole('dialog', { name: '记一笔' });
   await expect(transfer.getByRole('radio', { name: '转账' })).toBeChecked();
   await transfer.getByLabel(/转出金额/).fill('200');
-  await transfer.getByLabel('转入账户').selectOption({ label: '招行借记卡 · CNY' });
+  await choose(transfer.getByLabel('转入账户'), '招行借记卡 · CNY');
   await expect(transfer.getByText(/现金 −¥200.00；招行借记卡 \+¥200.00/)).toBeVisible();
   await submit(page, '记一笔', '保存');
   await expect(page.getByRole('region', { name: '现金' })).toContainText('CNY 800.00');
   await expect(bank).toContainText('CNY 700.00');
 
-  await bank.getByRole('button', { name: '归档' }).click();
+  await bank.getByRole('button', { name: '招行借记卡 更多操作' }).click();
+  await page.getByRole('menuitem', { name: '归档' }).click();
   await expect(bank.getByRole('alertdialog', { name: '确认归档' })).toContainText('账户仍有余额 CNY 700.00');
   await bank.getByRole('button', { name: '确认归档' }).click();
   await expect(bank).toBeHidden();
@@ -275,7 +280,7 @@ test('subscriptions: due is not paid until confirmed, one payment per bill, edit
   await form.getByLabel('服务名称').fill('Cloud Pro');
   await form.getByLabel('每期金额（原币）').fill('20');
   await form.getByLabel('首个扣款日（锚点）').fill(today);
-  await form.getByLabel('默认账户').selectOption({ label: '现金 · CNY' });
+  await choose(form.getByLabel('默认账户'), '现金 · CNY');
   await expect(form.getByText(/未来三次：/)).toContainText(today);
   await form.getByRole('button', { name: '保存订阅' }).click();
   await expect(form).toBeHidden();

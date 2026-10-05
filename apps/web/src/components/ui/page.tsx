@@ -1,12 +1,18 @@
 import Link from 'next/link';
 import { DomainError } from '@ledger/domain/policy';
+import { Icon, type IconName } from '@/components/ui/icons';
 
-/** Page title block from the prototype: kicker, h1, one-line description, optional action. */
+/**
+ * Page title block from the prototype: kicker, h1, one-line description, optional action. The kicker names the section
+ * (the h1 is often a slogan), so it tells you where you are instead of repeating the brand line on every page.
+ */
 export function PageHeading({
+  kicker,
   title,
   description,
   action,
 }: {
+  kicker?: string;
   title: string;
   description?: React.ReactNode;
   action?: React.ReactNode;
@@ -14,7 +20,7 @@ export function PageHeading({
   return (
     <div className="heading">
       <div>
-        <div className="kicker">YOUR MONEY, CLEARLY.</div>
+        {kicker && <div className="kicker">{kicker}</div>}
         <h1>{title}</h1>
         {description && <p className="sub">{description}</p>}
       </div>
@@ -62,7 +68,7 @@ export function EmptyState({
   children,
   action,
 }: {
-  symbol?: string;
+  symbol?: IconName;
   children: React.ReactNode;
   action?: React.ReactNode;
 }) {
@@ -70,7 +76,7 @@ export function EmptyState({
     <div className="empty">
       {symbol && (
         <span className="empty-symbol" aria-hidden="true">
-          {symbol}
+          <Icon name={symbol} size={40} strokeWidth={1.5} />
         </span>
       )}
       <p>{children}</p>

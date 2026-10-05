@@ -1,7 +1,10 @@
 'use client';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ApiError, api, intent } from '@/lib/client';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Modal, ModalHeader } from '@/components/ui/modal';
+import { Select, plainOptions } from '@/components/ui/select';
 import { CHANNEL_STATUS, CHANNEL_TYPES, DATED_EVENTS, EVENT_LABELS, type ChannelView } from '@/lib/notify-labels';
 import { useLedgerUI } from '@/components/ledger-ui';
 
@@ -57,7 +60,6 @@ export function RuleForm({
 }) {
   const ui = useLedgerUI();
   const router = useRouter();
-  const dialog = useRef<HTMLDialogElement>(null);
   const [submission] = useState(intent);
   const [form, setForm] = useState(() => ({
     eventType: rule?.eventType ?? 'bill_due',
@@ -77,9 +79,6 @@ export function RuleForm({
   const [preview, setPreview] = useState<Preview | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
   const [busy, setBusy] = useState(false);
-  useEffect(() => {
-    dialog.current?.showModal();
-  }, []);
   const set = (patch: Partial<typeof form>) => {
     setForm(f => ({ ...f, ...patch }));
     setPreview(null);
@@ -136,10 +135,7 @@ export function RuleForm({
       clearTimeout(timer);
     };
   }, [body, rule, ui.ledger.id]);
-  const close = () => {
-    dialog.current?.close();
-    onClose();
-  };
+  const close = () => onClose();
   async function save(event: React.FormEvent) {
     event.preventDefault();
     setBusy(true);
@@ -175,73 +171,46 @@ export function RuleForm({
     }
   }
   return (
-    <dialog
-      ref={dialog}
-      className="entry-dialog"
-      aria-labelledby="rule-title"
-      onCancel={e => {
-        e.preventDefault();
-        close();
-      }}
-    >
+    <Modal open onOpenChange={next => !next && close()} className="entry-dialog">
       <form onSubmit={save}>
-        <div className="dialoghead">
-          <h2 id="rule-title">{rule ? '修改提醒' : '新建提醒'}</h2>
-          <button type="button" aria-label="关闭" onClick={close}>
-            ✕
-          </button>
-        </div>
+        <ModalHeader title={rule ? '修改提醒' : '新建提醒'} />
         <div className="dialogbody">
           <div className="formgrid">
             <div className="field">
               <label htmlFor="rule-event">提醒什么</label>
-              <select
+              <Select
                 id="rule-event"
                 value={form.eventType}
                 disabled={Boolean(rule)}
-                onChange={e => set({ eventType: e.target.value })}
-              >
-                {EVENTS.map(ev => (
-                  <option key={ev} value={ev}>
-                    {EVENT_LABELS[ev]}
-                  </option>
-                ))}
-              </select>
+                onValueChange={eventType => set({ eventType })}
+                options={EVENTS.map(ev => ({ value: ev, label: EVENT_LABELS[ev] }))}
+              />
             </div>
             {['bill_due', 'overdue', 'trial_end', 'cancel_deadline'].includes(form.eventType) && (
               <div className="field">
                 <label htmlFor="rule-subscription">订阅</label>
-                <select
+                <Select
                   id="rule-subscription"
                   value={form.subscriptionId}
                   disabled={Boolean(rule)}
-                  onChange={e => set({ subscriptionId: e.target.value })}
-                >
-                  <option value="">全部订阅</option>
-                  {subscriptions.map(s => (
-                    <option key={s.id} value={s.id}>
-                      {s.name}
-                    </option>
-                  ))}
-                </select>
+                  onValueChange={subscriptionId => set({ subscriptionId })}
+                  options={[
+                    { value: '', label: '全部订阅' },
+                    ...subscriptions.map(s => ({ value: s.id, label: s.name })),
+                  ]}
+                />
               </div>
             )}
             {form.eventType === 'budget_threshold' && (
               <div className="field">
                 <label htmlFor="rule-budget">预算</label>
-                <select
+                <Select
                   id="rule-budget"
                   value={form.budgetId}
                   disabled={Boolean(rule)}
-                  onChange={e => set({ budgetId: e.target.value })}
-                >
-                  <option value="">全部预算</option>
-                  {budgets.map(b => (
-                    <option key={b.id} value={b.id}>
-                      {b.name}
-                    </option>
-                  ))}
-                </select>
+                  onValueChange={budgetId => set({ budgetId })}
+                  options={[{ value: '', label: '全部预算' }, ...budgets.map(b => ({ value: b.id, label: b.name }))]}
+                />
               </div>
             )}
           </div>
@@ -250,16 +219,16 @@ export function RuleForm({
               <legend>提前多久</legend>
               <div className="gap">
                 {LEADS.map(n => (
-                  <label key={n} className="check-row">
-                    <input
-                      type="checkbox"
-                      checked={form.leadDays.includes(n)}
-                      onChange={e =>
-                        set({ leadDays: e.target.checked ? [...form.leadDays, n] : form.leadDays.filter(x => x !== n) })
-                      }
-                    />{' '}
+                  <Checkbox
+                    key={n}
+                    className="check-row"
+                    checked={form.leadDays.includes(n)}
+                    onCheckedChange={on =>
+                      set({ leadDays: on ? [...form.leadDays, n] : form.leadDays.filter(x => x !== n) })
+                    }
+                  >
                     {n === 0 ? '当天' : `${n} 天前`}
-                  </label>
+                  </Checkbox>
                 ))}
               </div>
             </fieldset>
@@ -270,19 +239,21 @@ export function RuleForm({
               <div className="formgrid four">
                 <div className="field">
                   <label htmlFor="rule-fx-base">1 单位</label>
-                  <select id="rule-fx-base" value={form.fxBase} onChange={e => set({ fxBase: e.target.value })}>
-                    {CURRENCIES.map(c => (
-                      <option key={c}>{c}</option>
-                    ))}
-                  </select>
+                  <Select
+                    id="rule-fx-base"
+                    value={form.fxBase}
+                    onValueChange={fxBase => set({ fxBase })}
+                    options={plainOptions(CURRENCIES)}
+                  />
                 </div>
                 <div className="field">
                   <label htmlFor="rule-fx-quote">折合</label>
-                  <select id="rule-fx-quote" value={form.fxQuote} onChange={e => set({ fxQuote: e.target.value })}>
-                    {CURRENCIES.map(c => (
-                      <option key={c}>{c}</option>
-                    ))}
-                  </select>
+                  <Select
+                    id="rule-fx-quote"
+                    value={form.fxQuote}
+                    onValueChange={fxQuote => set({ fxQuote })}
+                    options={plainOptions(CURRENCIES)}
+                  />
                 </div>
                 <div className="field">
                   <label htmlFor="rule-fx-above">高于</label>
@@ -319,10 +290,9 @@ export function RuleForm({
             </div>
             <div className="field">
               <span className="field-label">免打扰</span>
-              <label className="check-row">
-                <input type="checkbox" checked={form.quiet} onChange={e => set({ quiet: e.target.checked })} />{' '}
+              <Checkbox className="check-row" checked={form.quiet} onCheckedChange={quiet => set({ quiet })}>
                 免打扰时段顺延
-              </label>
+              </Checkbox>
             </div>
           </div>
           {form.quiet && (
@@ -350,23 +320,19 @@ export function RuleForm({
           <fieldset>
             <legend>发到哪些渠道</legend>
             {channels.map(c => (
-              <label key={c.id} className="check-row channel-pick">
-                <input
-                  type="checkbox"
-                  checked={form.channelIds.includes(c.id)}
-                  onChange={e =>
-                    set({
-                      channelIds: e.target.checked
-                        ? [...form.channelIds, c.id]
-                        : form.channelIds.filter(x => x !== c.id),
-                    })
-                  }
-                />{' '}
+              <Checkbox
+                key={c.id}
+                className="check-row channel-pick"
+                checked={form.channelIds.includes(c.id)}
+                onCheckedChange={on =>
+                  set({ channelIds: on ? [...form.channelIds, c.id] : form.channelIds.filter(x => x !== c.id) })
+                }
+              >
                 {c.name}{' '}
                 <span className="small muted">
                   · {CHANNEL_TYPES[c.type].name} · {CHANNEL_STATUS[c.status] ?? c.status}
                 </span>
-              </label>
+              </Checkbox>
             ))}
           </fieldset>
           {!rule && (
@@ -415,7 +381,7 @@ export function RuleForm({
           </button>
         </div>
       </form>
-    </dialog>
+    </Modal>
   );
 }
 

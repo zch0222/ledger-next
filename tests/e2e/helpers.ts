@@ -1,5 +1,5 @@
 import { randomInt, randomUUID } from 'node:crypto';
-import { test as base, expect, request, type APIRequestContext } from '@playwright/test';
+import { test as base, expect, request, type APIRequestContext, type Locator } from '@playwright/test';
 export const origin = process.env.APP_ORIGIN ?? process.env.BASE_URL ?? 'http://localhost:3000';
 export const password = 'Ledger-test-only-2026!';
 // Every request leaves the single test container, so auth throttling (3 sign-in / sign-up per 10 s per client)
@@ -14,6 +14,11 @@ export const test = base.extend({
     await provide({ 'X-Forwarded-For': clientIp() });
   },
 });
+/** Picks an option of a Base UI select: the trigger is a combobox button and the listbox is portalled to <body>. */
+export async function choose(trigger: Locator, option: string) {
+  await trigger.click();
+  await trigger.page().getByRole('option', { name: option, exact: true }).click();
+}
 export function client(ip = clientIp()) {
   return request.newContext({
     baseURL: process.env.BASE_URL ?? origin,

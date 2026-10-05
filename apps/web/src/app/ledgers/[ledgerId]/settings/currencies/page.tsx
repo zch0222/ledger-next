@@ -31,6 +31,7 @@ export default async function Currencies({ params }: LedgerPageProps) {
   return (
     <>
       <PageHeading
+        kicker="设置"
         title="币种与汇率"
         description="参考汇率不是成交价；账户实际扣款优先，历史账目使用入账时锁定的汇率。"
       />

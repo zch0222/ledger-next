@@ -22,6 +22,7 @@
   --danger: #b94545;
   --input: #fff;
   --shadow: 0 24px 80px #102d3033;
+  --shadow-popup: 0 12px 32px #102d3024, 0 2px 8px #102d3014;
   --cat-home: #54759b;
   --cat-shopping: #b78a50;
   --cat-subscription: #718c80;
@@ -50,6 +51,7 @@
     --danger: #ff9b9b;
     --input: #1a2428;
     --shadow: 0 24px 80px #0009;
+    --shadow-popup: 0 12px 32px #0008, 0 2px 8px #0006;
     --cat-home: #91b4df;
     --cat-shopping: #d3af7c;
     --cat-subscription: #a1bfb0;
@@ -75,6 +77,7 @@
   --danger: #ff9b9b;
   --input: #1a2428;
   --shadow: 0 24px 80px #0009;
+  --shadow-popup: 0 12px 32px #0008, 0 2px 8px #0006;
   --cat-home: #91b4df;
   --cat-shopping: #d3af7c;
   --cat-subscription: #a1bfb0;
@@ -102,26 +105,34 @@ body {
   margin: 0;
   font-size: 14px;
   line-height: 1.5;
+  /* Base UI backdrops are position: absolute on iOS Safari and need a positioned body to cover a scrolled page. */
+  position: relative;
+}
+/* Own stacking context for the app, so popups portalled to <body> always sit above it. */
+.root {
+  isolation: isolate;
 }
 button,
 input,
-select {
+textarea {
   font: inherit;
 }
-button,
-select {
+button {
   cursor: pointer;
 }
 button,
 a,
 input,
-select {
+summary,
+label {
   touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 button:focus-visible,
 a:focus-visible,
 input:focus-visible,
-select:focus-visible {
+summary:focus-visible,
+[role='combobox']:focus-visible {
   outline: 3px solid var(--accent);
   outline-offset: 3px;
 }
@@ -138,6 +149,64 @@ button {
 }
 button:hover {
   filter: brightness(0.97);
+}
+/* A button with an icon lays the icon and its text out on one line. */
+button:has(> .ui-icon),
+.button:has(> .ui-icon) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+/* Amount headers stay on one line; the merchant column gives way instead. */
+table.transactions th:last-child {
+  white-space: nowrap;
+}
+/* Interface chrome is not content: clicks, double-clicks and long-presses must not select it. Amounts, names, notes,
+   tokens and table cells stay selectable so they can be copied. */
+button,
+.button,
+.nav,
+.mobile-nav,
+.brand,
+.sidefoot,
+.kicker,
+.tabs,
+.segmented-links,
+.seg,
+.chart-toggle,
+.chart-legend,
+.legend,
+.pill,
+.badge,
+.avatar,
+.chip-filter,
+.month-nav,
+summary,
+legend,
+label,
+th,
+.metric .label,
+.metric .hint,
+.calendar-head,
+.swatch,
+.empty-symbol,
+.echart,
+.dialoghead,
+.ui-icon {
+  -webkit-user-select: none;
+  user-select: none;
+}
+.nav a,
+.mobile-nav a,
+.brand,
+.ui-icon {
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+}
+.ui-icon {
+  display: block;
+  flex: none;
 }
 a {
   color: var(--accent);
@@ -195,6 +264,10 @@ a {
   align-items: center;
   gap: 10px;
   padding: 0 10px;
+  color: inherit;
+  text-decoration: none;
+  width: fit-content;
+  border-radius: 12px;
 }
 .mark {
   display: grid;
@@ -204,37 +277,10 @@ a {
   width: 34px;
   height: 34px;
   border-radius: 11px;
-  font-size: 24px;
-}
-.brand small {
-  display: block;
-  color: var(--nav-text);
-  font-size: 10px;
-  letter-spacing: 2px;
-  font-weight: 400;
 }
 .nav {
   display: grid;
   gap: 7px;
-}
-.nav button {
-  border: 0;
-  background: transparent;
-  color: var(--nav-text);
-  text-align: left;
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  padding: 12px 15px;
-  border-radius: 10px;
-}
-.nav button.active {
-  background: var(--nav-active);
-  color: var(--nav-strong);
-}
-.nav button span:first-child {
-  width: 20px;
-  font-size: 18px;
 }
 .sidefoot {
   margin-top: auto;
@@ -279,18 +325,32 @@ a {
   gap: 8px;
   align-items: center;
 }
-.topactions select {
-  width: auto;
-}
+/* Account menu trigger: always a circle with one line of text, whatever the name. */
 .avatar {
-  border-radius: 50%;
-  width: 34px;
-  height: 34px;
-  background: var(--soft);
-  display: grid;
+  flex: none;
+  display: inline-grid;
   place-items: center;
+  width: 38px;
+  height: 38px;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--soft);
   color: var(--accent);
-  font-size: 12px;
+  font-size: 15px;
+  font-weight: 650;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.avatar:hover,
+.avatar[data-popup-open] {
+  filter: none;
+  box-shadow:
+    0 0 0 2px var(--panel),
+    0 0 0 4px color-mix(in srgb, var(--accent) 45%, transparent);
 }
 main {
   max-width: 1600px;
@@ -321,9 +381,9 @@ h3 {
   margin: 0;
 }
 .kicker {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 650;
-  letter-spacing: 2px;
+  letter-spacing: 1px;
   color: var(--accent);
   margin-bottom: 8px;
 }
@@ -513,6 +573,30 @@ td:last-child {
   background: var(--bg);
   color: var(--muted);
   font-weight: 650;
+  flex: none;
+}
+.logo.kind-income,
+.logo.kind-refund {
+  background: color-mix(in srgb, var(--positive) 14%, var(--panel));
+  color: var(--positive);
+}
+/* Text actions (panel headers, rows): one style everywhere — accent, no underline until hover. */
+.paneltop a,
+.budget-foot a,
+.list-foot a,
+.linkbtn {
+  text-decoration: none;
+}
+.paneltop a:hover,
+.budget-foot a:hover,
+.list-foot a:hover,
+.linkbtn:hover:not(:disabled) {
+  filter: none;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.linkbtn.danger-text {
+  color: var(--danger);
 }
 .amount {
   font-weight: 550;
@@ -576,14 +660,18 @@ td:last-child {
 .due .detail {
   flex: 1;
 }
+/* Transaction filters: search, four selects, then the date range; every control keeps its value readable. */
 .filterbar {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(200px, 2fr) repeat(4, minmax(120px, 1fr));
   gap: 10px;
-  flex-wrap: wrap;
   margin-bottom: 18px;
 }
+.filterbar .select {
+  width: 100%;
+}
 input,
-select {
+textarea {
   background: var(--input);
   border: 1px solid var(--line);
   border-radius: 9px;
@@ -592,9 +680,24 @@ select {
   color: var(--ink);
   min-width: 0;
 }
-.filterbar input {
-  flex: 1;
-  min-width: 150px;
+input:hover:not(:disabled):not(:focus),
+textarea:hover:not(:disabled):not(:focus) {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
+}
+input::placeholder,
+textarea::placeholder {
+  color: color-mix(in srgb, var(--muted) 80%, transparent);
+}
+input[type='date']::-webkit-calendar-picker-indicator,
+input[type='datetime-local']::-webkit-calendar-picker-indicator,
+input[type='time']::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.6;
+}
+input[type='date']::-webkit-calendar-picker-indicator:hover,
+input[type='datetime-local']::-webkit-calendar-picker-indicator:hover,
+input[type='time']::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
 }
 .cards {
   display: grid;
@@ -695,50 +798,449 @@ select {
 .mobile-nav {
   display: none;
 }
-dialog {
-  border: 1px solid var(--line);
-  background: var(--panel);
-  color: var(--ink);
-  border-radius: 20px;
-  padding: 0;
-  width: min(480px, calc(100% - 24px));
-  max-height: calc(100dvh - 40px);
-  box-shadow: var(--shadow);
-}
-dialog::backdrop {
+/* ---------------------------------------------------------------------------------------------------------------
+   Base UI components (components/ui/*). Base UI supplies behaviour and accessibility; every visual rule lives here and
+   uses theme tokens only, so dark mode and custom accents apply everywhere. State hooks are Base UI data attributes:
+   [data-open] / [data-popup-open], [data-highlighted], [data-selected], [data-checked], [data-disabled],
+   [data-starting-style] / [data-ending-style] for enter and exit transitions.
+   --------------------------------------------------------------------------------------------------------------- */
+
+/* Modal (Dialog): head and foot stay fixed, only the body scrolls. */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
   background: #0b222955;
   backdrop-filter: blur(3px);
+  transition: opacity 180ms ease-out;
+}
+@supports (-webkit-touch-callout: none) {
+  .modal-backdrop {
+    position: absolute;
+  }
+}
+.modal-backdrop.clear {
+  background: transparent;
+  backdrop-filter: none;
+}
+.modal-backdrop[data-starting-style],
+.modal-backdrop[data-ending-style] {
+  opacity: 0;
+}
+.modal-viewport {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px 12px;
+  overflow: hidden;
+}
+.modal {
+  display: flex;
+  flex-direction: column;
+  width: min(480px, 100%);
+  max-height: calc(100dvh - 40px);
+  overflow: hidden;
+  background: var(--panel);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+  outline: 0;
+  transition:
+    opacity 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.modal[data-starting-style],
+.modal[data-ending-style] {
+  opacity: 0;
+  transform: translateY(12px) scale(0.99);
+}
+.modal.wide {
+  width: min(600px, 100%);
+}
+.modal > form {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
 }
 .dialoghead {
-  padding: 22px 24px;
+  flex: none;
+  padding: 18px 20px 18px 24px;
   border-bottom: 1px solid var(--line);
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
+}
+.dialog-title {
+  font-size: 17px;
+  font-weight: 650;
+  margin: 0;
+}
+.dialog-description {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--muted);
 }
 .dialogbody {
+  flex: 1;
+  min-height: 0;
   padding: 24px;
-  overflow: auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 .dialogfoot {
-  padding: 18px 24px;
+  flex: none;
+  padding: 16px 24px;
   border-top: 1px solid var(--line);
   display: flex;
   gap: 10px;
   justify-content: flex-end;
 }
+/* Square, borderless icon button (dialog close and similar). */
+.icon-button {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  min-height: 40px;
+  padding: 0;
+  border-color: transparent;
+  background: transparent;
+  color: var(--muted);
+}
+.icon-button:hover {
+  filter: none;
+  background: var(--bg);
+  color: var(--ink);
+}
+.icon-button.bordered {
+  width: 42px;
+  height: 42px;
+  min-height: 42px;
+  border-color: var(--line);
+  background: var(--panel);
+  color: var(--ink);
+}
+.icon-button[data-popup-open] {
+  background: var(--bg);
+  color: var(--ink);
+}
+
+/* Select: a trigger that looks like an input, and a listbox popup. */
+.select {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  min-height: 42px;
+  padding: 0 10px 0 12px;
+  background: var(--input);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  color: var(--ink);
+  font-weight: 400;
+  text-align: left;
+  white-space: nowrap;
+  transition:
+    border-color 160ms,
+    box-shadow 160ms;
+}
+.select:hover:not([data-disabled]) {
+  filter: none;
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
+}
+.select:active {
+  transform: none;
+}
+.select[data-popup-open] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+.select[data-disabled] {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+.select-value {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.select-value[data-placeholder] {
+  color: var(--muted);
+}
+.select-icon {
+  display: flex;
+  flex: none;
+  color: var(--muted);
+  transition: transform 160ms;
+}
+.select[data-popup-open] .select-icon {
+  transform: rotate(180deg);
+}
+.select.compact {
+  min-height: 40px;
+  padding: 0 8px 0 12px;
+}
+.field .select,
+.field input,
+.field textarea {
+  width: 100%;
+}
+
+/* Popups shared by Select and Menu. */
+.select-positioner,
+.menu-positioner {
+  z-index: 50;
+  outline: 0;
+}
+.select-popup {
+  min-width: var(--anchor-width);
+}
+.menu-popup {
+  min-width: max(var(--anchor-width), 160px);
+}
+.select-popup,
+.menu-popup {
+  max-width: min(360px, calc(100vw - 24px));
+  padding: 4px;
+  background: var(--panel);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: var(--shadow-popup);
+  outline: 0;
+  transform-origin: var(--transform-origin);
+  transition:
+    opacity 140ms,
+    transform 140ms;
+}
+.select-popup[data-starting-style],
+.select-popup[data-ending-style],
+.menu-popup[data-starting-style],
+.menu-popup[data-ending-style] {
+  opacity: 0;
+  transform: scale(0.97);
+}
+.select-list {
+  max-height: min(320px, var(--available-height));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scroll-padding-block: 4px;
+}
+.select-item,
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 38px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  color: var(--ink);
+  text-decoration: none;
+  cursor: pointer;
+  outline: 0;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.select-item {
+  justify-content: space-between;
+}
+.select-item[data-highlighted],
+.menu-item[data-highlighted] {
+  background: var(--bg);
+}
+.select-item[data-selected] {
+  color: var(--accent);
+  font-weight: 600;
+}
+.select-item[data-disabled],
+.menu-item[data-disabled] {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+.select-check {
+  display: flex;
+  color: var(--accent);
+}
+
+/* Menu: account menu and ledger switcher. */
+.menu-item .ui-icon {
+  color: var(--muted);
+}
+.menu-item.current {
+  color: var(--accent);
+  font-weight: 600;
+}
+.menu-item.current .ui-icon,
+.menu-check {
+  color: var(--accent);
+}
+.menu-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.menu-check {
+  margin-left: auto;
+}
+.menu-item.danger-item,
+.menu-item.danger-item .ui-icon {
+  color: var(--danger);
+}
+.menu-separator {
+  height: 1px;
+  margin: 4px 6px;
+  background: var(--line);
+}
+.menu-label {
+  padding: 6px 10px 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.menu-header {
+  display: grid;
+  gap: 2px;
+  padding: 8px 10px 6px;
+}
+.menu-header span {
+  font-size: 12px;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.account-menu {
+  min-width: 232px;
+}
+.ledger-menu {
+  min-width: 248px;
+}
+.ledger-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 280px;
+  min-height: 30px;
+  margin-left: -8px;
+  padding: 2px 8px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink);
+  font-weight: 600;
+}
+.ledger-switch:hover,
+.ledger-switch[data-popup-open] {
+  filter: none;
+  background: var(--bg);
+}
+.ledger-switch:focus-visible {
+  outline-offset: 1px;
+}
+.ledger-switch .ui-icon {
+  color: var(--muted);
+}
+.ledger-switch-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Checkbox: Base UI renders a span (role=checkbox) plus a hidden native input inside the label. */
+.checkbox {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid color-mix(in srgb, var(--muted) 65%, var(--line));
+  border-radius: 5px;
+  background: var(--input);
+  color: var(--on-accent);
+  cursor: pointer;
+  transition:
+    background-color 120ms,
+    border-color 120ms;
+}
+.checkbox[data-checked] {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.checkbox:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+.checkbox[data-disabled] {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+.checkbox-indicator {
+  display: flex;
+}
+.checkbox-indicator[data-unchecked] {
+  display: none;
+}
+label:has(> .checkbox) > input {
+  min-height: 0;
+}
+.check,
+.check-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  cursor: pointer;
+}
+.check-row {
+  min-height: 44px;
+}
+/* Disclosure rows use one chevron instead of the browser's triangle. */
+summary {
+  list-style: none;
+  cursor: pointer;
+}
+summary::-webkit-details-marker {
+  display: none;
+}
+summary::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin: 0 10px 2px 2px;
+  border-right: 1.75px solid currentColor;
+  border-bottom: 1.75px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform 160ms;
+}
+details[open] > summary::before {
+  transform: rotate(45deg);
+}
+
+/* Thin, token-coloured scrollbars inside panels and popups. */
+.dialogbody,
+.select-list,
+.table-scroll,
+.sidebar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+
 .field {
   display: grid;
+  /* Fields in one form row stay top-aligned when a neighbour is taller (an error or hint below it). */
+  align-content: start;
   gap: 6px;
   margin-bottom: 16px;
 }
 .field label {
   font-size: 12px;
   color: var(--muted);
-}
-.field input,
-.field select {
-  width: 100%;
 }
 .formgrid {
   display: grid;
@@ -853,9 +1355,8 @@ dialog::backdrop {
   .avatar {
     display: none;
   }
-  .topactions select {
-    width: 70px;
-    padding: 8px;
+  .topactions .select {
+    padding: 0 6px 0 10px;
   }
   .topactions button {
     padding: 8px 10px;
@@ -937,20 +1438,13 @@ dialog::backdrop {
     font-size: 11px;
     min-height: 49px;
   }
-  .mobile-nav button span {
-    display: block;
-    font-size: 19px;
-    line-height: 24px;
-  }
-  .mobile-nav button.active {
-    color: var(--accent);
-  }
   .mobile-nav .mobile-add span {
+    display: grid;
+    place-items: center;
     background: var(--accent);
     color: var(--on-accent);
     width: 44px;
     height: 40px;
-    line-height: 40px;
     border-radius: 13px;
     margin: auto;
   }
@@ -991,12 +1485,6 @@ dialog::backdrop {
   .channel .channel-actions {
     margin-left: 54px;
   }
-  .filterbar {
-    gap: 8px;
-  }
-  .filterbar select {
-    flex: 1;
-  }
   .chart {
     height: 200px;
   }
@@ -1012,21 +1500,19 @@ dialog::backdrop {
   .dialogfoot {
     padding: 14px 20px;
   }
-  dialog.entry-dialog {
+  /* Entry-style forms become full-screen sheets on phones. */
+  .modal-viewport {
+    padding: 12px;
+  }
+  .entry-dialog-viewport {
+    padding: 0;
+  }
+  .modal.entry-dialog {
     width: 100%;
     height: 100dvh;
     max-height: 100dvh;
-    margin: 0;
     border: 0;
     border-radius: 0;
-  }
-  .entry-dialog form {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-  }
-  .entry-dialog .dialogbody {
-    flex: 1;
   }
   .entry-dialog .dialogfoot {
     padding-bottom: max(18px, env(safe-area-inset-bottom));
@@ -1200,12 +1686,6 @@ button:active {
   transform-origin: left;
   animation: progress-in 650ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
-dialog[open] {
-  animation: dialog-in 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-dialog[open]::backdrop {
-  animation: backdrop-in 180ms ease-out;
-}
 @keyframes surface-in {
   from {
     opacity: 0;
@@ -1224,31 +1704,9 @@ dialog[open]::backdrop {
     transform: scaleX(1);
   }
 }
-@keyframes dialog-in {
-  from {
-    opacity: 0;
-    transform: translateY(12px) scale(0.99);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-@keyframes backdrop-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
 @media (max-width: 767px) {
   .chart {
     height: 220px;
-  }
-  dialog.entry-dialog {
-    max-width: none;
-    inset: 0;
   }
 }
 @media (max-width: 767px) {
@@ -1272,20 +1730,14 @@ dialog[open]::backdrop {
   align-items: center;
   justify-content: center;
 }
-.appearance-open .icon {
-  width: 18px;
-  height: 18px;
+/* Appearance: anchored under the top bar on the right, like a popover; a bottom sheet on phones. */
+.appearance-dialog-viewport {
+  place-items: start end;
+  padding: 94px 24px 24px;
 }
-.appearance-open .label {
-  margin-left: 6px;
-}
-.appearance-dialog {
-  width: min(440px, calc(100% - 24px));
-  margin: 94px 24px auto auto;
-}
-.appearance-dialog::backdrop {
-  background: transparent;
-  backdrop-filter: none;
+.modal.appearance-dialog {
+  width: min(440px, 100%);
+  max-height: calc(100dvh - 118px);
 }
 .appearance-dialog .dialogbody {
   padding: 20px 24px;
@@ -1493,10 +1945,12 @@ legend {
   .appearance-open .label {
     display: none;
   }
-  dialog.appearance-dialog {
+  .appearance-dialog-viewport {
+    place-items: end stretch;
+    padding: 0;
+  }
+  .modal.appearance-dialog {
     width: 100%;
-    max-width: none;
-    margin: auto 0 0;
     border-radius: 20px 20px 0 0;
     border-width: 1px 0 0;
     max-height: 88dvh;
@@ -1504,7 +1958,7 @@ legend {
   .appearance-dialog .dialogfoot {
     padding-bottom: max(14px, env(safe-area-inset-bottom));
   }
-  .appearance-dialog::backdrop {
+  .modal-backdrop.clear {
     background: #0b222933;
   }
 }
@@ -1536,21 +1990,16 @@ legend {
   background: var(--nav-active);
   color: var(--nav-strong);
 }
-.nav a span:first-child {
-  width: 20px;
-  font-size: 18px;
-}
 .mobile-nav a {
   text-decoration: none;
   color: var(--muted);
   text-align: center;
   display: grid;
   justify-items: center;
+  align-content: center;
+  gap: 3px;
   font-size: 11px;
   min-height: 44px;
-}
-.mobile-nav a span {
-  font-size: 21px;
 }
 .mobile-nav a.active {
   color: var(--accent);
@@ -1567,9 +2016,6 @@ button:disabled {
   justify-content: center;
   gap: 30px;
   padding: 24px 16px;
-}
-.auth-brand small {
-  color: var(--muted);
 }
 .auth-card {
   width: min(100%, 430px);
@@ -1595,13 +2041,6 @@ button:disabled {
 .confirm-box {
   flex-wrap: wrap;
 }
-.book select {
-  font-weight: 600;
-  border: 0;
-  padding: 0 22px 0 0;
-  min-height: 28px;
-  max-width: 260px;
-}
 .chart-empty {
   min-height: 265px;
   display: flex;
@@ -1610,9 +2049,24 @@ button:disabled {
   justify-content: center;
 }
 .empty-symbol {
-  font-size: 40px;
+  display: flex;
+  justify-content: center;
   color: var(--accent);
   opacity: 0.65;
+}
+.grid.top-aligned {
+  align-items: start;
+}
+.starter-note {
+  flex-wrap: wrap;
+  margin: 0 0 18px;
+}
+.starter-note > span:nth-child(2) {
+  flex: 1;
+  min-width: 220px;
+}
+.field-hint {
+  margin: 0;
 }
 .auth-card h1,
 .setup-card h1 {
@@ -1629,8 +2083,8 @@ button:disabled {
   .mobile-nav {
     grid-template-columns: repeat(4, 1fr);
   }
-  .book select {
-    max-width: 140px;
+  .ledger-switch {
+    max-width: 150px;
     font-size: 14px;
   }
   .topactions > .pill {
@@ -1649,7 +2103,7 @@ button:disabled {
   .member-list .channel-text {
     flex-basis: calc(100% - 60px);
   }
-  .member-list select {
+  .member-list .select {
     flex: 1;
   }
   .heading > .pill {
@@ -1676,7 +2130,7 @@ button:disabled {
     padding: 4px;
   }
   .auth-form input,
-  .auth-form select {
+  .auth-form .select {
     font-size: 16px;
   }
 }
@@ -1776,9 +2230,18 @@ button:disabled {
 }
 .filterbar .date-filter {
   display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.filterbar .date-filter + .date-filter {
+  grid-column: span 2;
 }
 .filterbar .date-filter input {
-  min-width: 140px;
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
 }
 .chips {
   display: flex;
@@ -1819,8 +2282,8 @@ table.transactions tr.voided td {
   margin-top: 18px;
   flex-wrap: wrap;
 }
-.detail-dialog {
-  width: min(560px, calc(100% - 24px));
+.modal.detail-dialog {
+  width: min(560px, 100%);
 }
 .detail-list {
   display: grid;
@@ -1874,6 +2337,11 @@ table.transactions tr.voided td {
 }
 .inline-form {
   align-items: end;
+}
+/* In a grid form row the button lines up with the inputs (which carry the .field bottom margin). */
+.formgrid.inline-form > button {
+  justify-self: start;
+  margin-bottom: 16px;
 }
 .formgrid.four {
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -2052,6 +2520,14 @@ table.transactions tr.voided td {
   text-decoration: none;
   border-bottom: 1px solid var(--line);
 }
+.more-list a .ui-icon:last-child {
+  color: var(--muted);
+}
+/* Stacked sections on one page (settings, Agent 接入) keep the same rhythm as grid gaps. */
+#content > .panel + .panel,
+.page-enter > .panel + .panel {
+  margin-top: 20px;
+}
 .more-list a:last-child {
   border-bottom: 0;
 }
@@ -2075,10 +2551,28 @@ table.transactions tr.voided td {
   .formgrid.four {
     grid-template-columns: 1fr 1fr;
   }
+  .filterbar {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .filterbar .filter-search {
+    grid-column: 1 / -1;
+  }
+  .filterbar .date-filter,
+  .filterbar .date-filter + .date-filter {
+    grid-column: span 2;
+  }
 }
 @media (max-width: 767px) {
   .catalog-grid {
     grid-template-columns: 1fr;
+  }
+  .filterbar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .filterbar .date-filter,
+  .filterbar .date-filter + .date-filter {
+    grid-column: auto;
   }
   .detail-list > div {
     grid-template-columns: 96px minmax(0, 1fr);
@@ -2100,13 +2594,6 @@ table.transactions tr.voided td {
     width: 100%;
   }
   .heading > .gap {
-    width: 100%;
-  }
-  .filterbar .date-filter {
-    flex: 1;
-  }
-  .filterbar .date-filter input {
-    min-width: 0;
     width: 100%;
   }
   .tabs,
@@ -2144,18 +2631,31 @@ table.transactions tr.voided td {
 /* Touch targets (UI_SPEC §2): at least 44×44px on phones and any coarse pointer; inline text links are exempt. */
 @media (max-width: 767px), (pointer: coarse) {
   button,
-  select,
   input:not([type='radio']):not([type='checkbox']),
   .button,
   summary,
   .tabs a,
-  .segmented-links a {
+  .segmented-links a,
+  .select-item,
+  .menu-item {
     min-height: 44px;
   }
   button,
-  .button,
-  select {
+  .button {
     min-width: 44px;
+  }
+  /* Component classes set their own heights, so restate the touch minimum for them. */
+  .select,
+  .select.compact,
+  .ledger-switch,
+  .icon-button,
+  .icon-button.bordered {
+    min-height: 44px;
+  }
+  .icon-button,
+  .icon-button.bordered {
+    width: 44px;
+    height: 44px;
   }
   .chart-toggle button {
     min-height: 44px;
@@ -2164,9 +2664,6 @@ table.transactions tr.voided td {
     min-height: 44px;
     min-width: 44px;
     padding: 0 6px;
-  }
-  .book select {
-    min-height: 44px;
   }
   .month-nav .button {
     min-width: 44px;
@@ -2205,17 +2702,6 @@ table.transactions tr.voided td {
 }
 .channel-actions {
   margin-top: 10px;
-}
-.check-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 44px;
-}
-.check-row input {
-  min-height: 0;
-  width: 18px;
-  height: 18px;
 }
 .field-label {
   font-size: 12px;
@@ -2332,17 +2818,7 @@ a.chip-filter[aria-current='page'] {
   width: 100%;
 }
 .check {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 36px;
   font-size: 13px;
-}
-.check input {
-  width: 18px;
-  height: 18px;
-  min-height: 0;
-  accent-color: var(--accent);
 }
 .token-once {
   align-items: flex-start;
@@ -2371,7 +2847,7 @@ a.chip-filter[aria-current='page'] {
   .check {
     min-height: 44px;
   }
-  .check input {
+  .checkbox {
     width: 22px;
     height: 22px;
   }

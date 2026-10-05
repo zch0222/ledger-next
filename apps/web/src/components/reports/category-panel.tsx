@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { formatMoney } from '@ledger/ui/format';
 import { Chart } from '@/components/charts/chart';
 import { useLedgerUI } from '@/components/ledger-ui';
+import { Icon } from '@/components/ui/icons';
 
 export type CategoryRow = { categoryId: string | null; name: string; amount: string; share: string; count: number };
 /** Top six categories, the rest merged into 其他 (UI_SPEC §2); colours stay fixed per position, never per theme. */
@@ -76,7 +77,7 @@ export function CategoryPanel({
     return (
       <div className="empty chart-empty">
         <span className="empty-symbol" aria-hidden="true">
-          ◴
+          <Icon name="analytics" size={40} strokeWidth={1.5} />
         </span>
         <p>这段时间还没有支出。</p>
       </div>
@@ -84,10 +85,12 @@ export function CategoryPanel({
   }
   return (
     <>
+      {/* A ranking is as tall as its rows, so two categories do not float in a 252px box. */}
       <Chart
         model={model}
         onSelect={select}
         className={variant === 'composition' ? 'echart composition-chart' : 'echart category-chart'}
+        height={variant === 'composition' ? undefined : Math.max(120, top.length * 42 + 16)}
       />
       {variant === 'composition' ? (
         <div className="composition-legend" aria-label="支出分类数据与明细">

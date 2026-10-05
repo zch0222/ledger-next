@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { formatMoney } from '@ledger/ui/format';
 import { Chart } from '@/components/charts/chart';
 import { useLedgerUI } from '@/components/ledger-ui';
+import { today } from '@/lib/time';
 
 export type TrendBucket = { start: string; end: string; label: string; income: string; expense: string };
 /** P01 收支趋势: 支出走势 (area line) ↔ 收支对比 (grouped bars) on one chart instance; a bucket drills into its transactions. */
@@ -20,17 +21,18 @@ export function TrendPanel({
 }) {
   const [mode, setMode] = useState<'expense' | 'compare'>('expense');
   const router = useRouter();
-  const model = useMemo(
-    () => ({
+  const { baseCurrency: base, timezone } = useLedgerUI().ledger;
+  const model = useMemo(() => {
+    // Buckets that start after today have no data yet: leave them blank rather than drawing a fake zero.
+    const now = today(timezone);
+    return {
       type: 'trend' as const,
       mode,
       currency,
-      points: buckets.map(b => ({ label: b.label, income: b.income, expense: b.expense })),
+      points: buckets.map(b => ({ label: b.label, income: b.income, expense: b.expense, future: b.start > now })),
       description: `${interval}${mode === 'compare' ? '收入与支出' : '支出'}，单位 ${currency}。下方有可访问数据表。`,
-    }),
-    [buckets, mode, currency, interval],
-  );
-  const base = useLedgerUI().ledger.baseCurrency;
+    };
+  }, [buckets, mode, currency, interval, timezone]);
   const drill = (b: TrendBucket) =>
     `/ledgers/${ledgerId}/transactions?dateFrom=${b.start}&dateTo=${b.end}${currency !== base ? `&currency=${currency}` : ''}`;
   return (

@@ -1,23 +1,22 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ACCOUNT_TYPE_LABELS } from '@ledger/ui/format';
 import { ApiError, api, intent } from '@/lib/client';
 import { useLedgerUI } from '@/components/ledger-ui';
+import { Icon } from '@/components/ui/icons';
+import { MenuItem, MenuPopup, MenuRoot, MenuSeparator, MenuTrigger } from '@/components/ui/menu';
+import { Modal, ModalHeader } from '@/components/ui/modal';
+import { Select, labelOptions, plainOptions } from '@/components/ui/select';
 
 /** New account (P06 / onboarding step 2). Opening balance is not income; currency is fixed after creation. */
 export function NewAccount({ open: initiallyOpen = false, first = false }: { open?: boolean; first?: boolean }) {
   const ui = useLedgerUI();
   const router = useRouter();
-  const dialog = useRef<HTMLDialogElement>(null);
   const [open, setOpen] = useState(initiallyOpen);
   const [error, setError] = useState<ApiError | null>(null);
   const [busy, setBusy] = useState(false);
   const [submission] = useState(intent);
-  useEffect(() => {
-    if (open) dialog.current?.showModal();
-    else dialog.current?.close();
-  }, [open]);
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setBusy(true);
@@ -55,14 +54,9 @@ export function NewAccount({ open: initiallyOpen = false, first = false }: { ope
           ＋ 新建账户
         </button>
       )}
-      <dialog ref={dialog} aria-labelledby="account-title" onClose={() => setOpen(false)}>
+      <Modal open={open} onOpenChange={setOpen}>
         <form onSubmit={submit}>
-          <div className="dialoghead">
-            <h2 id="account-title">{first ? '添加首个账户' : '新建账户'}</h2>
-            <button type="button" aria-label="关闭" onClick={() => setOpen(false)}>
-              ✕
-            </button>
-          </div>
+          <ModalHeader title={first ? '添加首个账户' : '新建账户'} />
           <div className="dialogbody">
             {first && <p className="sub">账本已创建。添加一个现金、银行卡或信用卡账户，就可以开始记账。</p>}
             <div className="field">
@@ -82,21 +76,16 @@ export function NewAccount({ open: initiallyOpen = false, first = false }: { ope
             <div className="formgrid">
               <div className="field">
                 <label htmlFor="account-type">类型</label>
-                <select id="account-type" name="type" defaultValue="bank">
-                  {Object.entries(ACCOUNT_TYPE_LABELS).map(([v, n]) => (
-                    <option key={v} value={v}>
-                      {n}
-                    </option>
-                  ))}
-                </select>
+                <Select id="account-type" name="type" defaultValue="bank" options={labelOptions(ACCOUNT_TYPE_LABELS)} />
               </div>
               <div className="field">
                 <label htmlFor="account-currency">结算币种</label>
-                <select id="account-currency" name="currency" defaultValue={ui.ledger.baseCurrency}>
-                  {['CNY', 'USD', 'HKD', 'EUR', 'JPY'].map(c => (
-                    <option key={c}>{c}</option>
-                  ))}
-                </select>
+                <Select
+                  id="account-currency"
+                  name="currency"
+                  defaultValue={ui.ledger.baseCurrency}
+                  options={plainOptions(['CNY', 'USD', 'HKD', 'EUR', 'JPY'])}
+                />
               </div>
             </div>
             <div className="field">
@@ -145,7 +134,7 @@ export function NewAccount({ open: initiallyOpen = false, first = false }: { ope
             </button>
           </div>
         </form>
-      </dialog>
+      </Modal>
     </>
   );
 }
@@ -189,12 +178,19 @@ export function AccountActions({
             转账
           </button>
           <button onClick={() => ui.openEntry({ mode: 'create', accountId: account.id })}>记一笔</button>
-          <button className="linkbtn" onClick={() => setMode('rename')}>
-            改名
-          </button>
-          <button className="linkbtn" onClick={() => setMode('archive')}>
-            归档
-          </button>
+          {/* Everyday actions stay visible; rare and destructive ones sit in the overflow menu. */}
+          <MenuRoot>
+            <MenuTrigger className="icon-button bordered" aria-label={`${account.name} 更多操作`}>
+              <Icon name="more" size={18} />
+            </MenuTrigger>
+            <MenuPopup align="start">
+              <MenuItem onClick={() => setMode('rename')}>改名</MenuItem>
+              <MenuSeparator />
+              <MenuItem className="danger-item" onClick={() => setMode('archive')}>
+                归档
+              </MenuItem>
+            </MenuPopup>
+          </MenuRoot>
         </div>
       )}
       {mode === 'rename' && (

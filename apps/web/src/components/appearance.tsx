@@ -2,6 +2,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { PRESETS, SURFACES, TARGET, check, derive, palette, sanitize } from '@ledger/ui/theme.mjs';
 import { ApiError, api } from '@/lib/client';
+import { Icon } from '@/components/ui/icons';
+import { Modal, ModalHeader } from '@/components/ui/modal';
 
 export type AppearanceValue = { mode: string; accent: string; custom: string | null };
 const MODES = [
@@ -53,8 +55,7 @@ export function Appearance({
   inline?: boolean;
 }) {
   const signedIn = userId !== null;
-  const ref = useRef<HTMLDialogElement>(null);
-  const opener = useRef<HTMLButtonElement>(null);
+  const [open, setOpen] = useState(false);
   const [pref, setPref] = useState(initial);
   const [hex, setHex] = useState(initial.custom ?? '');
   const [error, setError] = useState('');
@@ -331,40 +332,28 @@ export function Appearance({
   return (
     <>
       <button
-        ref={opener}
         className="appearance-open"
         aria-haspopup="dialog"
         aria-label="外观：显示模式与主题色"
         title="外观"
-        onClick={() => ref.current?.showModal()}
+        onClick={() => setOpen(true)}
       >
-        <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
-          <circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" strokeWidth="2" />
-          <path d="M12 3.5a8.5 8.5 0 0 1 0 17z" fill="currentColor" />
-        </svg>
+        <Icon name="contrast" size={18} />
         <span className="label">外观</span>
       </button>
-      <dialog
-        ref={ref}
-        className="appearance-dialog"
-        aria-labelledby="appearance-title"
-        aria-describedby="appearance-desc"
-        onClose={() => {
-          flush();
-          opener.current?.focus();
+      {/* No dimming, so the whole page previews the change; focus starts on the current mode (UI_SPEC §2.2). */}
+      <Modal
+        open={open}
+        onOpenChange={next => {
+          setOpen(next);
+          if (!next) flush();
         }}
+        className="appearance-dialog"
+        backdrop="clear"
+        dismissible
+        initialFocus={() => document.querySelector<HTMLElement>('.appearance-dialog input[name="theme-mode"]:checked')}
       >
-        <div className="dialoghead">
-          <div>
-            <h2 id="appearance-title">外观</h2>
-            <p className="small muted" id="appearance-desc" style={{ margin: '2px 0 0' }}>
-              即时生效，只改变显示方式，不影响账目数据。
-            </p>
-          </div>
-          <button type="button" aria-label="关闭外观设置" onClick={() => ref.current?.close()}>
-            ✕
-          </button>
-        </div>
+        <ModalHeader title="外观" description="即时生效，只改变显示方式，不影响账目数据。" closeLabel="关闭外观设置" />
         <div className="dialogbody">{body}</div>
         <div className="dialogfoot">
           <button
@@ -376,11 +365,11 @@ export function Appearance({
           >
             恢复默认
           </button>
-          <button type="button" className="primary" onClick={() => ref.current?.close()}>
+          <button type="button" className="primary" onClick={() => setOpen(false)}>
             完成
           </button>
         </div>
-      </dialog>
+      </Modal>
     </>
   );
 }

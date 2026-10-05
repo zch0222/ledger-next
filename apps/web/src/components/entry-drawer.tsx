@@ -3,9 +3,12 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { FRESHNESS_LABELS, KIND_LABELS, formatMoney } from '@ledger/ui/format';
 import { ApiError, api, intent } from '@/lib/client';
-import { instantToLocal, localToInstant, nowLocal } from '@/lib/time';
+import { formatInstant, instantToLocal, localToInstant, nowLocal } from '@/lib/time';
 import type { PreviewView, TransactionView } from '@/lib/types';
 import { useLedgerUI } from './ledger-ui';
+import { Modal, ModalHeader } from '@/components/ui/modal';
+import { Select, plainOptions } from '@/components/ui/select';
+import { NoCategoriesHint } from '@/components/settings/no-categories';
 
 export type EntryInit =
   | {
@@ -144,7 +147,6 @@ function initialForm(init: EntryInit, accounts: { id: string; currency: string }
 export function EntryDrawer({ init, onClose }: { init: EntryInit; onClose: () => void }) {
   const { ledger, accounts, categories, toast } = useLedgerUI();
   const router = useRouter();
-  const dialog = useRef<HTMLDialogElement>(null);
   const amountRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState<Form>(() => initialForm(init, accounts, ledger.timezone));
   const [preview, setPreview] = useState<PreviewView | null>(null);
@@ -167,11 +169,6 @@ export function EntryDrawer({ init, onClose }: { init: EntryInit; onClose: () =>
     setPreview(null);
     setError(null);
   };
-
-  useEffect(() => {
-    dialog.current?.showModal();
-    amountRef.current?.focus();
-  }, []);
 
   // The request body for the preview; null while the form is incomplete.
   const body = useMemo(() => {
@@ -264,7 +261,6 @@ export function EntryDrawer({ init, onClose }: { init: EntryInit; onClose: () =>
       setConfirmClose(true);
       return;
     }
-    dialog.current?.close();
     onClose();
   }
   async function save(event: React.FormEvent) {
@@ -309,7 +305,6 @@ export function EntryDrawer({ init, onClose }: { init: EntryInit; onClose: () =>
         href: `/ledgers/${ledger.id}/transactions?tx=${saved.id}`,
         linkText: '查看详情',
       });
-      dialog.current?.close();
       onClose();
       router.refresh();
     } catch (e) {
@@ -351,22 +346,10 @@ export function EntryDrawer({ init, onClose }: { init: EntryInit; onClose: () =>
     .sort((a, b) => a.label.localeCompare(b.label, 'zh-CN'));
 
   return (
-    <dialog
-      ref={dialog}
-      className="entry-dialog"
-      aria-labelledby="entry-title"
-      onCancel={e => {
-        e.preventDefault();
-        close();
-      }}
-    >
+    // Esc, the close button and "取消" all go through close(), which asks before dropping unsaved input.
+    <Modal open onOpenChange={next => !next && close()} className="entry-dialog" initialFocus={amountRef}>
       <form onSubmit={save} noValidate>
-        <div className="dialoghead">
-          <h2 id="entry-title">{TITLES[init.mode]}</h2>
-          <button type="button" onClick={() => close()} aria-label="关闭">
-            ✕
-          </button>
-        </div>
+        <ModalHeader title={TITLES[init.mode]} />
         <div className="dialogbody">
           {init.mode === 'bill' && (
             <p className="sub entry-context">
@@ -423,49 +406,46 @@ export function EntryDrawer({ init, onClose }: { init: EntryInit; onClose: () =>
           <div className="formgrid">
             <div className="field">
               <label htmlFor="entry-account">{isTransfer ? '转出账户' : isRefund ? '退回账户' : '账户'}</label>
-              <select id="entry-account" value={form.accountId} onChange={e => set({ accountId: e.target.value })}>
-                {accounts.length ? (
-                  accounts.map(a => (
-                    <option key={a.id} value={a.id}>
-                      {a.name} · {a.currency}
-                    </option>
-                  ))
-                ) : (
-                  <option value="">请先新建账户</option>
-                )}
-              </select>
+              <Select
+                id="entry-account"
+                value={form.accountId}
+                onValueChange={accountId => set({ accountId })}
+                options={
+                  accounts.length
+                    ? accounts.map(a => ({ value: a.id, label: `${a.name} · ${a.currency}` }))
+                    : [{ value: '', label: '请先新建账户' }]
+                }
+              />
             </div>
             {isTransfer ? (
               <div className="field">
                 <label htmlFor="entry-target">转入账户</label>
-                <select
+                <Select
                   id="entry-target"
                   value={form.targetAccountId}
-                  onChange={e => set({ targetAccountId: e.target.value })}
-                >
-                  {usable.map(a => (
-                    <option key={a.id} value={a.id}>
-                      {a.name} · {a.currency}
-                    </option>
-                  ))}
-                </select>
+                  onValueChange={targetAccountId => set({ targetAccountId })}
+                  options={usable.map(a => ({ value: a.id, label: `${a.name} · ${a.currency}` }))}
+                />
               </div>
             ) : (
               !isRefund && (
                 <div className="field">
                   <label htmlFor="entry-category">分类</label>
-                  <select
+                  <Select
                     id="entry-category"
                     value={form.categoryId}
-                    onChange={e => set({ categoryId: e.target.value })}
-                  >
-                    <option value="">未分类</option>
-                    {sortedCategories.map(c => (
-                      <option key={c.id} value={c.id}>
-                        {c.label}
-                      </option>
-                    ))}
-                  </select>
+                    onValueChange={categoryId => set({ categoryId })}
+                    options={[
+                      { value: '', label: '未分类' },
+                      ...sortedCategories.map(c => ({ value: c.id, label: c.label })),
+                    ]}
+                  />
+                  {!sortedCategories.length && (
+                    <NoCategoriesHint
+                      kind={form.kind === 'income' ? 'income' : 'expense'}
+                      onNavigate={() => close(true)}
+                    />
+                  )}
                 </div>
               )
             )}
@@ -540,16 +520,12 @@ export function EntryDrawer({ init, onClose }: { init: EntryInit; onClose: () =>
               <div className="formgrid">
                 <div className="field">
                   <label htmlFor="entry-original-currency">原币（商家标价）</label>
-                  <select
+                  <Select
                     id="entry-original-currency"
                     value={form.originalCurrency}
-                    onChange={e => set({ originalCurrency: e.target.value })}
-                  >
-                    <option value="">同结算币</option>
-                    {['CNY', 'USD', 'HKD', 'EUR', 'JPY'].map(c => (
-                      <option key={c}>{c}</option>
-                    ))}
-                  </select>
+                    onValueChange={originalCurrency => set({ originalCurrency })}
+                    options={[{ value: '', label: '同结算币' }, ...plainOptions(['CNY', 'USD', 'HKD', 'EUR', 'JPY'])]}
+                  />
                 </div>
                 {form.originalCurrency && (
                   <div className="field">
@@ -658,7 +634,6 @@ export function EntryDrawer({ init, onClose }: { init: EntryInit; onClose: () =>
               <button
                 type="button"
                 onClick={() => {
-                  dialog.current?.close();
                   onClose();
                   router.push(`/ledgers/${ledger.id}/transactions?tx=${conflict.id}`);
                   router.refresh();
@@ -703,12 +678,12 @@ export function EntryDrawer({ init, onClose }: { init: EntryInit; onClose: () =>
           </button>
         </div>
       </form>
-    </dialog>
+    </Modal>
   );
 }
 
 function PreviewSummary({ preview, original }: { preview: PreviewView; original: TransactionView | null }) {
-  const { accounts } = useLedgerUI();
+  const { accounts, ledger } = useLedgerUI();
   const rate = preview.exchangeRate;
   return (
     <div className="preview-summary">
@@ -731,7 +706,7 @@ function PreviewSummary({ preview, original }: { preview: PreviewView; original:
           <span className={rate.freshness === 'fresh' ? '' : 'warn-text'}>
             {FRESHNESS_LABELS[rate.freshness as keyof typeof FRESHNESS_LABELS] ?? rate.freshness}
           </span>
-          {rate.sourceAt ? ` · 报价 ${new Date(rate.sourceAt).toLocaleString('zh-CN', { hour12: false })}` : ''}
+          {rate.sourceAt ? ` · 报价 ${formatInstant(rate.sourceAt, ledger.timezone)}` : ''}
           {rate.manualReason ? ` · ${rate.manualReason}` : ''}
         </div>
       )}

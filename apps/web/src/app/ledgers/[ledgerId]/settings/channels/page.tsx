@@ -13,6 +13,7 @@ export default async function Channels({ params }: LedgerPageProps) {
   return (
     <>
       <PageHeading
+        kicker="设置"
         title="提醒渠道"
         description="Telegram、飞书、企业微信（群机器人 / 应用消息）、个人微信、邮件与 Webhook 分别配置；渠道属于你本人，所有账本共用。"
       />

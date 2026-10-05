@@ -25,8 +25,8 @@ test('agents page: configure a client, issue a token once, approve an Agent requ
   // Issue: read-only is the default; the bookkeeping preset adds writes; the token appears once.
   await page.getByRole('button', { name: '＋ 签发令牌' }).click();
   const form = page.getByRole('dialog', { name: '签发访问令牌' });
-  await expect(form.getByLabel(/^交易/)).toBeChecked();
-  await expect(form.getByLabel(/^记账 \/ 更正 \/ 退款/)).not.toBeChecked();
+  await expect(form.getByRole('checkbox', { name: /^交易/ })).toBeChecked();
+  await expect(form.getByRole('checkbox', { name: /^记账 \/ 更正 \/ 退款/ })).not.toBeChecked();
   await form.getByLabel('名称').fill('Claude Code（测试）');
   await form.getByRole('button', { name: '记账' }).click();
   await expect(form.getByText('包含写入权限')).toBeVisible();

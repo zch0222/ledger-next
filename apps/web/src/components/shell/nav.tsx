@@ -2,18 +2,19 @@
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useLedgerUI } from '@/components/ledger-ui';
+import { Icon, type IconName } from '@/components/ui/icons';
 
 // Sidebar and mobile bottom bar from the v0.3 prototype. Links keep the display currency across pages.
-export const NAVIGATION = [
-  ['dashboard', '▦', '总览'],
-  ['transactions', '≡', '账目'],
-  ['subscriptions', '▣', '订阅'],
-  ['analytics', '◴', '预算与分析'],
-  ['accounts', '▤', '账户'],
-  ['reminders', '♧', '提醒中心'],
-  ['agents', '⌘', 'Agent 接入'],
-  ['settings', '⚙', '设置'],
-] as const;
+export const NAVIGATION: readonly (readonly [string, IconName, string])[] = [
+  ['dashboard', 'dashboard', '总览'],
+  ['transactions', 'transactions', '账目'],
+  ['subscriptions', 'subscriptions', '订阅'],
+  ['analytics', 'analytics', '预算与分析'],
+  ['accounts', 'accounts', '账户'],
+  ['reminders', 'bell', '提醒中心'],
+  ['agents', 'agents', 'Agent 接入'],
+  ['settings', 'settings', '设置'],
+];
 function useSection(ledgerId: string) {
   const pathname = usePathname();
   const search = useSearchParams();
@@ -32,7 +33,7 @@ export function SideNav({ ledgerId }: { ledgerId: string }) {
           aria-current={section === id ? 'page' : undefined}
           href={href(id)}
         >
-          <span aria-hidden="true">{icon}</span>
+          <Icon name={icon} />
           {name}
         </Link>
       ))}
@@ -43,22 +44,22 @@ export function MobileNav({ ledgerId, canWrite }: { ledgerId: string; canWrite: 
   const { section, href } = useSection(ledgerId);
   const ui = useLedgerUI();
   const more = !['dashboard', 'transactions', 'subscriptions'].includes(section);
+  // "更多" is highlighted for the sections it lists, but only a real section link is the current page.
+  const tab = (id: string, icon: IconName, name: string) => (
+    <Link
+      key={id}
+      className={section === id || (id === 'more' && more) ? 'active' : ''}
+      aria-current={section === id ? 'page' : undefined}
+      href={href(id)}
+    >
+      <Icon name={icon} size={22} />
+      {name}
+    </Link>
+  );
   return (
     <nav className="mobile-nav" aria-label="移动导航">
-      {[
-        ['dashboard', '▦', '总览'],
-        ['transactions', '≡', '账目'],
-      ].map(([id, icon, name]) => (
-        <Link
-          key={id}
-          className={section === id ? 'active' : ''}
-          aria-current={section === id ? 'page' : undefined}
-          href={href(id)}
-        >
-          <span aria-hidden="true">{icon}</span>
-          {name}
-        </Link>
-      ))}
+      {tab('dashboard', 'dashboard', '总览')}
+      {tab('transactions', 'transactions', '账目')}
       <button
         className="mobile-add"
         aria-label="记一笔"
@@ -66,18 +67,12 @@ export function MobileNav({ ledgerId, canWrite }: { ledgerId: string; canWrite: 
         title={canWrite ? undefined : '仅查看成员不能记账'}
         onClick={() => ui.openEntry()}
       >
-        <span aria-hidden="true">＋</span>
+        <span>
+          <Icon name="plus" size={22} />
+        </span>
       </button>
-      <Link
-        className={section === 'subscriptions' ? 'active' : ''}
-        aria-current={section === 'subscriptions' ? 'page' : undefined}
-        href={href('subscriptions')}
-      >
-        <span aria-hidden="true">▣</span>订阅
-      </Link>
-      <Link className={more ? 'active' : ''} href={href('more')}>
-        <span aria-hidden="true">⋯</span>更多
-      </Link>
+      {tab('subscriptions', 'subscriptions', '订阅')}
+      {tab('more', 'more', '更多')}
     </nav>
   );
 }

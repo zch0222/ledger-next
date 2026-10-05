@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ApiError, api, intent } from '@/lib/client';
 import { useLedgerUI } from '@/components/ledger-ui';
+import { Select, plainOptions } from '@/components/ui/select';
 
 /** P09: a manual rate always needs a reason; reports use it only where the market has no quote. */
 export function ManualRateForm({ currencies, today }: { currencies: readonly string[]; today: string }) {
@@ -43,19 +44,21 @@ export function ManualRateForm({ currencies, today }: { currencies: readonly str
       <div className="formgrid four">
         <div className="field">
           <label htmlFor="rate-base">1 单位</label>
-          <select id="rate-base" name="base" defaultValue={currencies.find(c => c !== ui.ledger.baseCurrency)}>
-            {currencies.map(c => (
-              <option key={c}>{c}</option>
-            ))}
-          </select>
+          <Select
+            id="rate-base"
+            name="base"
+            defaultValue={currencies.find(c => c !== ui.ledger.baseCurrency)}
+            options={plainOptions(currencies)}
+          />
         </div>
         <div className="field">
           <label htmlFor="rate-quote">折合</label>
-          <select id="rate-quote" name="quote" defaultValue={ui.ledger.baseCurrency}>
-            {currencies.map(c => (
-              <option key={c}>{c}</option>
-            ))}
-          </select>
+          <Select
+            id="rate-quote"
+            name="quote"
+            defaultValue={ui.ledger.baseCurrency}
+            options={plainOptions(currencies)}
+          />
         </div>
         <div className="field">
           <label htmlFor="rate-value">汇率</label>

@@ -59,6 +59,7 @@ export default async function Analytics({ params, searchParams }: LedgerPageProp
   return (
     <div className="page-enter">
       <PageHeading
+        kicker="预算与分析"
         title="让预算，变成日常"
         description="预算按历史入账统计；转账本金不占用预算，退款抵减支出。"
         action={
@@ -88,7 +89,7 @@ export default async function Analytics({ params, searchParams }: LedgerPageProp
           {summary.value.partial ? ` · ${summary.value.excludedCount} 笔缺汇率未计入` : ''}
         </Note>
       )}
-      <div className="grid">
+      <div className="grid top-aligned">
         <section className="panel">
           <div className="row">
             <h2>{range.short}预算</h2>
@@ -161,7 +162,7 @@ export default async function Analytics({ params, searchParams }: LedgerPageProp
                 );
               })
             ) : (
-              <EmptyState symbol="◔">还没有预算。为总支出或某个分类设一个月度上限。</EmptyState>
+              <EmptyState symbol="analytics">还没有预算。为总支出或某个分类设一个月度上限。</EmptyState>
             )
           ) : (
             <PanelError error={progress.error} />

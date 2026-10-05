@@ -2,6 +2,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ApiError, api, intent } from '@/lib/client';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Modal, ModalHeader } from '@/components/ui/modal';
+import { Select } from '@/components/ui/select';
 import type { ClientConfig } from '@ledger/mcp/clients';
 
 const SCOPE_GROUPS: { title: string; scopes: [string, string][] }[] = [
@@ -285,16 +288,12 @@ function TokenForm({
   onClose: () => void;
   onCreated: (token: Token & { token: string }) => Promise<void>;
 }) {
-  const dialog = useRef<HTMLDialogElement>(null);
   const [scopes, setScopes] = useState<string[]>(READ_ONLY);
   const [chosen, setChosen] = useState<string[]>([ledgerId]);
   const [reauth, setReauth] = useState(false);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [submission] = useState(intent);
-  useEffect(() => {
-    dialog.current?.showModal();
-  }, []);
   const toggle = (list: string[], value: string, on: boolean) =>
     on ? [...new Set([...list, value])] : list.filter(v => v !== value);
   async function submit(event: React.SubmitEvent<HTMLFormElement>) {
@@ -323,7 +322,6 @@ function TokenForm({
         body: payload,
       });
       submission.done();
-      dialog.current?.close();
       await onCreated(token);
     } catch (e) {
       if (e instanceof ApiError && e.code === 'REAUTH_REQUIRED') {
@@ -335,11 +333,9 @@ function TokenForm({
     }
   }
   return (
-    <dialog ref={dialog} className="entry-dialog" aria-labelledby="token-form-title" onClose={onClose}>
+    <Modal open onOpenChange={next => !next && onClose()} className="entry-dialog">
       <form onSubmit={submit}>
-        <div className="dialoghead">
-          <h2 id="token-form-title">签发访问令牌</h2>
-        </div>
+        <ModalHeader title="签发访问令牌" />
         <div className="dialogbody">
           <div className="formgrid">
             <div className="field">
@@ -348,29 +344,27 @@ function TokenForm({
             </div>
             <div className="field">
               <label htmlFor="token-expiry">有效期</label>
-              <select id="token-expiry" name="expiresInDays" defaultValue="30">
-                {[7, 30, 90, 365].map(d => (
-                  <option key={d} value={d}>
-                    {d} 天
-                  </option>
-                ))}
-              </select>
+              <Select
+                id="token-expiry"
+                name="expiresInDays"
+                defaultValue="30"
+                options={[7, 30, 90, 365].map(d => ({ value: String(d), label: `${d} 天` }))}
+              />
             </div>
           </div>
           <fieldset className="scope-set">
             <legend>可访问的账本</legend>
             {ledgers.map(l => (
-              <label key={l.id} className="check">
-                <input
-                  type="checkbox"
-                  checked={chosen.includes(l.id)}
-                  onChange={e => setChosen(toggle(chosen, l.id, e.target.checked))}
-                />
+              <Checkbox
+                key={l.id}
+                checked={chosen.includes(l.id)}
+                onCheckedChange={on => setChosen(toggle(chosen, l.id, on))}
+              >
                 {l.name}
                 <span className="small muted">
                   （{({ owner: '所有者', editor: '可编辑', viewer: '仅查看' } as Record<string, string>)[l.role]}）
                 </span>
-              </label>
+              </Checkbox>
             ))}
           </fieldset>
           <div className="gap">
@@ -386,14 +380,13 @@ function TokenForm({
             <fieldset key={g.title} className="scope-set">
               <legend>{g.title}</legend>
               {g.scopes.map(([id, name]) => (
-                <label key={id} className="check">
-                  <input
-                    type="checkbox"
-                    checked={scopes.includes(id)}
-                    onChange={e => setScopes(toggle(scopes, id, e.target.checked))}
-                  />
+                <Checkbox
+                  key={id}
+                  checked={scopes.includes(id)}
+                  onCheckedChange={on => setScopes(toggle(scopes, id, on))}
+                >
                   {name} <code className="small muted">{id}</code>
-                </label>
+                </Checkbox>
               ))}
             </fieldset>
           ))}
@@ -413,7 +406,7 @@ function TokenForm({
           </p>
         </div>
         <div className="dialogfoot">
-          <button type="button" onClick={() => dialog.current?.close()}>
+          <button type="button" onClick={onClose}>
             取消
           </button>
           <button className="primary" disabled={busy}>
@@ -421,7 +414,7 @@ function TokenForm({
           </button>
         </div>
       </form>
-    </dialog>
+    </Modal>
   );
 }
 

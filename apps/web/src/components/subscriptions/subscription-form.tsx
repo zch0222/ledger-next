@@ -1,9 +1,12 @@
 'use client';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { formatMoney } from '@ledger/ui/format';
 import { ApiError, api, intent } from '@/lib/client';
 import { useLedgerUI } from '@/components/ledger-ui';
+import { Modal, ModalHeader } from '@/components/ui/modal';
+import { Select, labelOptions, plainOptions } from '@/components/ui/select';
+import { NoCategoriesHint } from '@/components/settings/no-categories';
 
 type Preview = {
   previewId: string;
@@ -36,7 +39,6 @@ const AMOUNT = /^(0|[1-9]\d{0,17})(\.\d{1,6})?$/;
 export function NewSubscription({ today }: { today: string }) {
   const ui = useLedgerUI();
   const router = useRouter();
-  const dialog = useRef<HTMLDialogElement>(null);
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
     name: '',
@@ -53,10 +55,6 @@ export function NewSubscription({ today }: { today: string }) {
   const [error, setError] = useState<ApiError | null>(null);
   const [busy, setBusy] = useState(false);
   const [submission] = useState(intent);
-  useEffect(() => {
-    if (open) dialog.current?.showModal();
-    else dialog.current?.close();
-  }, [open]);
   const body = useMemo(
     () =>
       form.name.trim() &&
@@ -134,14 +132,9 @@ export function NewSubscription({ today }: { today: string }) {
       <button className="primary" onClick={() => setOpen(true)}>
         ＋ 新增订阅
       </button>
-      <dialog ref={dialog} className="entry-dialog" aria-labelledby="sub-title" onClose={() => setOpen(false)}>
+      <Modal open={open} onOpenChange={setOpen} className="entry-dialog wide">
         <form onSubmit={save}>
-          <div className="dialoghead">
-            <h2 id="sub-title">新增订阅</h2>
-            <button type="button" aria-label="关闭" onClick={() => setOpen(false)}>
-              ✕
-            </button>
-          </div>
+          <ModalHeader title="新增订阅" />
           <div className="dialogbody">
             <fieldset>
               <legend>基本资料</legend>
@@ -159,16 +152,18 @@ export function NewSubscription({ today }: { today: string }) {
                 </div>
                 <div className="field">
                   <label htmlFor="sub-category">分类</label>
-                  <select id="sub-category" value={form.categoryId} onChange={e => set({ categoryId: e.target.value })}>
-                    <option value="">未分类</option>
-                    {ui.categories
-                      .filter(c => c.kind === 'expense')
-                      .map(c => (
-                        <option key={c.id} value={c.id}>
-                          {c.name}
-                        </option>
-                      ))}
-                  </select>
+                  <Select
+                    id="sub-category"
+                    value={form.categoryId}
+                    onValueChange={categoryId => set({ categoryId })}
+                    options={[
+                      { value: '', label: '未分类' },
+                      ...ui.categories.filter(c => c.kind === 'expense').map(c => ({ value: c.id, label: c.name })),
+                    ]}
+                  />
+                  {!ui.categories.some(c => c.kind === 'expense') && (
+                    <NoCategoriesHint kind="expense" onNavigate={() => setOpen(false)} />
+                  )}
                 </div>
               </div>
             </fieldset>
@@ -187,11 +182,12 @@ export function NewSubscription({ today }: { today: string }) {
                 </div>
                 <div className="field">
                   <label htmlFor="sub-currency">币种</label>
-                  <select id="sub-currency" value={form.currency} onChange={e => set({ currency: e.target.value })}>
-                    {['CNY', 'USD', 'HKD', 'EUR', 'JPY'].map(c => (
-                      <option key={c}>{c}</option>
-                    ))}
-                  </select>
+                  <Select
+                    id="sub-currency"
+                    value={form.currency}
+                    onValueChange={currency => set({ currency })}
+                    options={plainOptions(['CNY', 'USD', 'HKD', 'EUR', 'JPY'])}
+                  />
                 </div>
                 <div className="field">
                   <label htmlFor="sub-count">每</label>
@@ -205,13 +201,12 @@ export function NewSubscription({ today }: { today: string }) {
                 </div>
                 <div className="field">
                   <label htmlFor="sub-unit">单位</label>
-                  <select id="sub-unit" value={form.unit} onChange={e => set({ unit: e.target.value })}>
-                    {Object.entries(UNITS).map(([v, n]) => (
-                      <option key={v} value={v}>
-                        {n}
-                      </option>
-                    ))}
-                  </select>
+                  <Select
+                    id="sub-unit"
+                    value={form.unit}
+                    onValueChange={unit => set({ unit })}
+                    options={labelOptions(UNITS)}
+                  />
                 </div>
               </div>
               <div className="field">
@@ -249,14 +244,15 @@ export function NewSubscription({ today }: { today: string }) {
               <legend>支付账户</legend>
               <div className="field">
                 <label htmlFor="sub-account">默认账户</label>
-                <select id="sub-account" value={form.accountId} onChange={e => set({ accountId: e.target.value })}>
-                  <option value="">暂不指定</option>
-                  {ui.accounts.map(a => (
-                    <option key={a.id} value={a.id}>
-                      {a.name} · {a.currency}
-                    </option>
-                  ))}
-                </select>
+                <Select
+                  id="sub-account"
+                  value={form.accountId}
+                  onValueChange={accountId => set({ accountId })}
+                  options={[
+                    { value: '', label: '暂不指定' },
+                    ...ui.accounts.map(a => ({ value: a.id, label: `${a.name} · ${a.currency}` })),
+                  ]}
+                />
               </div>
               <p className="small muted">到期只生成待确认账单，不会自动记为已支付。</p>
             </fieldset>
@@ -284,7 +280,7 @@ export function NewSubscription({ today }: { today: string }) {
             </button>
           </div>
         </form>
-      </dialog>
+      </Modal>
     </>
   );
 }
@@ -293,15 +289,10 @@ export function NewSubscription({ today }: { today: string }) {
 export function ManageSubscription({ subscription: s, today }: { subscription: SubscriptionView; today: string }) {
   const ui = useLedgerUI();
   const router = useRouter();
-  const dialog = useRef<HTMLDialogElement>(null);
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<'menu' | 'edit' | 'pause' | 'cancel'>('menu');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
-  useEffect(() => {
-    if (open) dialog.current?.showModal();
-    else dialog.current?.close();
-  }, [open]);
   async function patch(body: Record<string, unknown>, done: string) {
     setBusy(true);
     setError('');
@@ -327,20 +318,14 @@ export function ManageSubscription({ subscription: s, today }: { subscription: S
       <button className="full-width" onClick={() => setOpen(true)}>
         管理订阅 →
       </button>
-      <dialog
-        ref={dialog}
-        aria-labelledby={`manage-${s.id}`}
-        onClose={() => {
-          setOpen(false);
-          setMode('menu');
+      <Modal
+        open={open}
+        onOpenChange={next => {
+          setOpen(next);
+          if (!next) setMode('menu');
         }}
       >
-        <div className="dialoghead">
-          <h2 id={`manage-${s.id}`}>{s.name}</h2>
-          <button aria-label="关闭" onClick={() => setOpen(false)}>
-            ✕
-          </button>
-        </div>
+        <ModalHeader title={s.name} />
         <div className="dialogbody">
           <dl className="detail-list">
             <div>
@@ -403,13 +388,12 @@ export function ManageSubscription({ subscription: s, today }: { subscription: S
               </div>
               <div className="field">
                 <label htmlFor={`edit-unit-${s.id}`}>单位</label>
-                <select id={`edit-unit-${s.id}`} name="unit" defaultValue={s.cycle.unit}>
-                  {Object.entries(UNITS).map(([v, n]) => (
-                    <option key={v} value={v}>
-                      {n}
-                    </option>
-                  ))}
-                </select>
+                <Select
+                  id={`edit-unit-${s.id}`}
+                  name="unit"
+                  defaultValue={s.cycle.unit}
+                  options={labelOptions(UNITS)}
+                />
               </div>
               <div className="field">
                 <label htmlFor={`edit-anchor-${s.id}`}>锚点</label>
@@ -491,7 +475,7 @@ export function ManageSubscription({ subscription: s, today }: { subscription: S
             {mode !== 'menu' && <button onClick={() => setMode('menu')}>返回</button>}
           </div>
         )}
-      </dialog>
+      </Modal>
     </>
   );
 }

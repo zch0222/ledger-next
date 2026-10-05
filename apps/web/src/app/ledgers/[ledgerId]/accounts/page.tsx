@@ -24,6 +24,7 @@ export default async function Accounts({ params, searchParams }: LedgerPageProps
   return (
     <>
       <PageHeading
+        kicker="账户"
         title="账户，各就各位"
         description="账户按原币保留余额；汇总时按参考汇率估值，不改变任何记录。"
         action={<NewAccount open={Boolean(param(search, 'new'))} first={param(search, 'new') === 'first'} />}
@@ -77,7 +78,7 @@ export default async function Accounts({ params, searchParams }: LedgerPageProps
         </div>
       ) : (
         <section className="panel">
-          <EmptyState symbol="▤">还没有账户。新建一个现金、银行卡或信用卡账户开始记账。</EmptyState>
+          <EmptyState symbol="accounts">还没有账户。新建一个现金、银行卡或信用卡账户开始记账。</EmptyState>
         </section>
       )}
       {archived.length > 0 && (

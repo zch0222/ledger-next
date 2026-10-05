@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { expect, type Page } from '@playwright/test';
-import { ledger, password, test, user } from './helpers';
+import { choose as pick, ledger, password, test, user } from './helpers';
 
 // The radios are visually hidden as in the prototype; users press the visible label.
 async function choose(page: Page, name: string) {
@@ -28,12 +28,13 @@ test('registration → new ledger → reload → second ledger → sign out', as
   await expect(page.getByRole('heading', { name: '本月，收支一目了然' })).toBeVisible();
   await page.reload();
   await expect(page.getByLabel('切换账本')).toContainText('我的家庭账本');
-  await page.getByLabel('切换账本').selectOption('new');
+  await page.getByLabel('切换账本').click();
+  await page.getByRole('menuitem', { name: '新建账本' }).click();
   await page.getByLabel('账本名称').fill('旅行基金');
-  await page.getByLabel('基准币种').selectOption('HKD');
+  await pick(page.getByLabel('基准币种'), 'HKD');
   await page.getByRole('button', { name: '创建账本', exact: true }).click();
   await page.getByLabel('账户名称').fill('港币现金');
-  await page.getByLabel('结算币种').selectOption('HKD');
+  await pick(page.getByLabel('结算币种'), 'HKD');
   await page.getByLabel(/期初余额/).fill('100');
   await page.getByRole('button', { name: '保存账户' }).click();
   await expect(page.getByLabel('切换账本')).toContainText('旅行基金');
@@ -97,13 +98,13 @@ test('member UI enforces last-owner error and persists a new viewer', async ({ p
   const book = await ledger(owner.client);
   await context.addCookies((await owner.client.storageState()).cookies);
   await page.goto(`/ledgers/${book.id}/settings`);
-  await page.getByLabel(`${owner.email} 的角色`).selectOption('viewer');
+  await pick(page.getByLabel(`${owner.email} 的角色`), '仅查看');
   await expect(page.getByRole('alert').filter({ hasText: '至少需要保留一位所有者' })).toBeVisible();
   await page.getByLabel('成员邮箱').fill(viewer.email);
   await page.getByRole('button', { name: '添加成员', exact: true }).click();
   await expect(page.getByText(viewer.email, { exact: true })).toBeVisible();
   await page.reload();
-  await expect(page.getByLabel(`${viewer.email} 的角色`)).toHaveValue('viewer');
+  await expect(page.getByLabel(`${viewer.email} 的角色`)).toContainText('仅查看');
   await owner.client.dispose();
   await viewer.client.dispose();
 });

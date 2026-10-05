@@ -50,6 +50,7 @@ export default async function Subscriptions({ params, searchParams }: LedgerPage
   return (
     <>
       <PageHeading
+        kicker="订阅"
         title="订阅，有数也有序"
         description="原币金额、扣款日期和提醒方式放在一起；到期先确认支付，才计入实际支出。"
         action={<NewSubscription today={today} />}
@@ -136,7 +137,7 @@ export default async function Subscriptions({ params, searchParams }: LedgerPage
           </div>
         ) : (
           <section className="panel">
-            <EmptyState symbol="▣">还没有订阅。添加会员、宽带、云服务等周期账单，到期前提醒你。</EmptyState>
+            <EmptyState symbol="subscriptions">还没有订阅。添加会员、宽带、云服务等周期账单，到期前提醒你。</EmptyState>
           </section>
         ))}
       {view === 'list' && (

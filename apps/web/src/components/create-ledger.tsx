@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { api, intent } from '@/lib/client';
 import { useRouter } from 'next/navigation';
+import { Select, plainOptions } from '@/components/ui/select';
 export function CreateLedger({ additional = false }: { additional?: boolean }) {
   const router = useRouter();
   const [error, setError] = useState('');
@@ -39,19 +40,28 @@ export function CreateLedger({ additional = false }: { additional?: boolean }) {
         <div className="formgrid">
           <div className="field">
             <label htmlFor="base-currency">基准币种</label>
-            <select id="base-currency" name="baseCurrency" defaultValue="CNY">
-              {['CNY', 'USD', 'HKD', 'EUR', 'JPY'].map(c => (
-                <option key={c}>{c}</option>
-              ))}
-            </select>
+            <Select
+              id="base-currency"
+              name="baseCurrency"
+              defaultValue="CNY"
+              options={plainOptions(['CNY', 'USD', 'HKD', 'EUR', 'JPY'])}
+            />
           </div>
           <div className="field">
             <label htmlFor="timezone">账本时区</label>
-            <select id="timezone" name="timezone" defaultValue="Asia/Hong_Kong">
-              {['Asia/Hong_Kong', 'Asia/Shanghai', 'Asia/Tokyo', 'America/New_York', 'Europe/London', 'UTC'].map(c => (
-                <option key={c}>{c}</option>
-              ))}
-            </select>
+            <Select
+              id="timezone"
+              name="timezone"
+              defaultValue="Asia/Hong_Kong"
+              options={plainOptions([
+                'Asia/Hong_Kong',
+                'Asia/Shanghai',
+                'Asia/Tokyo',
+                'America/New_York',
+                'Europe/London',
+                'UTC',
+              ])}
+            />
           </div>
         </div>
         <p className="note">首笔入账后基准币种固定；日期与月度统计按账本时区计算。</p>

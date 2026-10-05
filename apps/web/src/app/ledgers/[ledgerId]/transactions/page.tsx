@@ -76,6 +76,7 @@ export default async function Transactions({ params, searchParams }: LedgerPageP
   return (
     <>
       <PageHeading
+        kicker="账目"
         title="每一笔，都清清楚楚"
         description="点击金额查看入账详情、更正、退款或作废；作废与更正都会保留历史。"
         action={<AddButton className="primary" />}
@@ -106,7 +107,7 @@ export default async function Transactions({ params, searchParams }: LedgerPageP
             <EmptyState action={<Link href={path}>清空筛选</Link>}>当前条件下没有账目。</EmptyState>
           ) : (
             <EmptyState
-              symbol="≡"
+              symbol="transactions"
               action={
                 accounts.length ? (
                   <AddButton label="记第一笔" className="primary" />

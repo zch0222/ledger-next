@@ -24,7 +24,11 @@ export default async function DataPage({ params, searchParams }: LedgerPageProps
   ) as Record<string, string>;
   return (
     <>
-      <PageHeading title="导入与导出" description="CSV 先预览校验再入账；导出文件 1 小时内有效，仅你本人可下载。" />
+      <PageHeading
+        kicker="设置"
+        title="导入与导出"
+        description="CSV 先预览校验再入账；导出文件 1 小时内有效，仅你本人可下载。"
+      />
       <SettingsTabs ledgerId={ledgerId} current="data" />
       <ImportWizard jobs={imports.map(strip)} />
       <ExportPanel jobs={exports.map(strip)} defaults={defaults} />

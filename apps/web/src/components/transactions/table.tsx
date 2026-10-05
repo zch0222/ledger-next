@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { formatDate, formatMoney, KIND_LABELS } from '@ledger/ui/format';
 import type { TransactionView } from '@/lib/types';
+import { Icon } from '@/components/ui/icons';
 
 type Names = { accounts: Map<string, string>; categories: Map<string, string> };
 const signOf = (t: TransactionView) =>
@@ -21,6 +22,20 @@ function title(t: TransactionView, names: Names) {
   }
   return t.merchant ?? (t.categoryId ? names.categories.get(t.categoryId) : null) ?? KIND_LABELS[t.kind];
 }
+/** Row badge: a transfer icon, else the category's first character (stable per category), else the kind. */
+function Badge({ t, names }: { t: TransactionView; names: Names }) {
+  const category = t.categoryId ? names.categories.get(t.categoryId) : undefined;
+  return (
+    <span className={`logo kind-${t.kind}`} aria-hidden="true">
+      {t.kind === 'transfer' ? <Icon name="subscriptions" size={16} /> : [...(category ?? KIND_LABELS[t.kind])][0]}
+    </span>
+  );
+}
+/** Local wall-clock time of the entry in its ledger timezone, e.g. "18:05". */
+const timeOf = (t: TransactionView) =>
+  new Intl.DateTimeFormat('zh-CN', { timeZone: t.timezone, hour: '2-digit', minute: '2-digit', hour12: false }).format(
+    new Date(t.occurredAt),
+  );
 /**
  * P02 table: desktop shows all columns; on phones the category / account column hides and rows read as cards under
  * date group headers. Each amount opens the detail drawer (?tx=), keeping the current filters.
@@ -45,8 +60,11 @@ export function TransactionTable({
           <tr>
             <th>交易</th>
             <th className="hide-mobile">分类 / 账户</th>
-            <th className="hide-mobile">日期</th>
-            <th>金额 · 历史入账</th>
+            {/* Grouped lists already head each day, so the column shows the time instead of repeating the date. */}
+            <th className="hide-mobile">{grouped ? '时间' : '日期'}</th>
+            <th>
+              金额<span className="hide-mobile-label"> · {rows[0]?.base.currency} 历史入账</span>
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -65,9 +83,7 @@ export function TransactionTable({
               <tr key={t.id} className={t.status === 'voided' ? 'voided' : undefined}>
                 <td>
                   <div className="merchant">
-                    <span className="logo" aria-hidden="true">
-                      {label.slice(0, 1)}
-                    </span>
+                    <Badge t={t} names={names} />
                     <div>
                       <strong>{label}</strong>
                       <div className="small muted">
@@ -89,8 +105,9 @@ export function TransactionTable({
                     {t.accountId ? (names.accounts.get(t.accountId) ?? '已归档账户') : t.transfer ? '两个账户' : ''}
                   </div>
                 </td>
-                <td className="hide-mobile small muted">{formatDate(t.localDate, today)}</td>
+                <td className="hide-mobile small muted num">{grouped ? timeOf(t) : formatDate(t.localDate, today)}</td>
                 <td>
+                  {/* The base currency is the table's (see header / footer); the settlement amount is under the name. */}
                   <Link
                     className="amount-link"
                     href={hrefFor(t.id)}
@@ -98,7 +115,6 @@ export function TransactionTable({
                   >
                     <Amount t={t} />
                   </Link>
-                  <div className="small muted">{t.base.currency}</div>
                 </td>
               </tr>,
             ];

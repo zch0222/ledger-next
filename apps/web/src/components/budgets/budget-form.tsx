@@ -1,8 +1,10 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ApiError, api, intent } from '@/lib/client';
 import { useLedgerUI } from '@/components/ledger-ui';
+import { Modal, ModalHeader } from '@/components/ui/modal';
+import { Select } from '@/components/ui/select';
 
 type Budget = {
   id: string;
@@ -17,15 +19,10 @@ type Budget = {
 export function BudgetForm({ budget, today }: { budget?: Budget; today: string }) {
   const ui = useLedgerUI();
   const router = useRouter();
-  const dialog = useRef<HTMLDialogElement>(null);
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
   const [busy, setBusy] = useState(false);
   const [submission] = useState(intent);
-  useEffect(() => {
-    if (open) dialog.current?.showModal();
-    else dialog.current?.close();
-  }, [open]);
   if (!ui.canWrite) return null;
   const parents = ui.categories.filter(c => c.kind === 'expense' && !c.parentId);
   async function submit(event: React.FormEvent<HTMLFormElement>) {
@@ -81,14 +78,9 @@ export function BudgetForm({ budget, today }: { budget?: Budget; today: string }
           ＋ 新建预算
         </button>
       )}
-      <dialog ref={dialog} aria-labelledby={`budget-title-${budget?.id ?? 'new'}`} onClose={() => setOpen(false)}>
+      <Modal open={open} onOpenChange={setOpen}>
         <form onSubmit={submit}>
-          <div className="dialoghead">
-            <h2 id={`budget-title-${budget?.id ?? 'new'}`}>{budget ? '调整预算' : '新建预算'}</h2>
-            <button type="button" aria-label="关闭" onClick={() => setOpen(false)}>
-              ✕
-            </button>
-          </div>
+          <ModalHeader title={budget ? '调整预算' : '新建预算'} />
           <div className="dialogbody">
             <div className="field">
               <label htmlFor="budget-name">名称（可选）</label>
@@ -98,22 +90,28 @@ export function BudgetForm({ budget, today }: { budget?: Budget; today: string }
               <div className="formgrid">
                 <div className="field">
                   <label htmlFor="budget-category">范围</label>
-                  <select id="budget-category" name="categoryId" defaultValue="">
-                    <option value="">全部支出（总预算）</option>
-                    {parents.map(c => (
-                      <option key={c.id} value={c.id}>
-                        {c.name}（含子分类）
-                      </option>
-                    ))}
-                  </select>
+                  <Select
+                    id="budget-category"
+                    name="categoryId"
+                    defaultValue=""
+                    options={[
+                      { value: '', label: '全部支出（总预算）' },
+                      ...parents.map(c => ({ value: c.id, label: `${c.name}（含子分类）` })),
+                    ]}
+                  />
                 </div>
                 <div className="field">
                   <label htmlFor="budget-period">周期</label>
-                  <select id="budget-period" name="period" defaultValue="month">
-                    <option value="week">每周（周一起）</option>
-                    <option value="month">每月</option>
-                    <option value="year">每年</option>
-                  </select>
+                  <Select
+                    id="budget-period"
+                    name="period"
+                    defaultValue="month"
+                    options={[
+                      { value: 'week', label: '每周（周一起）' },
+                      { value: 'month', label: '每月' },
+                      { value: 'year', label: '每年' },
+                    ]}
+                  />
                 </div>
               </div>
             )}
@@ -168,7 +166,7 @@ export function BudgetForm({ budget, today }: { budget?: Budget; today: string }
             </button>
           </div>
         </form>
-      </dialog>
+      </Modal>
     </>
   );
 }

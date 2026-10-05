@@ -4,6 +4,8 @@ import { useRouter } from 'next/navigation';
 import { parseCsv } from '@ledger/domain/csv';
 import { ApiError, api, intent } from '@/lib/client';
 import { useLedgerUI } from '@/components/ledger-ui';
+import { formatInstant } from '@/lib/time';
+import { Select, plainOptions } from '@/components/ui/select';
 
 type ImportJob = {
   id: string;
@@ -208,38 +210,38 @@ export function ImportWizard({ jobs: initialJobs }: { jobs: ImportJob[] }) {
                       {label}
                       {required ? ' *' : ''}
                     </label>
-                    <select
+                    <Select
                       id={`map-${field}`}
                       value={mapping[field] ?? ''}
-                      onChange={e => setMapping(m => ({ ...m, [field]: e.target.value }))}
-                    >
-                      <option value="">{required ? '请选择' : '不导入'}</option>
-                      {header.map(h => (
-                        <option key={h} value={h}>
-                          {h}
-                        </option>
-                      ))}
-                    </select>
+                      onValueChange={column => setMapping(m => ({ ...m, [field]: column }))}
+                      options={[{ value: '', label: required ? '请选择' : '不导入' }, ...plainOptions(header)]}
+                    />
                   </div>
                 ))}
               </div>
               <div className="formgrid">
                 <div className="field">
                   <label htmlFor="map-date-format">日期格式</label>
-                  <select id="map-date-format" value={dateFormat} onChange={e => setDateFormat(e.target.value)}>
-                    {['YYYY-MM-DD', 'YYYY/MM/DD', 'DD/MM/YYYY', 'MM/DD/YYYY'].map(f => (
-                      <option key={f}>{f}</option>
-                    ))}
-                  </select>
+                  <Select
+                    id="map-date-format"
+                    value={dateFormat}
+                    onValueChange={setDateFormat}
+                    options={plainOptions(['YYYY-MM-DD', 'YYYY/MM/DD', 'DD/MM/YYYY', 'MM/DD/YYYY'])}
+                  />
                 </div>
                 {!mapping.kind && (
                   <div className="field">
                     <label htmlFor="map-default-kind">没有类型列时</label>
-                    <select id="map-default-kind" value={defaultKind} onChange={e => setDefaultKind(e.target.value)}>
-                      <option value="">负数为支出，正数为收入</option>
-                      <option value="expense">全部为支出（金额为正）</option>
-                      <option value="income">全部为收入</option>
-                    </select>
+                    <Select
+                      id="map-default-kind"
+                      value={defaultKind}
+                      onValueChange={setDefaultKind}
+                      options={[
+                        { value: '', label: '负数为支出，正数为收入' },
+                        { value: 'expense', label: '全部为支出（金额为正）' },
+                        { value: 'income', label: '全部为收入' },
+                      ]}
+                    />
                   </div>
                 )}
               </div>
@@ -304,7 +306,7 @@ export function ImportWizard({ jobs: initialJobs }: { jobs: ImportJob[] }) {
             {jobs.map(j => (
               <li key={j.id}>
                 <span>
-                  {j.fileName} · {new Date(j.createdAt).toLocaleString('zh-CN', { hour12: false })}
+                  {j.fileName} · {formatInstant(j.createdAt, ui.ledger.timezone)}
                 </span>
                 <span className="gap">
                   <span className="pill">{STATUS[j.status] ?? j.status}</span>
@@ -388,14 +390,12 @@ export function ExportPanel({ jobs: initialJobs, defaults }: { jobs: ExportJob[]
         </div>
         <div className="field">
           <label htmlFor="export-account">账户</label>
-          <select id="export-account" name="accountId" defaultValue={defaults.accountId ?? ''}>
-            <option value="">全部</option>
-            {ui.accounts.map(a => (
-              <option key={a.id} value={a.id}>
-                {a.name}
-              </option>
-            ))}
-          </select>
+          <Select
+            id="export-account"
+            name="accountId"
+            defaultValue={defaults.accountId ?? ''}
+            options={[{ value: '', label: '全部' }, ...ui.accounts.map(a => ({ value: a.id, label: a.name }))]}
+          />
         </div>
         <div className="field">
           <label>&nbsp;</label>
@@ -414,7 +414,7 @@ export function ExportPanel({ jobs: initialJobs, defaults }: { jobs: ExportJob[]
           {jobs.map(j => (
             <li key={j.id}>
               <span>
-                {new Date(j.createdAt).toLocaleString('zh-CN', { hour12: false })}
+                {formatInstant(j.createdAt, ui.ledger.timezone)}
                 {j.rowCount !== null ? ` · ${j.rowCount} 笔` : ''}
               </span>
               <span className="gap">

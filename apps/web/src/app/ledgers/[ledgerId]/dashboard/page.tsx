@@ -60,6 +60,7 @@ export default async function Dashboard({ params, searchParams }: LedgerPageProp
   return (
     <div className="page-enter">
       <PageHeading
+        kicker="总览"
         title={range.isCurrent ? '本月，收支一目了然' : `${range.short}，收支一目了然`}
         description="掌握支出的节奏，把重要的事提前安排好。"
         action={
@@ -73,7 +74,7 @@ export default async function Dashboard({ params, searchParams }: LedgerPageProp
       {!accounts.length && (
         <section className="panel onboarding-panel">
           <EmptyState
-            symbol="↗"
+            symbol="arrowUpRight"
             action={
               <div className="gap">
                 <Link className="button primary" href={`/ledgers/${ledgerId}/accounts?new=first`}>

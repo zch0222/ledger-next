@@ -1,7 +1,11 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ApiError, api, intent, randomKey } from '@/lib/client';
+import { formatInstant } from '@/lib/time';
+import { useLedgerUI } from '@/components/ledger-ui';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Modal, ModalHeader } from '@/components/ui/modal';
 import {
   CHANNEL_STATUS,
   CHANNEL_TYPES,
@@ -101,6 +105,7 @@ export function ChannelsPanel({ channels }: { channels: ChannelView[] }) {
 }
 
 function ChannelRow({ channel: c }: { channel: ChannelView }) {
+  const { timezone } = useLedgerUI().ledger;
   const router = useRouter();
   const [test, setTest] = useState<{ state: string; text: string } | null>(null);
   const [code, setCode] = useState('');
@@ -202,7 +207,7 @@ function ChannelRow({ channel: c }: { channel: ChannelView }) {
       )}
       <p className="small muted">
         {c.lastVerifiedAt
-          ? `最近验证 ${new Date(c.lastVerifiedAt).toLocaleString('zh-CN', { hour12: false })}`
+          ? `最近验证 ${formatInstant(c.lastVerifiedAt, timezone)}`
           : '尚未验证：发送测试消息并确认收到后启用'}
       </p>
       {c.lastError && (
@@ -293,14 +298,10 @@ function ChannelForm({
   onClose: () => void;
 }) {
   const router = useRouter();
-  const dialog = useRef<HTMLDialogElement>(null);
   const [submission] = useState(intent);
   const [error, setError] = useState<ApiError | null>(null);
   const [busy, setBusy] = useState(false);
   const [replace, setReplace] = useState(!channel);
-  useEffect(() => {
-    dialog.current?.showModal();
-  }, []);
   const meta = CHANNEL_TYPES[type];
   const fields = FIELDS[type];
   async function submit(event: React.FormEvent<HTMLFormElement>) {
@@ -334,7 +335,6 @@ function ChannelForm({
         });
         submission.done();
       }
-      dialog.current?.close();
       onClose();
       router.refresh();
     } catch (e) {
@@ -345,30 +345,9 @@ function ChannelForm({
   }
   const fieldError = (key: string) => error?.errors.find(e => e.path === `config.${key}`)?.message;
   return (
-    <dialog
-      ref={dialog}
-      aria-labelledby="channel-form-title"
-      onClose={onClose}
-      onCancel={e => {
-        e.preventDefault();
-        dialog.current?.close();
-        onClose();
-      }}
-    >
+    <Modal open onOpenChange={next => !next && onClose()}>
       <form onSubmit={submit}>
-        <div className="dialoghead">
-          <h2 id="channel-form-title">{channel ? `修改 ${channel.name}` : `添加${meta.name}`}</h2>
-          <button
-            type="button"
-            aria-label="关闭"
-            onClick={() => {
-              dialog.current?.close();
-              onClose();
-            }}
-          >
-            ✕
-          </button>
-        </div>
+        <ModalHeader title={channel ? `修改 ${channel.name}` : `添加${meta.name}`} />
         <div className="dialogbody">
           <p className="sub">{meta.desc}</p>
           <div className="field">
@@ -376,17 +355,16 @@ function ChannelForm({
             <input id="channel-name" name="name" maxLength={60} defaultValue={channel?.name ?? meta.name} />
           </div>
           {channel && (
-            <label className="small check-row">
-              <input type="checkbox" checked={replace} onChange={e => setReplace(e.target.checked)} />{' '}
+            <Checkbox className="small check-row" checked={replace} onCheckedChange={setReplace}>
               重新填写凭据（保存后需重新测试）
-            </label>
+            </Checkbox>
           )}
           {replace &&
             fields.map(f =>
               f.type === 'checkbox' ? (
-                <label key={f.key} className="small check-row">
-                  <input type="checkbox" name={f.key} /> {f.label}
-                </label>
+                <Checkbox key={f.key} className="small check-row" name={f.key}>
+                  {f.label}
+                </Checkbox>
               ) : (
                 <div className="field" key={f.key}>
                   <label htmlFor={`channel-${f.key}`}>{f.label}</label>
@@ -413,13 +391,7 @@ function ChannelForm({
           )}
         </div>
         <div className="dialogfoot">
-          <button
-            type="button"
-            onClick={() => {
-              dialog.current?.close();
-              onClose();
-            }}
-          >
+          <button type="button" onClick={onClose}>
             取消
           </button>
           <button className="primary" disabled={busy}>
@@ -427,6 +399,6 @@ function ChannelForm({
           </button>
         </div>
       </form>
-    </dialog>
+    </Modal>
   );
 }

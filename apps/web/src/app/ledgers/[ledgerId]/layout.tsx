@@ -10,6 +10,7 @@ import { LedgerProvider } from '@/components/ledger-ui';
 import { AddButton } from '@/components/shell/add-button';
 import { CurrencySelect } from '@/components/shell/currency-select';
 import { MobileNav, SideNav } from '@/components/shell/nav';
+import { Icon } from '@/components/ui/icons';
 import { currentAppearance } from '@/lib/appearance';
 import { unreadCount } from '@ledger/domain/deliveries';
 import Link from 'next/link';
@@ -55,14 +56,12 @@ export default async function LedgerLayout({
     >
       <div className="shell">
         <aside className="sidebar">
-          <div className="brand">
+          <Link className="brand" href={`/ledgers/${ledgerId}/dashboard`} aria-label="Ledger 总览">
             <span className="mark" aria-hidden="true">
-              ↗
+              <Icon name="arrowUpRight" size={22} strokeWidth={2.25} />
             </span>
-            <div>
-              Ledger<small>YOUR MONEY, CLEARLY.</small>
-            </div>
-          </div>
+            Ledger
+          </Link>
           <Suspense>
             <SideNav ledgerId={ledgerId} />
           </Suspense>
@@ -90,7 +89,7 @@ export default async function LedgerLayout({
                 aria-label={unread ? `站内通知，${unread} 条未读` : '站内通知'}
                 title="站内通知"
               >
-                <span aria-hidden="true">♧</span>
+                <Icon name="bell" size={18} />
                 {unread > 0 && (
                   <span className="badge" aria-hidden="true">
                     {unread > 99 ? '99+' : unread}
@@ -104,7 +103,7 @@ export default async function LedgerLayout({
                 userId={user.id}
               />
               <AddButton />
-              <AccountMenu name={user.name} />
+              <AccountMenu name={user.name} email={user.email} ledgerId={ledgerId} />
             </div>
           </header>
           <main id="content">{children}</main>

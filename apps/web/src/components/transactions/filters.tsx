@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { Select, labelOptions } from '@/components/ui/select';
 
 type Option = { id: string; name: string };
 const LABELS: Record<string, string> = {
@@ -58,50 +59,39 @@ export function TransactionFilters({ categories, accounts }: { categories: Optio
     <div className="filters">
       <div className="filterbar" role="search">
         <input
+          className="filter-search"
           aria-label="搜索商家或备注"
           placeholder="搜索商家、备注…"
           value={q}
           onChange={e => setQ(e.target.value)}
           maxLength={100}
         />
-        <select
+        <Select
           aria-label="交易类型"
           value={search.get('kind') ?? ''}
-          onChange={e => update({ kind: e.target.value || null })}
-        >
-          <option value="">全部类型</option>
-          {Object.entries(KINDS).map(([v, n]) => (
-            <option key={v} value={v}>
-              {n}
-            </option>
-          ))}
-        </select>
-        <select
+          onValueChange={kind => update({ kind: kind || null })}
+          options={[{ value: '', label: '全部类型' }, ...labelOptions(KINDS)]}
+        />
+        <Select
           aria-label="分类筛选"
           value={search.get('categoryId') ?? ''}
-          onChange={e => update({ categoryId: e.target.value || null })}
-        >
-          <option value="">全部分类</option>
-          {categories.map(c => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
-        <select
+          onValueChange={categoryId => update({ categoryId: categoryId || null })}
+          options={[{ value: '', label: '全部分类' }, ...categories.map(c => ({ value: c.id, label: c.name }))]}
+        />
+        <Select
           aria-label="账户筛选"
           value={search.get('accountId') ?? ''}
-          onChange={e => update({ accountId: e.target.value || null })}
-        >
-          <option value="">全部账户</option>
-          {accounts.map(a => (
-            <option key={a.id} value={a.id}>
-              {a.name}
-            </option>
-          ))}
-        </select>
+          onValueChange={accountId => update({ accountId: accountId || null })}
+          options={[{ value: '', label: '全部账户' }, ...accounts.map(a => ({ value: a.id, label: a.name }))]}
+        />
+        <Select
+          aria-label="版本状态"
+          value={search.get('status') ?? 'posted'}
+          onValueChange={status => update({ status: status === 'posted' ? null : status })}
+          options={labelOptions(STATUSES)}
+        />
         <label className="date-filter">
-          <span className="visually-hidden">开始日期（含）</span>
+          <span aria-hidden="true">从</span>
           <input
             type="date"
             aria-label="开始日期（含）"
@@ -110,7 +100,7 @@ export function TransactionFilters({ categories, accounts }: { categories: Optio
           />
         </label>
         <label className="date-filter">
-          <span className="visually-hidden">结束日期（不含）</span>
+          <span aria-hidden="true">至</span>
           <input
             type="date"
             aria-label="结束日期（不含）"
@@ -118,17 +108,6 @@ export function TransactionFilters({ categories, accounts }: { categories: Optio
             onChange={e => update({ dateTo: e.target.value || null })}
           />
         </label>
-        <select
-          aria-label="版本状态"
-          value={search.get('status') ?? 'posted'}
-          onChange={e => update({ status: e.target.value === 'posted' ? null : e.target.value })}
-        >
-          {Object.entries(STATUSES).map(([v, n]) => (
-            <option key={v} value={v}>
-              {n}
-            </option>
-          ))}
-        </select>
       </div>
       {active.length > 0 && (
         <div className="chips" aria-label="已选筛选">

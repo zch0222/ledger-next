@@ -5,7 +5,8 @@ import { groupDigits } from '@ledger/ui/format';
 
 // Chart models carry decimal strings; numbers are used only to draw. Labels and the data tables below each chart
 // show the server's exact strings.
-export type TrendPoint = { label: string; income: string; expense: string };
+/** `future`: the bucket has not started yet; it is left blank instead of being drawn as a zero. */
+export type TrendPoint = { label: string; income: string; expense: string; future?: boolean };
 export type CategoryItem = { name: string; amount: string; colorIndex: number };
 export type ChartModel =
   | { type: 'trend'; mode: 'expense' | 'compare'; points: TrendPoint[]; currency: string; description: string }
@@ -134,7 +135,7 @@ function option(model: ChartModel, width: number, reduced: boolean, lib: typeof 
           id: 'expense',
           name: '支出',
           type: compare ? 'bar' : 'line',
-          data: model.points.map(p => ({ name: p.label, value: Math.max(0, Number(p.expense)) })),
+          data: model.points.map(p => ({ name: p.label, value: p.future ? null : Math.max(0, Number(p.expense)) })),
           smooth: 0.2,
           smoothMonotone: 'x',
           showSymbol: false,
@@ -158,7 +159,7 @@ function option(model: ChartModel, width: number, reduced: boolean, lib: typeof 
           id: 'income',
           name: '收入',
           type: 'bar',
-          data: compare ? model.points.map(p => ({ name: p.label, value: Number(p.income) })) : [],
+          data: compare ? model.points.map(p => ({ name: p.label, value: p.future ? null : Number(p.income) })) : [],
           barMaxWidth: 23,
           itemStyle: { color: c.positive, borderRadius: [6, 6, 0, 0] },
           emphasis: { focus: 'series' },
@@ -263,10 +264,13 @@ export function Chart({
   model,
   onSelect,
   className = 'echart',
+  height,
 }: {
   model: ChartModel;
   onSelect?: (target: { index: number; name: string }) => void;
   className?: string;
+  /** Overrides the CSS height, e.g. to size a ranking by its number of rows. */
+  height?: number;
 }) {
   const dom = useRef<HTMLDivElement>(null);
   const chart = useRef<EChartsType | null>(null);
@@ -321,6 +325,6 @@ export function Chart({
       图表资源不可用，请查看下方数据。
     </div>
   ) : (
-    <div ref={dom} className={className} data-chart={model.type} />
+    <div ref={dom} className={className} style={height ? { height } : undefined} data-chart={model.type} />
   );
 }

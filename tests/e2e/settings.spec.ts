@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { expect, type BrowserContext, type TestInfo } from '@playwright/test';
-import { book, test, user } from './helpers';
+import { book, choose, test, user } from './helpers';
 
 // P09 / P11 / P12 and the viewer role, in both projects.
 const mobile = (info: TestInfo) => info.project.name === 'mobile';
@@ -27,8 +27,8 @@ test('CSV import wizard: map, validate, commit, skip duplicates, revert the batc
   );
   await page.getByLabel(/1\. 选择 UTF-8 CSV/).setInputFiles({ name: 'bank.csv', mimeType: 'text/csv', buffer: csv });
   // Columns are guessed from the header; the user can still change them.
-  await expect(page.getByLabel('日期 *')).toHaveValue('日期');
-  await expect(page.getByLabel('商家')).toHaveValue('商家');
+  await expect(page.getByLabel('日期 *')).toContainText('日期');
+  await expect(page.getByLabel('商家')).toContainText('商家');
   await page.getByRole('button', { name: '3. 上传并校验' }).click();
   const result = page.locator('.import-result');
   await expect(result.getByRole('heading')).toContainText('bank.csv · 待提交');
@@ -93,7 +93,7 @@ test('currencies show source and freshness; a manual rate needs a reason; catalo
   await page.getByRole('button', { name: '添加分类' }).click();
   await expect(page.getByRole('status').filter({ hasText: '已添加 宠物' })).toBeVisible();
   await page.getByLabel('新分类').fill('猫粮');
-  await page.getByLabel('上级（可选）').selectOption({ label: '支出 · 宠物' });
+  await choose(page.getByLabel('上级（可选）'), '支出 · 宠物');
   await page.getByRole('button', { name: '添加分类' }).click();
   const child = page.locator('.catalog li.child').filter({ hasText: '猫粮' });
   await expect(child).toBeVisible();
@@ -113,7 +113,7 @@ test('currencies show source and freshness; a manual rate needs a reason; catalo
   await renamed.getByRole('button', { name: '归档' }).click();
   await expect(page.getByRole('status').filter({ hasText: '已归档 猫砂（历史账目保留）' })).toBeVisible();
   await expect(renamed).toBeHidden();
-  await page.getByLabel('显示已归档').check();
+  await page.getByRole('checkbox', { name: '显示已归档' }).check();
   await expect(renamed).toContainText('已归档');
   await page.goto(`/ledgers/${b.ledger.id}/transactions`);
   if (!mobile(info)) await expect(page.getByRole('cell', { name: /猫砂/ })).toBeVisible();
